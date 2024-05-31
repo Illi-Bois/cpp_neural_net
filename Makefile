@@ -15,9 +15,7 @@ OBJ_NAME = main
 TEST_NAME = test
 
 # same as -I./include
-INCLUDE_PATHS = 
-SDL_INCLUDE_PATHS = 
-LIBRARY_PATHS = 
+INCLUDE_PATHS = -Iinclude 
 
 COMPILER_FLAG =  -std=c++11 -Wall -O0 -g 
 LINKER_FLAG = 
