@@ -3,3 +3,4 @@
 !/build/debug
 !/build/tests
 /build/*
+.DS_store
