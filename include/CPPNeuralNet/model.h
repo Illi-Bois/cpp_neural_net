@@ -11,6 +11,7 @@ namespace cpp_nn {
  * Specific types of neural net models, such as Perceptrons, will inherit from Model. 
 */
 class Model {
+  
 
 };
 
