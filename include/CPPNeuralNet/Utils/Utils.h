@@ -2,6 +2,8 @@
 #define CPP_NN_UTIL
 
 
+#include <vector>
+
 namespace cpp_nn {
 
 namespace util {
@@ -15,7 +17,16 @@ class Matrix {
   //    vec<vec<>>
   //    Should it be a template? double
   // TODO make matrix multiplication
+ private:
+  int num_rows_, num_cols_; 
+  std::vector<std::vector<double>> elements_; // elements[row][col]
 
+
+ public:
+  /**
+   * Returns another instance of matrix with this * other; 
+  */
+  Matrix operator*(Matrix& const other);
 };
 
 /**
