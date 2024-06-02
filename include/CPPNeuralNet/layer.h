@@ -23,6 +23,11 @@ class Layer {
   virtual void backward(); 
 };
 
+class Linear : public Layer{
+  private:
+  public:
+};
+
 
 } // cpp_nn
 
