@@ -28,7 +28,7 @@ class Model {
   // Compute forward pass of input through all the layer.
   util::Vector forward(util::Vector input); 
   // Update all the layer according to last run input. 
-  void backward(); 
+  void backward(); // TODO see if return should be current gradient.
 };
 
 }
