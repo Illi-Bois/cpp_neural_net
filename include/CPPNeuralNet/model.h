@@ -1,6 +1,12 @@
 #ifndef CPP_NN_MODEL
 #define CPP_NN_MODEL
 
+// TODO preferably find better lower level alternative. Consider array of pointers. 
+#include "vector" 
+
+#include "include/CPPNeuralNet/layer.h"
+#include "include/CPPNeuralNet/Utils/Utils.h"
+
 namespace cpp_nn {
 
 /***
@@ -11,8 +17,18 @@ namespace cpp_nn {
  * Specific types of neural net models, such as Perceptrons, will inherit from Model. 
 */
 class Model {
-  
+ private:
+  std::vector<Layer> layers;
+ public: 
 
+  Model();
+  
+  Model& const addLayer(Layer layer);
+
+  // Compute forward pass of input through all the layer.
+  util::Vector forward(util::Vector input); 
+  // Update all the layer according to last run input. 
+  void backward(); 
 };
 
 }

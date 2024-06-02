@@ -1,6 +1,8 @@
 #ifndef CPP_NN_LAYER
 #define CPP_NN_LAYER
 
+#include "include/CPPNeuralNet/Utils/Utils.h"
+
 namespace cpp_nn {
 
 /***
@@ -11,9 +13,17 @@ namespace cpp_nn {
  * Ideally, layers will also maintain last run deriviates for faster training.
 */
 class Layer {
+ private:
 
+ public:
+
+  // Compute forward pass of input through the layer.
+  virtual util::Vector forward(util::Vector input); 
+  // Update the layer according to last run input. 
+  virtual void backward(); 
 };
 
-}
+
+} // cpp_nn
 
 #endif  // CPP_NN_LAYER
