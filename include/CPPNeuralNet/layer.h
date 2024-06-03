@@ -18,7 +18,7 @@ class Layer {
  public:
 
   // Compute forward pass of input through the layer.
-  virtual util::Vector forward(util::Vector input); 
+  virtual util::Vector<double> forward(util::Vector<double> input); 
   // Update the layer according to last run input. 
   virtual void backward(); 
 };
