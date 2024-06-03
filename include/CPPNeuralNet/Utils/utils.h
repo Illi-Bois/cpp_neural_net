@@ -13,7 +13,7 @@ namespace util {
  * Lowest level math object for NN. Vectors will be treated as special case of matrices.
 */
 
-template<typename T>
+template<typename T= double>
 class Matrix {
  private:
   int num_rows_, num_cols_; 
@@ -37,6 +37,7 @@ class Matrix {
   Matrix operator*(const Matrix& other) const;
   const std::vector<T>& operator[](int index) const;
   std::vector<T>& operator[](int index);
+  static T dot(const std::vector<T> v1, const std::vector<T> v2);
   
 };
 
@@ -45,14 +46,15 @@ class Matrix {
  * 
  * 
 */
-template<typename T>
+template<typename T=double>
 class Vector : public Matrix<T> {
  private:
  public:
-  Matrix(int dim, T initial_value = T())
+  Vector(int dim, T initial_value = T())
       : Matrix<T>(dim, 1, initial_value) {};
 };
 
+using DefaultVector = Vector<double>;
 
 // TODO implement tensors. 
 
