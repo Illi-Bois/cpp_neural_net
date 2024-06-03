@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <initializer_list>
 
 namespace cpp_nn {
 
@@ -11,22 +12,32 @@ namespace util {
 /**
  * Lowest level math object for NN. Vectors will be treated as special case of matrices.
 */
-class Matrix {
 
-  // TODO define how matrix is stored
-  //    vec<vec<>>
-  //    Should it be a template? double
-  // TODO make matrix multiplication
+template<typename T>
+class Matrix {
  private:
   int num_rows_, num_cols_; 
-  std::vector<std::vector<double>> elements_; // elements[row][col]
-
-
+  std::vector<std::vector<T>> elements_; // elements[row][col]
  public:
   /**
-   * Returns another instance of matrix with this * other; 
+   * Constructor with Initial Value
   */
-  Matrix operator*(Matrix& const other);
+  Matrix(int num_rows, int num_cols, T initial_value = T());
+  /**
+   * Constructor with Initializer list
+  */
+  Matrix(std::initializer_list<std::initializer_list<T>> list);
+  /**
+   * Returns another instance of matrix with this * other; 
+   * Edits made : put const infront; apparantly Matrix& const other = Matrix& as references are constant inherently
+   * Const Overloading : 
+   * const Before Return Type: Ensures the returned reference is a reference to a const vector, preventing modification of the vector's contents through this reference. 
+   * const After Function Signature: Ensures the member function can be called on const instances and does not modify the state of the object.
+  */
+  Matrix operator*(const Matrix& other) const;
+  const std::vector<T>& operator[](int index) const;
+  std::vector<T>& operator[](int index);
+  
 };
 
 /**
@@ -44,5 +55,8 @@ class Vector : public Matrix {
 } // util
 
 } // cpp_nn
+
+
+#include "src/CPPNeuralNet/Utils/Utils.tpp";
 
 #endif  // CPP_NN_UTIL
