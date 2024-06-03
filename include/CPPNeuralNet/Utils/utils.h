@@ -54,7 +54,7 @@ class Vector : public Matrix<T> {
       : Matrix<T>(dim, 1, initial_value) {};
 };
 
-using DefaultVector = Vector<double>;
+
 
 // TODO implement tensors. 
 

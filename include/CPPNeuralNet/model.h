@@ -5,7 +5,7 @@
 #include "vector" 
 
 #include "include/CPPNeuralNet/layer.h"
-#include "include/CPPNeuralNet/Utils/Utils.h"
+#include "include/CPPNeuralNet/Utils/utils.h"
 
 namespace cpp_nn {
 
@@ -26,7 +26,7 @@ class Model {
   Model& const addLayer(Layer layer);
 
   // Compute forward pass of input through all the layer.
-  util::Vector forward(util::Vector input); 
+  util::Vector<> forward(util::Vector<> input); 
   // Update all the layer according to last run input. 
   void backward(); // TODO see if return should be current gradient.
 };
