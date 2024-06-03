@@ -45,8 +45,12 @@ class Matrix {
  * 
  * 
 */
-class Vector : public Matrix {
-
+template<typename T>
+class Vector : public Matrix<T> {
+ private:
+ public:
+  Matrix(int dim, T initial_value = T())
+      : Matrix<T>(dim, 1, initial_value) {};
 };
 
 
