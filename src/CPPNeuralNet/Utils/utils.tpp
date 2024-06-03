@@ -7,7 +7,9 @@
 
 namespace cpp_nn{
 namespace util{
-    
+// /**
+//   * Constructor with Initial Value
+//  */
 template<typename T>
 Matrix<T>::Matrix(int num_rows, int num_cols, T initial_value = T()) 
     : num_rows_(num_rows), num_cols_(num_col), elements_(num_rows, std::vector<T>(num_cols, initial value)){}
@@ -25,11 +27,16 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list): num_row
         }
     }
 }
+
+template<typename T>
+Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
+    if(num_cols_ != other.num_rows_){
+        throw std::invalid_argument("Matrix dimension not compatible for multiplication")
+    }
+}
 }
 
-// /**
-//   * Constructor with Initial Value
-//  */
+
 
 //  /**
 //   * Constructor with Initializer list
