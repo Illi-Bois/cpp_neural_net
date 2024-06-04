@@ -26,6 +26,8 @@ class Layer {
 
 class Linear : public Layer{
   private:
+  util::Matrix<> weights;
+  util::Matrix<> biases;
   public:
 };
 
