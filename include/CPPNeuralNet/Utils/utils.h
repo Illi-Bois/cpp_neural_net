@@ -96,7 +96,7 @@ class Vector : public Matrix<T> {
   
 
   // Remove two indexed getters for Vector.
-  T& getElement(const int row, const int col = 0) = delete;
+  inline T& getElement(const int row, const int col) = delete;
   T& operator()(const int row, const int col) = delete;
 
   inline T& getElement(const int row) {
