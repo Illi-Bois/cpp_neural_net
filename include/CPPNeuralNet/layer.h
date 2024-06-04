@@ -20,7 +20,8 @@ class Layer {
   // Compute forward pass of input through the layer.
   virtual util::Vector<double> forward(util::Vector<double> input); 
   // Update the layer according to last run input. 
-  virtual void backward(); 
+  // Gradient from net layer is passed. Current gradient is returned.
+  virtual util::Vector<double> backward(util::Vector<double>& const gradient); 
 };
 
 class Linear : public Layer{
