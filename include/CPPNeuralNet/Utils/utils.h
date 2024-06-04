@@ -13,6 +13,7 @@ namespace util {
  * Lowest level math object for NN. Vectors will be treated as special case of matrices.
 */
 
+// TODO organize methods and locations
 template<typename T= double>
 class Matrix {
  private:
@@ -27,6 +28,22 @@ class Matrix {
    * Constructor with Initializer list
   */
   Matrix(std::initializer_list<std::initializer_list<T>> list);
+  
+
+  // Copy constrcutor. 
+  // Deep copy of other
+  Matrix(Matrix& const other)
+      : num_rows_(other.num_rows), num_cols_(other.num_cols),
+        elements_(other.elements) {}
+  
+  // Copy Operator.
+  //   Note: it is essential that copy operator and constrcutor be different. 
+  Matrix& operator=(Matrix& const other);
+
+  // Updates elements of self to be this * B.
+  // Notice that MatMul inheritly updates current's elements
+  Matrix& MatMul(Matrix& const B);
+ 
   /**
    * Returns another instance of matrix with this * other; 
    * Edits made : put const infront; apparantly Matrix& const other = Matrix& as references are constant inherently
@@ -35,9 +52,25 @@ class Matrix {
    * const After Function Signature: Ensures the member function can be called on const instances and does not modify the state of the object.
   */
   Matrix operator*(const Matrix& other) const;
-  const std::vector<T>& operator[](int index) const;
-  std::vector<T>& operator[](int index);
-  static T dot(const std::vector<T> v1, const std::vector<T> v2);
+
+  // ! Notice that MatMul and * are intrinsictally connected. Meaning We can define one nith the orther.
+  //   ie. MatMul(...) := (*this) = (*this * other)
+  //       operator*(...) := (Matrix(*this)).MatMul(other)
+
+
+  inline T& getElement(const int row, const int col) {
+    return elements_[row][col];
+  }
+  T& operator()(const int row, const int col) {
+    return getElement(row, col);
+  }
+
+  // ! I would recommend not parsing matrix like this. Rather use the above Parenthesis indexing which allows multiple arguements, such as matrix(row, col);
+  // const std::vector<T>& operator[](int index) const;
+  // std::vector<T>& operator[](int index);
+  
+  // ! Dot should be member of Vector calss. Further, it seems like you made typo where it should be Vector not vector. 
+  // static T dot(const std::vector<T> v1, const std::vector<T> v2);
   
 };
 
