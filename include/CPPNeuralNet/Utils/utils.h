@@ -94,6 +94,18 @@ class Vector : public Matrix<T> {
       : Matrix<T>(dim, 1, initial_value) {};
   static T dot(const Vector<T>& v1, const Vector<T>& v2);
   
+
+  // Remove two indexed getters for Vector.
+  T& getElement(const int row, const int col = 0) = delete;
+  T& operator()(const int row, const int col) = delete;
+
+  inline T& getElement(const int row) {
+    return elements_[row][0];
+  }
+  T& operator()(const int row) {
+    return this->getElement(row)
+  }
+
 };
 
 

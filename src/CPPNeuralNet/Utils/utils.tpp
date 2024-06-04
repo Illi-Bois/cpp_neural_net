@@ -68,13 +68,14 @@ Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
 */
 
 template<typename T>
-T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2){
-    if(v1.getNumRows() != v2.getNumRows() || v1.getNumCols() != 1 || v2.getNumCols() != 1){
+T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2) {
+    if (v1.getNumRows() != v2.getNumRows()) { // col_check unnecessary, as Vector asserts 1-column.
         throw std::invalid_argument("Vector dimensions not compatible for Dot Product");
     }
     T temp = T();
-    for(int i = 0; i < v1.getNumRows();++i){
-        temp+= v1(i,0) * v2(i,0);
+    const int rows = v1.getNumRows;
+    for (int i = 0; i < rows; ++i) {
+        temp += v1(i) * v2(i);
     }
     return temp;
 }
