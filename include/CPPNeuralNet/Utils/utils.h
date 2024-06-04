@@ -103,7 +103,7 @@ class Vector : public Matrix<T> {
     return elements_[row][0];
   }
   T& operator()(const int row) {
-    return this->getElement(row)
+    return this->getElement(row);
   }
 
 };
