@@ -26,27 +26,18 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
     }
 }
 
-template<typename T>
-T dot(const std::vector<T>& v1, const std::vector<T>& v2){
-    if(v1.size() != v2.size()){
-        throw std::invalid_argument("Vector dimensions not compatible for Dot Product");
-    }
-    T temp = T();
-    for(int i = 0; i < v1.size();++i){
-        temp+= v1[i]*v2[i];
-    }
-    return temp;
-}
 
-template<typename T>
-const std::vector<T>& Matrix<T>::operator[](int index) const{
-    return elements_[index];
-}
 
-template<typename T>
-std::vector<T>& Matrix<T>::operator[](int index){
-    return elements_[index];
-}
+// template<typename T>
+// const std::vector<T>& Matrix<T>::operator[](int index) const{
+//     return elements_[index];
+// }
+
+
+// template<typename T>
+// std::vector<T>& Matrix<T>::operator[](int index){
+//     return elements_[index];
+// }
 
 
 
@@ -57,17 +48,35 @@ Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
     if(num_cols_ != other.num_rows_){
         throw std::invalid_argument("Matrix dimensions not compatible for Matrix Multiplication");
     }
-    Matrix<T> result(num_rows_,other.num_cols_,T());
+    Matrix<T> result(num_rows_,other.getNumCols(),T());
     for(int i = 0 ; i < num_rows_;++i){
-        for(int j = 0 ; j < other.num_cols_;++j){
+        for(int j = 0 ; j < other.getNumCols();++j){
             T temp = T();
-            for(int k = 0; k < other.num_rows_;++k){
-                temp+= elements_[i][k]* other[k][j];
+            for(int k = 0; k < num_cols_;++k){
+                temp+= elements_[i][k]* other(k,j);
             }
-            result[i][j]=temp;
+            result(i,j)=temp;
         }
     }
     return result;
+}
+
+
+
+/**
+ * Dot product
+*/
+
+template<typename T>
+T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2){
+    if(v1.getNumRows() != v2.getNumRows() || v1.getNumCols() != 1 || v2.getNumCols() != 1){
+        throw std::invalid_argument("Vector dimensions not compatible for Dot Product");
+    }
+    T temp = T();
+    for(int i = 0; i < v1.getNumRows();++i){
+        temp+= v1(i,0) * v2(i,0);
+    }
+    return temp;
 }
 
 

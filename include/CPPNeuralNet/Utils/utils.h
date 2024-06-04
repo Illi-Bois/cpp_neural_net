@@ -38,7 +38,7 @@ class Matrix {
   
   // Copy Operator.
   //   Note: it is essential that copy operator and constrcutor be different. 
-  Matrix& operator=(Matrix& const other);
+  Matrix& operator=(const Matrix& other);
 
   // Updates elements of self to be this * B.
   // Notice that MatMul inheritly updates current's elements
@@ -65,6 +65,13 @@ class Matrix {
     return getElement(row, col);
   }
 
+  int getNumRows() const{
+    return num_rows_;
+  }
+  int getNumCols() const{
+    return num_cols_;
+  }
+
   // ! I would recommend not parsing matrix like this. Rather use the above Parenthesis indexing which allows multiple arguements, such as matrix(row, col);
   // const std::vector<T>& operator[](int index) const;
   // std::vector<T>& operator[](int index);
@@ -85,6 +92,8 @@ class Vector : public Matrix<T> {
  public:
   Vector(int dim, T initial_value = T())
       : Matrix<T>(dim, 1, initial_value) {};
+  static T dot(const Vector<T>& v1, const Vector<T>& v2);
+  
 };
 
 
