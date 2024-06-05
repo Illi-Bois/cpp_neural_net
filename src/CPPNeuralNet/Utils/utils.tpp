@@ -46,24 +46,51 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
 // End of Move and Copy Operators -------------------------------------------
 
 
+// Self Operators --------------------------------------------------------------
+template<typename T>
+Matrix<T>& Matrix<T>::MatMul(const Matrix<T>& B) {
+  // MatMul defined through *
+  *this = std::move((*this) * other); // Note that as move operator is not yet explicitly defined, copy operator is called. 
+  return *this;
+}
 
 template<typename T>
-Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
-    if(num_cols_ != other.num_rows_){
-        throw std::invalid_argument("Matrix dimensions not compatible for Matrix Multiplication");
+Matrix<T>& Matrix<T>::MatAdd(const Matrix<T>& B) {
+  if (this->num_rows_ != B.num_rows_ || this->num_cols_ != B.num_cols_) throw std::invalid_argument("Matrix Addition - Dimension Mismatch");
+
+  for (int r = 0; r < this->num_rows_; ++r) {
+    for (int c = 0; c < this->num_cols_; ++c) {
+      this->getElement(r, c) += B(r, c); // using (r, c) indexing operator
     }
-    Matrix<T> result(num_rows_,other.getNumCols(),T());
-    for(int i = 0 ; i < num_rows_;++i){
-        for(int j = 0 ; j < other.getNumCols();++j){
-            T temp = T();
-            for(int k = 0; k < num_cols_;++k){
-                temp+= elements_[i][k]* other(k,j);
+  }
+  return *this;
+}
+// End of Self Operators -------------------------------------------------------
+
+// Separate Operators -----------------------------------------------------------
+template<typename T>
+Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
+    if (num_cols_ != other.num_rows_) throw std::invalid_argument("Matrix Multiplication - Dimension Mismatch");
+
+    Matrix<T> result(this->num_rows_, other.getNumCols());
+    for(int r = 0 ; r < result.num_rows_; ++r) {
+        for(int c = 0 ; j < result.num_cols_; ++c) {
+            T result_element = T();
+            for(int k = 0; k < num_cols_; ++k) {
+                result_element += this->getElement(r, k) * other.getElement(k, c);
             }
-            result(i,j)=temp;
+            result(i,j) = result_element;
         }
     }
     return result;
 }
+
+template<typename T>
+Matrix<T> Matrix<T>::operator+(const Matrix<T>& other) const {
+    // + operator is defined by copy then MatAdd
+    return Matrix(*this).MatAdd(other);
+}
+// End of Separate Operators ----------------------------------------------------
 
 // End of Matrix =================================================================================
 

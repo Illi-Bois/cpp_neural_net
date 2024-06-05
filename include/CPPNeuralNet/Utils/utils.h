@@ -70,9 +70,9 @@ class Matrix {
 //   Operations are done onto the matrix itself. Meaning matrix from which these operations are called will be updated.
 
   // Matrix Product
-  Matrix& MatMul(const Matrix& B);
+  Matrix<T>& MatMul(const Matrix<T>& B);
   // Element-wise Sum
-  Matrix& MatAdd(const Matrix& B);
+  Matrix<T>& MatAdd(const Matrix<T>& B);
  
 // End of Self Operators --------------------------------------------------------
 
