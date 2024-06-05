@@ -70,19 +70,19 @@ Matrix<T>& Matrix<T>::MatAdd(const Matrix<T>& B) {
 // Separate Operators -----------------------------------------------------------
 template<typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
-    if (num_cols_ != other.num_rows_) throw std::invalid_argument("Matrix Multiplication - Dimension Mismatch");
-
-    Matrix<T> result(this->num_rows_, other.getNumCols());
-    for(int r = 0 ; r < result.num_rows_; ++r) {
-        for(int c = 0 ; j < result.num_cols_; ++c) {
-            T result_element = T();
-            for(int k = 0; k < num_cols_; ++k) {
-                result_element += this->getElement(r, k) * other.getElement(k, c);
-            }
-            result(i,j) = result_element;
-        }
+  if (num_cols_ != other.num_rows_) throw std::invalid_argument("Matrix Multiplication - Dimension Mismatch");
+  
+  Matrix<T> result(this->num_rows_, other.getNumCols());
+  for(int r = 0 ; r < result.num_rows_; ++r) {
+    for(int c = 0 ; j < result.num_cols_; ++c) {
+      T result_element = T();
+      for(int k = 0; k < num_cols_; ++k) {
+        result_element += this->getElement(r, k) * other.getElement(k, c);
+      }
+      result(i,j) = result_element;
     }
-    return result;
+  }
+  return result;
 }
 
 template<typename T>
