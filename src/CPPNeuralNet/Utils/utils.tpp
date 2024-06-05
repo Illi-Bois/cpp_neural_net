@@ -1,46 +1,36 @@
-namespace cpp_nn{
-namespace util{
-// /**
-//   * Constructor with Initial Value
-//  */
+#include "include/CPPNeuralNet/Utils/utils.h"
+
+namespace cpp_nn {
+namespace util {
+
+// Matrix =======================================================================================
+
+// Constrcutors ------------------------------------------------------------------------
+// Initial Value Constructor 
 template<typename T>
 Matrix<T>::Matrix(int num_rows, int num_cols, T initial_value = T()) 
-    : num_rows_(num_rows), num_cols_(num_cols), elements_(num_rows, std::vector<T>(num_cols, initial_value)){}
+    : num_rows_(num_rows), num_cols_(num_cols), 
+      elements_(num_rows, std::vector<T>(num_cols, initial_value)) {}
 
-
-//  /**
-//   * Constructor with Initializer list
-//  */
-
+// Initializer List Constrcutor
 template<typename T>
 Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
-    : num_rows_(list.size()),num_cols_(list.empty() ? 0 : list.begin()->size()){
-    elements_.resize(num_rows_);
-    int row = 0;
-    for(const std::initializer_list<T>& sublist : list){
-        if(sublist.size() != num_cols_){
-            throw std::invalid_argument("All rows should have same amount of columns");
-        }
-        elements_[row].assign(sublist.begin(),sublist.end());
-        ++row; 
-    }
+    : num_rows(list.size()), elements_(list) {
+  // Ensure that each row has same number of columns, else throw exception.
+  if (!num_rows) return; // if no rows, nothing to check
+
+  num_cols_ = elements_[0].size();
+  for (auto const& row : list) {
+    if (row.size() != num_cols_) throw std::invalid_argument("All rows should have same amount of columns");
+  }
+
+  // TODO Alternative Idea: simply force all rows to match maximum columns count?
 }
 
+// Copy Constrcutor : Implemented in Header
+//   Matrix(Matrix& const other) 
 
-
-// template<typename T>
-// const std::vector<T>& Matrix<T>::operator[](int index) const{
-//     return elements_[index];
-// }
-
-
-// template<typename T>
-// std::vector<T>& Matrix<T>::operator[](int index){
-//     return elements_[index];
-// }
-
-
-
+// End of Contsrctors -------------------------------------------------------------------
 
 
 template<typename T>
@@ -60,6 +50,9 @@ Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
     }
     return result;
 }
+
+// End of Matrix =================================================================================
+
 
 
 
