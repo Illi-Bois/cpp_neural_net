@@ -35,13 +35,22 @@ class Linear : public Layer{
     util::Vector<> forward(util::Vector<> input) override;
     util::Vector<> backward(util::Vector<>& const gradient) override;
 
-    const util::Matrix<>& get_weights() const;
-    const util::Vector<>& get_biases() const;
-    void set_lr(double lr);
+    const util::Matrix<>& get_weights() const{
+      return weights;
+    }
+    const util::Vector<>& get_biases() const{
+      return biases;
+    }
+    void set_lr(double lr){
+      learning_rate = lr;
+    }
 
 };
 
 
 } // cpp_nn
+
+
+#include "src/CPPNeuralNet/layers.cpp";
 
 #endif  // CPP_NN_LAYER
