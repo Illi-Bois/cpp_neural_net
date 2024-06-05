@@ -10,7 +10,7 @@ namespace util {
 template<typename T>
 Matrix<T>::Matrix(int num_rows, int num_cols, T initial_value = T()) 
     : num_rows_(num_rows), num_cols_(num_cols), 
-      elements_(num_rows, std::vector<T>(num_cols, initial_value)) {}
+      elements_(std::vector<std::vector<T>>(num_rows, std::vector<T>(num_cols, initial_value))) {}
 
 // Initializer List Constrcutor
 template<typename T>
@@ -44,6 +44,7 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
   return *this;
 }
 // End of Move and Copy Operators -------------------------------------------
+
 
 
 template<typename T>
