@@ -15,13 +15,14 @@ Matrix<T>::Matrix(int num_rows, int num_cols, T initial_value = T())
 // Initializer List Constrcutor
 template<typename T>
 Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
-    : num_rows(list.size()), elements_(list) {
-  // Ensure that each row has same number of columns, else throw exception.
-  if (!num_rows) return; // if no rows, nothing to check
+    : num_rows_(list.size()), 
+      num_cols_(num_rows_ ? list[0].size() : 0), 
+      elements_(list) {
+  if (!num_rows_) return; // if no rows, nothing to check
 
-  num_cols_ = elements_[0].size();
+  // Ensure that each row has same number of columns, else throw exception.
   for (auto const& row : list) {
-    if (row.size() != num_cols_) throw std::invalid_argument("All rows should have same amount of columns");
+    if (row.size() != num_cols_) throw std::invalid_argument("Matrix Construction: Initization List - All rows must have same number of columns"); 
   }
 
   // TODO Alternative Idea: simply force all rows to match maximum columns count?
@@ -31,6 +32,18 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
 //   Matrix(Matrix& const other) 
 
 // End of Contsrctors -------------------------------------------------------------------
+
+
+// Move and Copy Operators --------------------------------------------------
+// Copy Operator.
+template<typename T>
+Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
+  this->num_rows_ = other.num_rows_;
+  this->num_cols_ = other.num_cols_;
+  this->elements_ = other.elements_; // reply on std::vector's own deep copy
+  return *this;
+}
+// End of Move and Copy Operators -------------------------------------------
 
 
 template<typename T>
