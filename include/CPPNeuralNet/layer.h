@@ -26,9 +26,19 @@ class Layer {
 
 class Linear : public Layer{
   private:
-  util::Matrix<> weights;
-  util::Matrix<> biases;
+    util::Matrix<> weights;
+    util::Vector<> biases;
+    double learning_rate;
   public:
+    Linear(int in_features, int out_features, double lr = 0.01);
+
+    util::Vector<> forward(util::Vector<> input) override;
+    util::Vector<> backward(util::Vector<>& const gradient) override;
+
+    const util::Matrix<>& get_weights() const;
+    const util::Vector<>& get_biases() const;
+    void set_lr(double lr);
+
 };
 
 
