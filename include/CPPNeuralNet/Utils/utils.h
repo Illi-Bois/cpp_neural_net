@@ -6,80 +6,93 @@
 #include <initializer_list>
 
 namespace cpp_nn {
-
 namespace util {
+
+// TODO Move Matrix and Vector objects into their own headers
 
 /**
  * Lowest level math object for NN. Vectors will be treated as special case of matrices.
 */
-
-// TODO organize methods and locations
 template<typename T= double>
 class Matrix {
  private:
   int num_rows_, num_cols_; 
   std::vector<std::vector<T>> elements_; // elements[row][col]
+
  public:
+ // Constructor ------------------------------------------------------------- 
   /**
-   * Constructor with Initial Value
+   * Construct Matrix with all elements set to initial_value. 
+   *   Set to default T() if none give.
   */
   Matrix(int num_rows, int num_cols, T initial_value = T());
   /**
-   * Constructor with Initializer list
+   * Constructor with Initializer list.
+   *    Must ensure that dimension always matches. For example, each row must have equal columns.
   */
   Matrix(std::initializer_list<std::initializer_list<T>> list);
-  
-
-  // Copy constrcutor. 
-  // Deep copy of other
+  /**
+   * Copy Constructor. 
+   *   Contruct deep copy from given matrix.
+  */
   Matrix(Matrix& const other)
       : num_rows_(other.num_rows), num_cols_(other.num_cols),
         elements_(other.elements) {}
+ // End of Constructor -------------------------------------------------------
+
   
+// Move and Copy Operators --------------------------------------------------
   // Copy Operator.
   //   Note: it is essential that copy operator and constrcutor be different. 
   Matrix& operator=(const Matrix& other);
-
-  // Updates elements of self to be this * B.
-  // Notice that MatMul inheritly updates current's elements
-  Matrix& MatMul(Matrix& const B);
- 
-  /**
-   * Returns another instance of matrix with this * other; 
-   * Edits made : put const infront; apparantly Matrix& const other = Matrix& as references are constant inherently
-   * Const Overloading : 
-   * const Before Return Type: Ensures the returned reference is a reference to a const vector, preventing modification of the vector's contents through this reference. 
-   * const After Function Signature: Ensures the member function can be called on const instances and does not modify the state of the object.
-  */
-  Matrix operator*(const Matrix& other) const;
-
-  // ! Notice that MatMul and * are intrinsictally connected. Meaning We can define one nith the orther.
-  //   ie. MatMul(...) := (*this) = (*this * other)
-  //       operator*(...) := (Matrix(*this)).MatMul(other)
+// End of Move and Copy Operators -------------------------------------------
 
 
+// Getters and Setters --------------------------------------------------------
   inline T& getElement(const int row, const int col) {
     return elements_[row][col];
   }
+
   T& operator()(const int row, const int col) {
     return getElement(row, col);
   }
 
-  int getNumRows() const{
+  inline int getNumRows() const {
     return num_rows_;
   }
-  int getNumCols() const{
+  inline int getNumCols() const {
     return num_cols_;
   }
+// End of Getters and Setters --------------------------------------------------
 
-  // ! I would recommend not parsing matrix like this. Rather use the above Parenthesis indexing which allows multiple arguements, such as matrix(row, col);
-  // const std::vector<T>& operator[](int index) const;
-  // std::vector<T>& operator[](int index);
-  
-  // ! Dot should be member of Vector calss. Further, it seems like you made typo where it should be Vector not vector. 
-  // static T dot(const std::vector<T> v1, const std::vector<T> v2);
-  
+
+// Self Operators --------------------------------------------------------------
+//   Operations are done onto the matrix itself. Meaning matrix from which these operations are called will be updated.
+
+  // Matrix Product
+  Matrix& MatMul(const Matrix& B);
+  // Element-wise Sum
+  Matrix& MatAdd(const Matrix& B);
+ 
+// End of Self Operators --------------------------------------------------------
+
+
+// Separate Operators -----------------------------------------------------------
+//   Operations are done to a copied Matrix entity. This means elements of involved arguements will remain un-updated.
+
+  // Matrix Product
+  Matrix operator*(const Matrix& other) const;
+  // Matrix Product
+  Matrix operator+(const Matrix& other) const;
+
+// End of Separate Operators ----------------------------------------------------
+
+/* As designed so far, so called Self-operators and Separate-operators are duals, meaning one can and possibly should be defined in terms of each other. 
+   ie. operator+ := return Matrix(*this).MatAdd(other);
+       MatMul := return (*this) = std::move((*this) * other);
+*/
 };
+
 
 /**
  * Inputs and outputs will be prepresented by vectors.
@@ -113,7 +126,6 @@ class Vector : public Matrix<T> {
 // TODO implement tensors. 
 
 } // util
-
 } // cpp_nn
 
 
