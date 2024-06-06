@@ -123,7 +123,16 @@ class Vector : public Matrix<T> {
 
 
 
-// TODO implement tensors. 
+template<typename T = double>
+class Tensor{
+  private:
+    util::Vector<int> dimensions;
+    util::Vector<T> elements;
+  public:
+  //Tensor with initial value constructor
+    Tensor(const util::Vector<int>& dims, T initial_value = T());
+  
+}
 
 } // util
 } // cpp_nn
