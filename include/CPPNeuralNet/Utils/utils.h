@@ -126,12 +126,16 @@ class Vector : public Matrix<T> {
 template<typename T = double>
 class Tensor{
   private:
-    util::Vector<int> dimensions;
-    util::Vector<T> elements;
+    std::vector<int> dimensions;
+    std::vector<T> elements;
   public:
-  //Tensor with initial value constructor
-    Tensor(const util::Vector<int>& dims, T initial_value = T());
-  
+    //Tensor with initial value constructor
+    Tensor(const std::vector<int>& dims, T initial_value = T());
+    //copy constructor
+    //allows to create new instance by copying existing instance
+    Tensor(const Tensor& other);
+    //assign new value to existing object
+    Tensor& operator=(const Tensor& other);
 }
 
 } // util
