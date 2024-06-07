@@ -142,6 +142,4 @@ class Tensor{
 } // cpp_nn
 
 
-#include "src/CPPNeuralNet/Utils/Utils.tpp";
-
 #endif  // CPP_NN_UTIL
