@@ -21,36 +21,33 @@ class Layer {
   virtual util::Vector<double> forward(util::Vector<double> input); 
   // Update the layer according to last run input. 
   // Gradient from net layer is passed. Current gradient is returned.
-  virtual util::Vector<double> backward(util::Vector<double>& const gradient); 
+  virtual util::Vector<double> backward(const util::Vector<double>& gradient); 
 };
 
-class Linear : public Layer{
+class Linear : public Layer {
   private:
-    util::Matrix<double> weights;
-    util::Vector<double> biases;
-    double learning_rate;
+    util::Matrix<double> weights_;
+    util::Vector<double> biases_;
+    double learning_rate_;
   public:
     Linear(int in_features, int out_features, double lr = 0.01);
 
     util::Vector<double> forward(util::Vector<double> input) override;
     util::Vector<double> backward(const util::Vector<double>& gradient) override;
 
-    const util::Matrix<double>& get_weights() const{
-      return weights;
+    const util::Matrix<double>& get_weights() const {
+      return weights_;
     }
-    const util::Vector<double>& get_biases() const{
-      return biases;
+    const util::Vector<double>& get_biases() const {
+      return biases_;
     }
-    void set_lr(double lr){
-      learning_rate = lr;
+    void set_lr(double lr) {
+      learning_rate_ = lr;
     }
 
 };
 
 
 } // cpp_nn
-
-
-#include "src/CPPNeuralNet/layers.cpp";
 
 #endif  // CPP_NN_LAYER
