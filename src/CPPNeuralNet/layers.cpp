@@ -2,6 +2,8 @@
 #include "include/CPPNeuralNet/Utils/utils.h"
 #include <random>
 
+namespace cpp_nn {
+
 Linear::Linear(int in_features, int out_features, double lr)
     : weights_(out_features, in_features, 0.0),
       biases_(out_features, 0.0),
@@ -27,6 +29,10 @@ Linear::Linear(int in_features, int out_features, double lr)
 util::Vector<double> Linear::forward(util::Vector<double> input){
     //y = MX + b
     //would it be better to use matadd or +
-    util::Vector<double> output = this->weights * input + this->biases;
+
+    // TODO Need to fix this mate, no conversion from Matrix to Vec, will need to formulate explicit conversion
+    util::Vector<double> output = this->weights_ * input + this->biases_;
     return output;
 }
+
+} // cpp_nn
