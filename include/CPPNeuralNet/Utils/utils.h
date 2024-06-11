@@ -126,6 +126,10 @@ class Vector : public Matrix<T> {
    *    Must ensure that dimension always matches. For example, each row must have equal columns.
   */
   Vector(std::initializer_list<T> list);
+  /**
+   * From Vector
+   */
+  Vector(std::vector<T> elements);
 
   /**
    * Copy Constructor. 
@@ -135,11 +139,6 @@ class Vector : public Matrix<T> {
       : num_rows_(other.num_rows), num_cols_(1),
         elements_(other.elements) {}
 
-  /**
-   * From Double Vector
-   *   Performs internal dimension check
-   */
-  Vector(std::vector<T> elements);
 // End of Constructor ------------------------------------------------------
 
 // Vector Operators --------------------------------------------------------

@@ -114,22 +114,73 @@ void Matrix<T>::checkDimension() const {
 
 
 
+// Vector ========================================================================================
+// Constructors ----------------------------------------------------------------
 /**
- * Dot product
+ * Construct Vector with all elements set to initial_value. 
+ *   Set to default T() if none give.
 */
+// Vector(int dim, T initial_value = T())
+//  Done in Header
 
+
+/**
+ * Constructor with Initializer list.
+ *    Must ensure that dimension always matches. For example, each row must have equal columns.
+*/
 template<typename T>
-T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2) {
-    if (v1.getNumRows() != v2.getNumRows()) { // col_check unnecessary, as Vector asserts 1-column.
-        throw std::invalid_argument("Vector dimensions not compatible for Dot Product");
-    }
-    T temp = T();
-    const int rows = v1.getNumRows;
-    for (int i = 0; i < rows; ++i) {
-        temp += v1(i) * v2(i);
-    }
-    return temp;
+Vector<T>::Vector(std::initializer_list<T> list) 
+    : Vector(list.size()) { // Call default copnstrucot first
+  
+  int r = 0;
+  for (const T& element : list) {
+    getElement(r++) = element;
+  }
+  // TODO find a more element way to use init_list
 }
+
+/**
+ * From Vector
+ */
+template<typename T>
+Vector<T>::Vector(std::vector<T> elements)
+    : Vector(list.size()) {
+  int r = 0;
+  for (const T& element : list) {
+    getElement(r++) = element;
+  }
+  // TODO same as init_list
+}
+
+
+/**
+ * Copy Constructor. 
+ *   Contruct deep copy from given matrix.
+*/
+// Vector<T>::Vector(Matrix& const other)
+//    Done in Header
+// End of Constructors ---------------------------------------------------------
+
+
+// Vector Operators --------------------------------------------------------
+template<typename T>
+T dot(const Vector<T>& v1, const Vector<T>& v2) const {
+  if (v1.getNumRows() != v2.getNumRows()) { // col_check unnecessary, as Vector asserts 1-column.
+    throw std::invalid_argument("Vector Dot - Dimension mismacth");
+  }
+
+  T temp = T();
+  const int rows = v1.num_rows_;
+  for (int i = 0; i < rows; ++i) {
+    temp += v1(i) * v2(i);
+  }
+  return temp;
+}
+
+
+// End of Vector Operators -------------------------------------------------
+
+// End of Vector =================================================================================
 
 
 
