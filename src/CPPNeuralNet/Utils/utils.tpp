@@ -164,7 +164,7 @@ Vector<T>::Vector(std::vector<T> elements)
 
 // Vector Operators --------------------------------------------------------
 template<typename T>
-T dot(const Vector<T>& v1, const Vector<T>& v2) const {
+T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2) const {
   if (v1.getNumRows() != v2.getNumRows()) { // col_check unnecessary, as Vector asserts 1-column.
     throw std::invalid_argument("Vector Dot - Dimension mismacth");
   }
