@@ -28,12 +28,7 @@ Linear::Linear(int in_features, int out_features, double lr)
 
 util::Vector<double> Linear::forward(util::Vector<double> input){
     //y = MX + b
-    //would it be better to use matadd or +
-
-   // using overloaded operator*(Matrix, Vector) TODO check if this validly connects
-    util::Vector<double> output = weights_ * input;
-    output.MatAdd(biases_);
-    return output;
+    return  weights_ * input + biases_;
 }
 
 } // cpp_nn
