@@ -120,6 +120,7 @@ class Vector : public Matrix<T> {
 
 };
 
+// Extrenous Operators =========================================================================
 // Matrix * Vector  
 //   Identical in function as Matrix *, but asserts return is Vector
 template<typename T=double>
@@ -130,7 +131,7 @@ template<typename T=double>
 Vector<T> asVector(Matrix<T> M);
 
 // TODO! Perhaps Vector shouldn't be subclass as so much as specific 'type' or Matrix to avoid such redundant code
-
+// End of Extrenous Operators ===================================================================
 
 // TODO Tensor should be treated as generalization of Matirces. That means, once fully implemented, Matrix inherits from Tensor
 template<typename T = double>
