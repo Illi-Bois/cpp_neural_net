@@ -1,5 +1,32 @@
 #include <iostream>
 
+// TESTZONE, modify as you want to test out ideas.
+template<typename T=int>
+class A {
+ public:
+  A mult(A other);
+
+  template<class Derived>
+  Derived genMult(Derived d);
+};
+
+
+template<typename T=int>
+class B : public A<T> {
+};
+
+template<typename T>
+A<T> A<T>::mult(A<T> other) {
+  std::cout << "okay" << std::endl;
+}
+
+template<typename T>
+template<class D>
+D A<T>::genMult(D d) {
+  std::cout << "weird" << std::endl;
+  return d;
+}
+
 
 int main() {
   std::cout << "Hello World" << std::endl;
@@ -10,4 +37,12 @@ int main() {
   //      .addLayer(new Layer(255, 25))
   //      .addLayer(new Sogmoid())
   //      .addLayer(new Layer(255, 25));
+
+  A<> a;
+  B<> b;
+
+  A<> c = b.mult(b);
+  A<> d = a.mult(b);
+  B<> e = a.genMult(b);
+  A<> f = a.genMult(a);
 }
