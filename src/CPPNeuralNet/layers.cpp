@@ -32,7 +32,7 @@ util::Vector<double> Linear::forward(const util::Vector<double>& input){
 }
 
 
-util::Vector<double> Linear::backward(const util::Vector<double>){
+util::Vector<double> backward(const util::Vector<double>& gradient){
   //gradient with respect to input and parameter : dL/dx = W^T * dL/dy
   //gradient with respect to weights and bias : dL/dW = dL/dy * x^T
 
