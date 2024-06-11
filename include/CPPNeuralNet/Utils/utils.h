@@ -84,7 +84,6 @@ class Matrix {
   Matrix operator*(const Matrix& other) const;
   // Matrix Product
   Matrix operator+(const Matrix& other) const;
-
 // End of Separate Operators ----------------------------------------------------
 
 /* As designed so far, so called Self-operators and Separate-operators are duals, meaning one can and possibly should be defined in terms of each other. 
@@ -120,6 +119,17 @@ class Vector : public Matrix<T> {
   }
 
 };
+
+// Matrix * Vector  
+//   Identical in function as Matrix *, but asserts return is Vector
+template<typename T=double>
+Vector<T> operator*(Matrix<T> M, Vector<T> v);
+
+// Given nx1 matrix return Vector object that interpretes Matrix as Vector
+template<typename T=double>
+Vector<T> asVector(Matrix<T> M);
+
+// TODO! Perhaps Vector shouldn't be subclass as so much as specific 'type' or Matrix to avoid such redundant code
 
 
 // TODO Tensor should be treated as generalization of Matirces. That means, once fully implemented, Matrix inherits from Tensor

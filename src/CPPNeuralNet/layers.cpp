@@ -30,8 +30,9 @@ util::Vector<double> Linear::forward(util::Vector<double> input){
     //y = MX + b
     //would it be better to use matadd or +
 
-    // TODO Need to fix this mate, no conversion from Matrix to Vec, will need to formulate explicit conversion
-    util::Vector<double> output = this->weights_ * input + this->biases_;
+   // using overloaded operator*(Matrix, Vector) TODO check if this validly connects
+    util::Vector<double> output = weights_ * input;
+    output.MatAdd(biases_);
     return output;
 }
 
