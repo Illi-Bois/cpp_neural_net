@@ -127,6 +127,7 @@ Vector<T> operator*(Matrix<T> M, Vector<T> v) {
   }
 
   return asVector(M * v); 
+  // TODO FIX
 }
 
 // Given nx1 matrix return Vector object that interpretes Matrix as Vector
@@ -137,6 +138,7 @@ Vector<T> asVector(Matrix<T> M) {
   }
 
   return Vector<T>(M.elements_); // TODO need to check if valid
+  // TODO FIX
 }
 // End of Extrenous Operators ===================================================================
 
