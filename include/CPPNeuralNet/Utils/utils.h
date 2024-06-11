@@ -87,10 +87,21 @@ class Matrix {
 // Separate Operators -----------------------------------------------------------
 //   Operations are done to a copied Matrix entity. This means elements of involved arguements will remain un-updated.
 
-  // Matrix Product
-  Matrix operator*(const Matrix& other) const;
-  // Matrix Product
-  Matrix operator+(const Matrix& other) const;
+  /** Matrix Product
+   *    Multiplies MatrixLike object onto current Matrix. MatrixLike must inherit from Matrix.
+   *    Return type is specified as MatrixLike, which of course can be cast to Matrix.
+   *  Returns separate instance of MatrixLike
+   */
+  template<class MatrixLike>
+  MatrixLike operator*(const MatrixLike& other) const;
+
+  /** Matrix Sum
+   *    Sums MatrixLike object onto current Matrix. MatrixLike must inherit from Matrix.
+   *    Return type is specified as MatrixLike, which of course can be cast to Matrix.
+   *  Returns separate instance of MatrixLike
+   */
+  template<class MatrixLike>
+  MatrixLike operator+(const MatrixLike& other) const;
 // End of Separate Operators ----------------------------------------------------
 
 /* As designed so far, so called Self-operators and Separate-operators are duals, meaning one can and possibly should be defined in terms of each other. 
@@ -161,16 +172,7 @@ class Vector : public Matrix<T> {
 };
 
 // Extrenous Operators =========================================================================
-// Matrix * Vector  
-//   Identical in function as Matrix *, but asserts return is Vector
-template<typename T=double>
-Vector<T> operator*(Matrix<T> M, Vector<T> v);
 
-// Given nx1 matrix return Vector object that interpretes Matrix as Vector
-template<typename T=double>
-Vector<T> asVector(Matrix<T> M);
-
-// TODO! Perhaps Vector shouldn't be subclass as so much as specific 'type' or Matrix to avoid such redundant code
 // End of Extrenous Operators ===================================================================
 
 // TODO Tensor should be treated as generalization of Matirces. That means, once fully implemented, Matrix inherits from Tensor
