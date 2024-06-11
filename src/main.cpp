@@ -23,6 +23,7 @@ A<T> A<T>::mult(A<T> other) {
 template<typename T>
 template<class D>
 D A<T>::genMult(D d) {
+  static_assert(std::is_base_of<A, D>::value, "Error: not a A");
   std::cout << "weird" << std::endl;
   return d;
 }
@@ -45,4 +46,7 @@ int main() {
   A<> d = a.mult(b);
   B<> e = a.genMult(b);
   A<> f = a.genMult(a);
+
+  int k = 0;
+  int g = a.genMult(k);
 }
