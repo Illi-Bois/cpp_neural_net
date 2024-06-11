@@ -47,7 +47,11 @@ class Linear : public Layer {
 
 };
 
-
+//Pytorch Defines Activation functions as Layers too ; implement after Linear
+class RelU : public Layer {
+  public:
+    util::Vector<double> forward(const util::Vector<double>& input) override;
+    util::Vector<double> backward(const util::Vector<double>& gradient) override;
 } // cpp_nn
 
 #endif  // CPP_NN_LAYER
