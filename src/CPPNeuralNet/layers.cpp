@@ -26,9 +26,16 @@ Linear::Linear(int in_features, int out_features, double lr)
 } 
 
 
-util::Vector<double> Linear::forward(util::Vector<double> input){
+util::Vector<double> Linear::forward(const util::Vector<double>& input){
     //y = MX + b
     return  weights_ * input + biases_;
+}
+
+
+util::Vector<double> Linear::backward(const util::Vector<double>){
+  //gradient with respect to input and parameter : dL/dx = W^T * dL/dy
+  //gradient with respect to weights and bias : dL/dW = dL/dy * x^T
+
 }
 
 } // cpp_nn

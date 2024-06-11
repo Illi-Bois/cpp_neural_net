@@ -18,7 +18,7 @@ class Layer {
  public:
 
   // Compute forward pass of input through the layer.
-  virtual util::Vector<double> forward(util::Vector<double> input); 
+  virtual util::Vector<double> forward(const util::Vector<double>& input); 
   // Update the layer according to last run input. 
   // Gradient from net layer is passed. Current gradient is returned.
   virtual util::Vector<double> backward(const util::Vector<double>& gradient); 
@@ -32,7 +32,7 @@ class Linear : public Layer {
   public:
     Linear(int in_features, int out_features, double lr = 0.01);
 
-    util::Vector<double> forward(util::Vector<double> input) override;
+    util::Vector<double> forward(const util::Vector<double>& input) override;
     util::Vector<double> backward(const util::Vector<double>& gradient) override;
 
     const util::Matrix<double>& get_weights() const {
