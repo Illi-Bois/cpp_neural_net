@@ -113,13 +113,41 @@ class Matrix {
 */
 template<typename T=double>
 class Vector : public Matrix<T> {
- private:
  public:
+// Constructor ------------------------------------------------------------- 
+  /**
+   * Construct Vector with all elements set to initial_value. 
+   *   Set to default T() if none give.
+  */
   Vector(int dim, T initial_value = T())
       : Matrix<T>(dim, 1, initial_value) {};
-  static T dot(const Vector<T>& v1, const Vector<T>& v2);
-  
+  /**
+   * Constructor with Initializer list.
+   *    Must ensure that dimension always matches. For example, each row must have equal columns.
+  */
+  Vector(std::initializer_list<T> list);
 
+  /**
+   * Copy Constructor. 
+   *   Contruct deep copy from given matrix.
+  */
+  Vector(Matrix& const other)
+      : num_rows_(other.num_rows), num_cols_(1),
+        elements_(other.elements) {}
+
+  /**
+   * From Double Vector
+   *   Performs internal dimension check
+   */
+  Vector(std::vector<T> elements);
+// End of Constructor ------------------------------------------------------
+
+// Vector Operators --------------------------------------------------------
+  T dot(const Vector<T>& v1, const Vector<T>& v2) const;
+// End of Vector Operators --------------------------------------------------------
+
+
+// Vector Accessors --------------------------------------------------------
   // Remove two indexed getters for Vector.
   inline T& getElement(const int row, const int col) = delete;
   T& operator()(const int row, const int col) = delete;
@@ -130,7 +158,7 @@ class Vector : public Matrix<T> {
   T& operator()(const int row) {
     return this->getElement(row);
   }
-
+// End of Vector Accessors -------------------------------------------------
 };
 
 // Extrenous Operators =========================================================================
