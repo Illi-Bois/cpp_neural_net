@@ -116,5 +116,30 @@ T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2) {
 
 
 
+
+// Extrenous Operators =========================================================================
+// Matrix * Vector  
+//   Identical in function as Matrix *, but asserts return is Vector
+template<typename T=double>
+Vector<T> operator*(Matrix<T> M, Vector<T> v) {
+  if (M.getNumCols() != v.getNumRows()) { 
+      throw std::invalid_argument("Matrix*Vector Multiplication - Dimension Mismatch");
+  }
+
+  return asVector(M * v); 
+}
+
+// Given nx1 matrix return Vector object that interpretes Matrix as Vector
+template<typename T=double>
+Vector<T> asVector(Matrix<T> M) {
+  if (M.num_cols_() != 1) { 
+      throw std::invalid_argument("asVector - Column Dimension Greater than 1");
+  }
+
+  return Vector<T>(M.elements_); // TODO need to check if valid
+}
+// End of Extrenous Operators ===================================================================
+
+
 }
 }
