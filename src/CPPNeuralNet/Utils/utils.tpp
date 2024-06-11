@@ -71,26 +71,46 @@ Matrix<T>& Matrix<T>::MatAdd(const Matrix<T>& B) {
 
 // Separate Operators -----------------------------------------------------------
 template<typename T>
-Matrix<T> Matrix<T>::operator*(const Matrix& other) const{
+template<class MatrixLike>
+MatrixLike Matrix<T>::operator*(const MatrixLike& other) const{
+  static_assert(std::is_base_of<Matrix, MatrixLike>::value, "Inheritence Error: not a Matrix-like");
+  
   if (num_cols_ != other.num_rows_) throw std::invalid_argument("Matrix Multiplication - Dimension Mismatch");
   
-  Matrix<T> result(this->num_rows_, other.getNumCols());
-  for(int r = 0 ; r < result.num_rows_; ++r) {
-    for(int c = 0 ; j < result.num_cols_; ++c) {
+  MatrixLike result(this->num_rows_, other.num_cols_); // TODO will need to force all Matrix-derivitves to have this constructor
+  // Task of contrcutor is only to avail the specified dimensions
+
+  // Will force Matrix behaviour by referencing MatrixLike as Matrix
+  Matrix& result_as_matrix = result;
+
+  for(int r = 0 ; r < result_as_matrix.num_rows_; ++r) {
+    for(int c = 0 ; j < result_as_matrix.num_cols_; ++c) {
       T result_element = T();
       for(int k = 0; k < num_cols_; ++k) {
         result_element += this->getElement(r, k) * other.getElement(k, c);
       }
-      result(i,j) = result_element;
+      result_as_matrix(i,j) = result_element;
     }
   }
+
+  // Return MatrixLike
   return result;
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::operator+(const Matrix<T>& other) const {
-    // + operator is defined by copy then MatAdd
-    return Matrix(*this).MatAdd(other);
+template<class MatrixLike>
+MatrixLike Matrix<T>::operator+(const MatrixLike& other) const {
+  static_assert(std::is_base_of<Matrix, MatrixLike>::value, "Inheritence Error: not a Matrix-like");
+
+  // + operator is defined by copy then MatAdd
+  // Since A+B = B+A, to ensure type consistency, will swap the orders.
+
+  // TODO ALL MATRIXLIKE MUST HAVE COPY CONST
+  MatrixLike result(other);
+  Matrix& result_as_matrix = result;
+  result_as_matrix.MatAdd(*this); // other += this
+
+  return result;
 }
 // End of Separate Operators ----------------------------------------------------
 
@@ -186,28 +206,7 @@ T Vector<T>::dot(const Vector<T>& v1, const Vector<T>& v2) const {
 
 
 // Extrenous Operators =========================================================================
-// Matrix * Vector  
-//   Identical in function as Matrix *, but asserts return is Vector
-template<typename T=double>
-Vector<T> operator*(Matrix<T> M, Vector<T> v) {
-  if (M.getNumCols() != v.getNumRows()) { 
-      throw std::invalid_argument("Matrix*Vector Multiplication - Dimension Mismatch");
-  }
 
-  return asVector(M * v); 
-  // TODO FIX
-}
-
-// Given nx1 matrix return Vector object that interpretes Matrix as Vector
-template<typename T=double>
-Vector<T> asVector(Matrix<T> M) {
-  if (M.num_cols_() != 1) { 
-      throw std::invalid_argument("asVector - Column Dimension Greater than 1");
-  }
-
-  return Vector<T>(M.elements_); // TODO need to check if valid
-  // TODO FIX
-}
 // End of Extrenous Operators ===================================================================
 
 
