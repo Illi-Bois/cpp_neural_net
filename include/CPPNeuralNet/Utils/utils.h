@@ -38,6 +38,13 @@ class Matrix {
   Matrix(Matrix& const other)
       : num_rows_(other.num_rows), num_cols_(other.num_cols),
         elements_(other.elements) {}
+  
+  /**
+   * From Double Vector
+   *   Performs internal dimension check
+   */
+  Matrix(std::vector<std::vector<T>> elements);
+  
  // End of Constructor -------------------------------------------------------
 
   
@@ -90,6 +97,12 @@ class Matrix {
    ie. operator+ := return Matrix(*this).MatAdd(other);
        MatMul := return (*this) = std::move((*this) * other);
 */
+
+// Housekeeping ----------------------------------------------------------------
+// Checks if each row's column dimensions match.
+// throws expcetion
+  void checkDimension() const;
+// End of Housekeeping ---------------------------------------------------------
 };
 
 

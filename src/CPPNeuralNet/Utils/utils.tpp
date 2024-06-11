@@ -18,18 +18,20 @@ Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> list)
     : num_rows_(list.size()), 
       num_cols_(num_rows_ ? list[0].size() : 0), 
       elements_(list) {
-  if (!num_rows_) return; // if no rows, nothing to check
-
-  // Ensure that each row has same number of columns, else throw exception.
-  for (auto const& row : list) {
-    if (row.size() != num_cols_) throw std::invalid_argument("Matrix Construction: Initization List - All rows must have same number of columns"); 
-  }
-
-  // TODO Alternative Idea: simply force all rows to match maximum columns count?
+  checkDimansion();
 }
 
 // Copy Constrcutor : Implemented in Header
 //   Matrix(Matrix& const other) 
+
+template<typename T>
+Matrix<T>::Matrix(std::vector<std::vector<T>> elements)
+    : num_rows_(elements.size()), 
+      num_cols_(num_rows_ ? elements[0].size() : 0), 
+      elements_(elements) {
+  checkDimansion();
+}
+
 
 // End of Contsrctors -------------------------------------------------------------------
 
@@ -91,6 +93,21 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T>& other) const {
     return Matrix(*this).MatAdd(other);
 }
 // End of Separate Operators ----------------------------------------------------
+
+
+// Housekeeping ----------------------------------------------------------------
+template<typename T>
+void Matrix<T>::checkDimension() const { 
+  if (!num_rows_) return; // if no rows, nothing to check
+
+  // Ensure that each row has same number of columns, else throw exception.
+  for (auto const& row : elements_) {
+    if (row.size() != num_cols_) throw std::invalid_argument("checkDimension - All rows must have same number of columns"); 
+  }
+
+  // TODO Alternative Idea: simply force all rows to match maximum columns count?
+}
+// End of Housekeeping ---------------------------------------------------------
 
 // End of Matrix =================================================================================
 
