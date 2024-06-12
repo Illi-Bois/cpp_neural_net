@@ -13,7 +13,7 @@ namespace util {
 /**
  * Lowest level math object for NN. Vectors will be treated as special case of matrices.
 */
-template<typename T= double>
+template<typename T = double>
 class Matrix {
  private:
   int num_rows_, num_cols_; 
@@ -122,7 +122,7 @@ class Matrix {
  * 
  * 
 */
-template<typename T=double>
+template<typename T = double>
 class Vector : public Matrix<T> {
  public:
 // Constructor ------------------------------------------------------------- 
@@ -132,6 +132,16 @@ class Vector : public Matrix<T> {
   */
   Vector(int dim, T initial_value = T())
       : Matrix<T>(dim, 1, initial_value) {};
+  /**
+   * Construct Vector with all elements set to initial_value. 
+   * Takes in extreneous column_size to Matrix-like compatibility.
+   *    Will throw error if col_num not 1
+   *   Set to default T() if none give.
+  */
+  Vector(int dim, int col_num = 1, T initial_value = T())
+      : Matrix<T>(dim, 1, initial_value) {
+    if (col_num != 1) throw std::invalid_argument("Vector Legacy Constructor - Col Dimension Mismatch");
+  };
   /**
    * Constructor with Initializer list.
    *    Must ensure that dimension always matches. For example, each row must have equal columns.
@@ -149,7 +159,6 @@ class Vector : public Matrix<T> {
   Vector(Matrix& const other)
       : num_rows_(other.num_rows), num_cols_(1),
         elements_(other.elements) {}
-
 // End of Constructor ------------------------------------------------------
 
 // Vector Operators --------------------------------------------------------

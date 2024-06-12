@@ -4,7 +4,6 @@ namespace cpp_nn {
 namespace util {
 
 // Matrix =======================================================================================
-
 // Constrcutors ------------------------------------------------------------------------
 // Initial Value Constructor 
 template<typename T>
@@ -31,8 +30,6 @@ Matrix<T>::Matrix(std::vector<std::vector<T>> elements)
       elements_(elements) {
   checkDimansion();
 }
-
-
 // End of Contsrctors -------------------------------------------------------------------
 
 
@@ -128,7 +125,6 @@ void Matrix<T>::checkDimension() const {
   // TODO Alternative Idea: simply force all rows to match maximum columns count?
 }
 // End of Housekeeping ---------------------------------------------------------
-
 // End of Matrix =================================================================================
 
 
@@ -143,6 +139,14 @@ void Matrix<T>::checkDimension() const {
 // Vector(int dim, T initial_value = T())
 //  Done in Header
 
+/**
+ * Construct Vector with all elements set to initial_value. 
+ * Takes in extreneous column_size to Matrix-like compatibility.
+ *    Will throw error if col_num not 1
+ *   Set to default T() if none give.
+*/
+// Vector(int dim, int col_num = 1, T initial_value = T());
+//   Done in Header
 
 /**
  * Constructor with Initializer list.
@@ -164,9 +168,9 @@ Vector<T>::Vector(std::initializer_list<T> list)
  */
 template<typename T>
 Vector<T>::Vector(std::vector<T> elements)
-    : Vector(list.size()) {
+    : Vector(elements.size()) {
   int r = 0;
-  for (const T& element : list) {
+  for (const T& element : elements) {
     getElement(r++) = element;
   }
   // TODO same as init_list
