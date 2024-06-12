@@ -20,6 +20,21 @@ class Linear : public Layer {
     util::Vector<double> forward(const util::Vector<double>& input) override;
     util::Vector<double> backward(const util::Vector<double>& gradient) override;
 
+    /**
+     * Linear Backswards:
+     * as Layer is y=Wx + b
+     * given grad_y(C) where C is cost or loss to be minimized, which is a vector
+     * 
+     * grad_W(C) = grad_y(C) * x^T
+     * grac_b(C) = grad_y(C)
+     * 
+     * grad_x(C) = W^T * grad_y(C)
+     * 
+     * 
+     * On d(Wx)/dW
+     * https://math.stackexchange.com/questions/1621948/derivative-of-a-vector-with-respect-to-a-matrix
+     */
+
     const util::Matrix<double>& get_weights() const {
       return weights_;
     }
