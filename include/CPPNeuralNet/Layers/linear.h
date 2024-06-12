@@ -4,8 +4,11 @@
 #include "include/CPPNeuralNet/layer.h"
 #include "include/CPPNeuralNet/Utils/utils.h"
 
+#include <random>
 
-namespace cpp_nn{
+
+namespace cpp_nn {
+
 class Linear : public Layer {
   private:
     util::Matrix<double> weights_;

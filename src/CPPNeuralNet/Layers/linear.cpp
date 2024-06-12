@@ -1,10 +1,8 @@
-#include "include/CPPNeuralNet/layer.h"
-#include "include/CPPNeuralNet/Utils/utils.h"
-#include <random>
+#include "include/CPPNeuralNet/Layers/linear.h"
 
 namespace cpp_nn {
 
-Linear::Linear(int in_features, int out_features, double lr)
+Linear::Linear(int in_features, int out_features, double lr = 0.01)
     : weights_(out_features, in_features, 0.0),
       biases_(out_features, 0.0),
       learning_rate_(lr) {
