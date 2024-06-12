@@ -22,61 +22,7 @@ class Layer {
   // Update the layer according to last run input. 
   // Gradient from net layer is passed. Current gradient is returned.
   virtual util::Vector<double> backward(const util::Vector<double>& gradient); 
-
-  /**
-   * Each Layer is a function where input is passed and forwarded.
-   * Therefore, each layer will have their own local gradient.
-   * 
-   * y = L(x)
-   * 
-   * In backward, we will be passed dC/dy where C is cost function.
-   * Let the current layer be Linear, meaning it has weights W and biases b.
-   * We will compute gradiatents for W and b as 
-   *   dC/dy * dy/dW and dC/dy * dy/db
-   * respectively and use such to update the paramaters. 
-   * At the end, we will however return 
-   *   dC/dy * dy/dx 
-   * So that it may propagate backwards and continue updating on previous layers.
-   * 
-   * Activation Layers, such as sigmoid and ReLU will not need to update any terms. 
-   * It will however be forced still to return correct dC/dy * dy/dx
-   * 
-   * Therefore, it may be good implementation to store dy/dx at each layer.
-   */
 };
-
-
-
-class Linear : public Layer {
-  private:
-    util::Matrix<double> weights_;
-    util::Vector<double> biases_;
-    double learning_rate_;
-  public:
-    Linear(int in_features, int out_features, double lr = 0.01);
-
-    util::Vector<double> forward(const util::Vector<double>& input) override;
-    util::Vector<double> backward(const util::Vector<double>& gradient) override;
-
-    const util::Matrix<double>& get_weights() const {
-      return weights_;
-    }
-    const util::Vector<double>& get_biases() const {
-      return biases_;
-    }
-    void set_lr(double lr) {
-      learning_rate_ = lr;
-    }
-
-};
-
-//Pytorch Defines Activation functions as Layers too ; implement after Linear
-class RelU : public Layer {
-  public:
-    util::Vector<double> forward(const util::Vector<double>& input) override;
-    util::Vector<double> backward(const util::Vector<double>& gradient) override;
-};
-
 
 } // cpp_nn
 
