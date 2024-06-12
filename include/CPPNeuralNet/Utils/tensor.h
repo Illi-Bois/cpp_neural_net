@@ -61,4 +61,14 @@
  * TODO more multiplcation behaviours should be consdiered. 
  *   else throw dimension error?
  * So far only up to 3-orders are allowed in such.
+ * 
+ * 
+ * On Transpose:
+ * Transpose is ideally done in flags as to not move around data constantly.
+ * This is easily said for Matrices, but for Tensors of higher order may be more difficult to maintain.
+ * - In fact transposing in higher orders need clear defining rn.
+ * - - Transpose(i, j) where i and j are index of order or (axes)
+ * - -   for example, if we transpose T[4, 5, 2] at axes (0, 2) we want T[i][j][k] to access T[k][j][i] instead
+ * - -   transposing will reshape it to [2, 5, 4]
+ * Maybe we can implement this with transpose Mapper of [0, 1, 2] changing to [2, 0, 1] where we just do get[Mapper[0]] and so on
  */
