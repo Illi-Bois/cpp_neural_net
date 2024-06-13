@@ -245,7 +245,9 @@ class MatrixReference { // =====================================================
 
 // Iteration ----------------------------------------------------
 /** increments one matrix over. 
- *  Returns 1 for successful incrementation, -1 for failed incrementation.
+ *  Returns 1 for successful incrementation, 0 for failed incrementation.
+ * 
+ * After failure, is set to 0th index again. Therefore checking terminatin with return flag is crucial.
  */
   int incrementIndex();
 // End of Iteration ---------------------------------------------
