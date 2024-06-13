@@ -84,7 +84,30 @@ T& Tensor<T>::getElement(const std::vector<int>& indices) {
 }
 // End of Accessors ----------------------------------------------------
 
+// Tensor Operations ---------------------------------------------------
+// TODO
+// End of Tensor Operations --------------------------------------------
 // End of Tensor ===================================================================
 
+// MatrixReference =================================================================
+// Constructor ---------------------------------------------------------
+/** Tensor-Referencing */
+template<typename T>
+MatrixReference<T>::MatrixReference(Tensor<T>& tensor)
+    : elements_(tensor.elements_), index_(std::vector<int>(tensor.getOrder() - 2, 0)) {}
+/** Tensor-Referencing with Index */
+template<typename T>
+MatrixReference<T>::MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
+    : elements_(tensor.elements_), index_(indices) {
+  if (index_.size() != elements_->order() - 2) 
+    throw std::invalid_argument("MatrixReference Index Constructor- Index Order Mismatch"); 
+  
+  for (int i = 0; i < index_.size(); ++i) {
+    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i])
+      throw std::invalid_argument("MatrixReference Index Constructor- Index Out of Bounds"); 
+  }
+}
+// End of Constructor --------------------------------------------------
+// End of MatrixReference ==========================================================
 } // util
 } // cpp_nn

@@ -128,6 +128,8 @@ class Tensor { // ==============================================================
     inline T& operator()(const std::vector<int>& indices) {
       return getElement(indices);
     }
+  /** Order gettet */
+    inline int getOrder() const {return elements_->order();}
   // End of Accessors ---------------------------------------------
   }; // End of TensorElement =================================================================
 
@@ -218,21 +220,19 @@ template<typename T = double>
 class MatrixReference { // ================================================================================
  private: 
   // Index of Matrix currently referenced on TensorElement
-  std::vector<int> index_; // order = order(TensorElement) - 2
   Tensor<T>::TensorElement* elements_; // ownership is never given
+  std::vector<int> index_; // order = order(TensorElement) - 2
  public:
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
- *  Index is set to 0th, or very first matrix.
- */
-  MatrixReference(Tensor& tensor);
+ *  Index is set to 0th, or very first matrix. */
+  MatrixReference(Tensor<T>& tensor);
 /** Tensor-Referencing with Index
  *  Index is set as specified. 
  *    Throws error for 
  *      'Order Mismatch'
- *      'Index out of Bounds'
- */
-  MatrixReference(Tensor& tensor, std::initializer_list<int> indices);
+ *      'Index out of Bounds' */
+  MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices);
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------
