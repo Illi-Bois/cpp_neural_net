@@ -108,6 +108,18 @@ MatrixReference<T>::MatrixReference(Tensor<T>& tensor, std::initializer_list<int
   }
 }
 // End of Constructor --------------------------------------------------
+
+// Accessors -----------------------------------------------------------
+template<typename T>
+T& MatrixReference<T>::getElement(int row, int col) {
+  index_.push_back(row);
+  index_.push_back(col);
+  T& res = elements_->getElement(index_);
+  index_.pop_back();
+  index_.pop_back();
+  return res;
+}
+// End of Accessors ----------------------------------------------------
 // End of MatrixReference ==========================================================
 } // util
 } // cpp_nn
