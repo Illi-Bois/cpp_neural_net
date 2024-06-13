@@ -72,7 +72,7 @@ Tensor<T>::Tensor(const Tensor& other)
 /** Move Constrcutor */
 template<typename T>
 Tensor<T>::Tensor(Tensor&& other)
-    : elements_(other.elements_), ownership(true) {
+    : elements_(other.elements_), ownership_(true) {
   // unlink other
   other.elements_ = nullptr;
   other.ownership_ = false;

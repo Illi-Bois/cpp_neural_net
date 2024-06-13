@@ -32,8 +32,15 @@ util::Vector<double> Linear::forward(const util::Vector<double>& input){
 
 util::Vector<double> Linear::backward(const util::Vector<double>& gradient){
   //gradient with respect to input and parameter : dL/dx = W^T * dL/dy
+  util::Vector<double> input_grad = weights_.transpose() * gradient;
   //gradient with respect to weights and bias : dL/dW = dL/dy * x^T
-
+  util::Matrix<double> weights_grad = gradient * input_grad.transpose();
+  for(int i = 0; i < weights.getNumRows(); ++i) {
+    for(int j = 0; j < weights.getNumCols(); ++j) {
+      weights_(i, j) -= learning_rate_ * weights_grad(i, j);
+    }
+    biases_(i) -= learning_rate_ * gradient(i);
+  }
 }
 
 } // cpp_nn
