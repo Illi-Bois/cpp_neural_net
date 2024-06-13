@@ -1,4 +1,7 @@
 #include <iostream>
+#include <initializer_list>
+#include <vector>
+
 
 // TESTZONE, modify as you want to test out ideas.
 template<typename T=int>
@@ -29,6 +32,20 @@ D A<T>::genMult(D d) {
 }
 
 
+void test(int arr...) {
+  std::cout << arr << std::endl;
+  std::cout << *(&arr + sizeof(int)*2) << std::endl;
+}
+
+// void a1(std::initializer_list<int> arr) {
+//   std::cout << "This is init list" << std::endl;
+//   std::cout << arr[0] << std::endl;
+// }
+void a1(std::vector<int> arr) {
+  std::cout << "This is vec" << std::endl;
+  std::cout << arr.size() << std::endl;
+}
+
 int main() {
   std::cout << "Hello World" << std::endl;
   // Model model;
@@ -39,14 +56,18 @@ int main() {
   //      .addLayer(new Sogmoid())
   //      .addLayer(new Layer(255, 25));
 
-  A<> a;
-  B<> b;
+  // A<> a;
+  // B<> b;
 
-  A<> c = b.mult(b);
-  A<> d = a.mult(b);
-  B<> e = a.genMult(b);
-  A<> f = a.genMult(a);
+  // A<> c = b.mult(b);
+  // A<> d = a.mult(b);
+  // B<> e = a.genMult(b);
+  // A<> f = a.genMult(a);
 
-  int k = 0;
-  int g = a.genMult(k);
+  // int k = 0;
+  // int g = a.genMult(k);
+
+  test(1, 2, 3);
+
+  a1({1,2,3});
 }

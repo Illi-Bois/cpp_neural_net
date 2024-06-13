@@ -72,3 +72,134 @@
  * - -   transposing will reshape it to [2, 5, 4]
  * Maybe we can implement this with transpose Mapper of [0, 1, 2] changing to [2, 0, 1] where we just do get[Mapper[0]] and so on
  */
+
+#ifndef CPP_NN_TENSOR
+#define CPP_NN_TENSOR
+
+#include <vector>
+#include <initializer_list>
+
+namespace cpp_nn {
+namespace util {
+
+template<typename T = double>
+class Tensor {
+ private:
+  /**
+   * The contents of elements are stored in TensorElement struct. 
+   * This allows easy lightweight multi-accessors. 
+   */
+  struct TensorElement {
+   public:
+    std::vector<int> dimensions;
+    std::vector<T> elements;
+    inline int order() const {return dimensions.size()};
+
+    // TODO
+    // Transpose map. Handles transpose as index mapper initially
+    // ie) if tranposed ith and jth axes, let mapper[i]=j and mapper[j]=i
+    // getElement will pass any input index through mapper
+
+    // TODO
+    // Export Transpose
+    // Function to actually move the data to match transpose.
+    // For when multiple transpose is to be done, or when transpose is temperory
+    //   first is done only as indices, then only when exported is moved in elements
+
+  // TensorElement Constructor ----------------------------------
+  /** Dimension Constructor */
+    TensorElement(std::initializer_list<int> dims, T initial_value = T());
+  // End of TensorElement Constructor ---------------------------
+
+  // Accessors ----------------------------------------------------
+  /** Element Getter
+   *  Throws 'Order Mismatch' when number of indicies is incorrect
+   *  Throws 'Dimension Mismatch' when index attempted is out of bounds.
+   * In Practice, intended to be used with init_list {i,j,...}
+   */
+    T& getElement(const std::vector<int>& indices);
+  /** Parenthesis Getter
+   *  Same as Element Getter but with More accessible notation.
+   * In Practice, intended to be used with init_list {i,j,...}
+   */
+    inline T& operator()(const std::vector<int>& indices) {
+      return getElement(indices);
+    }
+  // End of Accessors ---------------------------------------------
+  };
+
+  TensorElement* elements_;
+  bool ownership_; // indicates if elements_ are owned by current Tensor
+                   // If owned, must delete upon destrcutor
+ public:
+// Constructors -------------------------------------------------
+/** Dimension Contructors */
+  Tensor(std::initializer_list<int> dims, T initial_value = T());
+/** Copy Constructor */
+  Tensor(const Tensor& other);
+/** Move Constrcutor */
+  Tensor(Tensor&& other);
+// End of Constructors ------------------------------------------
+
+// Accessors ----------------------------------------------------
+/** Element Getter
+ *  Throws 'Order Mismatch' when number of indicies is incorrect
+ *  Throws 'Dimension Mismatch' when index attempted is out of bounds.
+ * In Practice, intended to be used with init_list {i,j,...}
+ */
+  T& getElement(const std::vector<int>& indices);
+/** Parenthesis Getter
+ *  Same as Element Getter but with More accessible notation.
+ * In Practice, intended to be used with init_list {i,j,...}
+ */
+  inline T& operator()(const std::vector<int>& indices) {
+    return getElement(indices);
+  }
+// End of Accessors ---------------------------------------------
+
+// Operations ---------------------------------------------------
+/** Tensor Multiplcation
+ * To be understood as matrix multiplications when possible. 
+ *
+ * Returned Tensor is another instance of the resulting product.
+ *  
+ * Rules of Multiplcation:
+ * If [dims1..., n, m] * [dim2..., m, d] -> [dims1..., dims2..., n, d]
+ *  Understood as multiarrays of [n x m] and [m x d] matrices
+ *  Produces mutliarray of all combinations of such multiplcations
+ * 
+ * Other Vector-like behaviours are to be induced by reshaping. 
+ *  Vector of n-dimension are Matrices of dimension [n x 1]
+ *  For [dim2..., m] to be understood as multiarray of m-dim vectors,
+ *    reshape to [dims2..., m, 1]
+ *  [dim1..., n, m] * [dim2..., m, 1] -> [dim1..., dim2..., n, 1]
+ *    -reshape-> [dim1..., dim2..., n]
+ * 
+ * Likewise covectors are [1 x n] matrices. 
+ * Dot Product are implemented by 
+ *  [dim1..., 1, n] * [dim2..., n, 1] -> [dim1..., dim2..., 1, 1] 
+ *    -reshape-> [dim1.., dim2.., 1] 
+ * Outter Product are implemented by
+ *  [dim1..., n, 1] * [dim2..., 1, m] -> [dim1..., dim2..., n, m] 
+ */
+  Tensor operator*(const Tensor& other) const;
+
+/** Tensor Summation
+ * 
+ * Returned Tensor is another instance of the resulting Sum.
+ * 
+ * TODO: see if other implementation is more valid
+ * Rules of Summation:
+ * Order of summation does matter. 
+ * The latter summand defines shape of block-tensor to be summed
+ *  When [dims..., blockDim...] + [blockDim...] -> [dims..., blockDim...]
+ * Therefore, if current does not match other's shape in its inner-shape, error is thrown.
+ * 
+ */
+  Tensor operator+(const Tensor& other) const;
+// End of Operations --------------------------------------------
+};
+
+} // util
+} // cpp_nn
+#endif // CPP_NN_TENSOR
