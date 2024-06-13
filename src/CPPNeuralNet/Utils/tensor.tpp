@@ -86,5 +86,5 @@ T& Tensor<T>::getElement(const std::vector<int>& indices) {
 
 // End of Tensor ===================================================================
 
-}
+} // util
 } // cpp_nn
