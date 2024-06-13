@@ -2,6 +2,40 @@
 
 namespace cpp_nn {
 namespace util {
+
+// TensorReference =================================================================
+// Constructor ---------------------------------------------------------
+/** Tensor-Referencing */
+template <typename T, int kChunkOrder>
+TensorReference<T, kChunkOrder>::TensorReference(Tensor<T>& tensor)
+    : elements_(tensor.elements_) {
+  if (tensor.getOrder() < kChunkOrder) 
+    throw std::invalid_argument("TensorReference Constructor- Insufficient Tensor Order for Matrix");
+  // Initial Index at {0,...,0}
+  index_.reshape(tensor.getOrder() - kChunkOrder, 0);
+}
+/** Tensor-Referencing with Index */
+template <typename T, int kChunkOrder>
+TensorReference<T, kChunkOrder>::TensorReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
+    : elements_(tensor.elements_), index_(indices) {
+  if (tensor.getOrder() < kChunkOrder) 
+    throw std::invalid_argument("TensorReference Constructor- Insufficient Tensor Order for TensorChunk");
+
+  if (index_.size() != elements_->order() - kChunkOrder) 
+    throw std::invalid_argument("TensorReference Index Constructor- Index Order Mismatch"); 
+  
+  for (int i = 0; i < index_.size(); ++i) {
+    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i])
+      throw std::invalid_argument("TensorReference Index Constructor- Index Out of Bounds"); 
+  }
+}
+// End of Constructor --------------------------------------------------
+// End of TensorReference ==========================================================
+
+
+
+
+
 // MatrixReference =================================================================
 // Constructor ---------------------------------------------------------
 /** Tensor-Referencing */
@@ -36,7 +70,7 @@ T& MatrixReference<T>::getElement(int row, int col) {
   T& res = elements_->getElement(index_);
   index_.pop_back();
   index_.pop_back();
-  
+
   return res;
 }
 // End of Accessors ----------------------------------------------------
