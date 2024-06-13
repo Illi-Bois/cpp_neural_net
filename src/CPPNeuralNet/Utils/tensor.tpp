@@ -55,6 +55,22 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
   return elements[array_index];
 }
 // End of TensorElement Accessor -------------------------------------
+/** Dimension Contructors */
+template<typename T>
+Tensor<T>::Tensor(std::initializer_list<int> dims, T initial_value) 
+    : elements_(new TensorElement(dims, initial_value)), ownership_(true) {}
+/** Copy Constructor */
+template<typename T>
+Tensor<T>::Tensor(const Tensor& other)
+    : elements_(new TensorElement(*other.elements_)), ownership_(true) {}
+/** Move Constrcutor */
+template<typename T>
+Tensor<T>::Tensor(Tensor&& other)
+    : elements_(other.elements_), ownership(true) {
+  // unlink other
+  other.elements_ = nullptr;
+  other.ownership_ = false;
+}
 // End of TensorElement =====================================================
 
 // Constructors --------------------------------------------------------
