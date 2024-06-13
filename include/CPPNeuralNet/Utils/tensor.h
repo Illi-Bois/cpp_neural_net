@@ -130,6 +130,8 @@ class Tensor { // ==============================================================
     }
   /** Order gettet */
     inline int getOrder() const {return elements_->order();}
+  /** Dimension Getter */
+    inline int getDimension(int axes) const {return elements_->dimensions[axes];}
   // End of Accessors ---------------------------------------------
   }; // End of TensorElement =================================================================
 
