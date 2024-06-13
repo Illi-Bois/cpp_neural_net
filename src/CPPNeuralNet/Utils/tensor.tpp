@@ -55,6 +55,9 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
   return elements[array_index];
 }
 // End of TensorElement Accessor -------------------------------------
+// End of TensorElement =====================================================
+
+// Constructors --------------------------------------------------------
 /** Dimension Contructors */
 template<typename T>
 Tensor<T>::Tensor(std::initializer_list<int> dims, T initial_value) 
@@ -71,9 +74,6 @@ Tensor<T>::Tensor(Tensor&& other)
   other.elements_ = nullptr;
   other.ownership_ = false;
 }
-// End of TensorElement =====================================================
-
-// Constructors --------------------------------------------------------
 // End of Constructors -------------------------------------------------
 
 // End of Tensor ===================================================================
