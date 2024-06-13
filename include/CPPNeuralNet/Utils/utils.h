@@ -207,8 +207,8 @@ class Vector : public Matrix<T> {
 //   Tensor& operator=(const Tensor& other);
 // };
 
-// } // util
-// } // cpp_nn
+} // util
+} // cpp_nn
 
 
 #endif  // CPP_NN_UTIL
