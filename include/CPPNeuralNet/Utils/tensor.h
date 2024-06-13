@@ -140,6 +140,8 @@ class Tensor { // ==============================================================
 // Constructors -------------------------------------------------
 /** Dimension Contructors */
   Tensor(std::initializer_list<int> dims, T initial_value = T());
+/** Dimension Contructors, Vector*/
+  Tensor(std::vector<int> dims, T initial_value = T());
 /** Copy Constructor */
   Tensor(const Tensor& other);
 /** Move Constrcutor */

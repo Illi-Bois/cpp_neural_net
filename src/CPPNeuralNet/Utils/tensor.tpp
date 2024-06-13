@@ -61,6 +61,10 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
 template<typename T>
 Tensor<T>::Tensor(std::initializer_list<int> dims, T initial_value) 
     : elements_(new TensorElement(dims, initial_value)), ownership_(true) {}
+/** Dimension Contructors, Vector */
+template<typename T>
+Tensor<T>::Tensor(std::vector<int> dims, T initial_value) 
+    : elements_(new TensorElement(dims, initial_value)), ownership_(true) {}
 /** Copy Constructor */
 template<typename T>
 Tensor<T>::Tensor(const Tensor& other)
@@ -84,7 +88,24 @@ T& Tensor<T>::getElement(const std::vector<int>& indices) {
 // End of Accessors ----------------------------------------------------
 
 // Tensor Operations ---------------------------------------------------
-// TODO
+template<typename T>
+Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
+  if (getOrder() < 2 || other.getOrder() < 2) 
+    throw std::invalid_argument("Tensor Multiplication- Tensor is not Matrix");
+  
+  if (elements_->dimensions[getOrder() - 1] != other.elements_->dimensions[other.getOrder() - 2])
+    throw std::invalid_argument("Tensor Multiplication- Multiplcation Dimension Mismatch");
+  
+  MatrixReference A(*this);
+  MatrixReference B(other);
+
+  std::vector<int> res_dim{this->elements_->dimensions[getOrder() - 2], other.elements_->dimensions[getOrder() - 1]};
+  res_dim.insert(res_dim.begin(), other.elements_->dimensions.begin(), other.elements_->dimensions.end() - 2);
+  res_dim.insert(res_dim.begin(), elements_->dimensions.begin(), elements_->dimensions.end() - 2);
+
+
+  Tensor<T> res(res_dim);
+}
 // End of Tensor Operations --------------------------------------------
 // End of Tensor ===================================================================
 
