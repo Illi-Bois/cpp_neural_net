@@ -83,7 +83,7 @@ namespace cpp_nn {
 namespace util {
 
 template<typename T = double>
-class Tensor {
+class Tensor { // =========================================================================================
  private:
   /**
    * The contents of elements are stored in TensorElement struct. 
@@ -205,7 +205,8 @@ class Tensor {
 // friends =======================
   friend MatrixReference;
 // end of friends :( =============
-};
+}; // End of Tensor =======================================================================================
+
 
 /**
  * Intermediary object to aid in referencing matrices in a Tensor. 
@@ -214,8 +215,8 @@ class Tensor {
  */
 // TODO: MatrixIterator may be a more suitable name. Consider it.
 template<typename T = double>
-class MatrixReference {
- private:
+class MatrixReference { // ================================================================================
+ private: 
   // Index of Matrix currently referenced on TensorElement
   std::vector<int> index_; // order = order(TensorElement) - 2
   Tensor<T>::TensorElement* elements_; // ownership is never given
@@ -248,7 +249,7 @@ class MatrixReference {
  */
   int incrementIndex();
 // End of Iteration ---------------------------------------------
-};
+}; // End of MatrixReference ==============================================================================
 
 } // util
 } // cpp_nn
