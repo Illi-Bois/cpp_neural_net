@@ -111,6 +111,18 @@ MatrixLike Matrix<T>::operator+(const MatrixLike& other) const {
 }
 // End of Separate Operators ----------------------------------------------------
 
+//Transpose ----------------------------------------------------
+template<typename T>
+Matrix<T> Matrix<T>::transpose() const {
+  Matrix<T> transposed_matrix(num_cols_, num_rows_);
+  for (int i = 0; i < num_rows_; ++i) {
+    for (int j = 0; j < num_cols_; ++j) {
+      transposed_matrix.elements_[j][i] = elements_[i][j];
+    }
+  }
+  return transposed_matrix;
+}
+//End of Transpose ----------------------------------------------------
 
 // Housekeeping ----------------------------------------------------------------
 template<typename T>

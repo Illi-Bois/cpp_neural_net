@@ -104,6 +104,13 @@ class Matrix {
   MatrixLike operator+(const MatrixLike& other) const;
 // End of Separate Operators ----------------------------------------------------
 
+
+// Transpose Function ----------------------------------------------------
+  /**
+   * Returns a transposed copy of the matrix
+   */
+  Matrix<T> transpose() const;
+
 /* As designed so far, so called Self-operators and Separate-operators are duals, meaning one can and possibly should be defined in terms of each other. 
    ie. operator+ := return Matrix(*this).MatAdd(other);
        MatMul := return (*this) = std::move((*this) * other);
