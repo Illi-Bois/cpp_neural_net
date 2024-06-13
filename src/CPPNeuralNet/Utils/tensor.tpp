@@ -92,19 +92,44 @@ template<typename T>
 Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
   if (getOrder() < 2 || other.getOrder() < 2) 
     throw std::invalid_argument("Tensor Multiplication- Tensor is not Matrix");
-  
+
   if (elements_->dimensions[getOrder() - 1] != other.elements_->dimensions[other.getOrder() - 2])
     throw std::invalid_argument("Tensor Multiplication- Multiplcation Dimension Mismatch");
   
-  MatrixReference A(*this);
-  MatrixReference B(other);
-
-  std::vector<int> res_dim{this->elements_->dimensions[getOrder() - 2], other.elements_->dimensions[getOrder() - 1]};
+  // [res_rows, inter_dim] * [inter_dim, res_cols]
+  int res_rows = getDimension(getOrder() - 2);
+  int res_cols = getDimension(other.getOrder() - 1);
+  int inter_dim = getDimension(getOrder() - 1); 
+  
+  // given A[dim1..., r, k] and B[dim2..., k, c], the resulting product is of dim C[dim1..., dim2..., r, c]
+  std::vector<int> res_dim{res_rows, res_cols};
   res_dim.insert(res_dim.begin(), other.elements_->dimensions.begin(), other.elements_->dimensions.end() - 2);
   res_dim.insert(res_dim.begin(), elements_->dimensions.begin(), elements_->dimensions.end() - 2);
-
-
   Tensor<T> res(res_dim);
+
+  // Each Matrix chunk is handled via MatrixReference
+  MatrixReference A(*this);
+  MatrixReference B(other);
+  MatrixReference C(res);
+
+  // Multiply each chunk: C = A * B
+  do { // while A has next
+    do { // while B has next
+      // Multiply 
+      for (int r = 0; r < res_rows; ++r) {
+        for (int c = 0; c < res_col; ++c) {
+          C.getElement(r, c) = 0;
+          for (int k = 0; k < inter_dim; ++k) {
+            C.getElement(r, c) += A.getElement(r, k) * B.getElement(k, c);
+          }
+        }
+      }
+
+      C.incrementIndex(); 
+    } while(B.incrementIndex()/* != 0*/);
+  } while(A.incrementIndex()/* != 0*/);
+
+  return res;
 }
 // End of Tensor Operations --------------------------------------------
 // End of Tensor ===================================================================
