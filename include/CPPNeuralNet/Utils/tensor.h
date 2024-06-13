@@ -89,10 +89,11 @@ class Tensor {
    * The contents of elements are stored in TensorElement struct. 
    * This allows easy lightweight multi-accessors. 
    */
-  struct TensorElement {
+  struct TensorElement { // =================================================================
    public:
     std::vector<int> dimensions;
     std::vector<T> elements;
+    int capacity; // Total Number of elements in Tensor, = Product of Dimensions
     inline int order() const {return dimensions.size()};
 
     // TODO
@@ -108,7 +109,9 @@ class Tensor {
 
   // TensorElement Constructor ----------------------------------
   /** Dimension Constructor */
-    TensorElement(std::initializer_list<int> dims, T initial_value = T());
+    TensorElement(const std::initializer_list<int>& dims, T initial_value = T());
+  /** Copy Constructor */
+    TensorElement(const TensorElement& other);
   // End of TensorElement Constructor ---------------------------
 
   // Accessors ----------------------------------------------------
@@ -126,7 +129,7 @@ class Tensor {
       return getElement(indices);
     }
   // End of Accessors ---------------------------------------------
-  };
+  }; // End of TensorElement =================================================================
 
   TensorElement* elements_;
   bool ownership_; // indicates if elements_ are owned by current Tensor

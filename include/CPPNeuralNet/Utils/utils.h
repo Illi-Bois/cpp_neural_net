@@ -191,24 +191,24 @@ class Vector : public Matrix<T> {
 
 // End of Extrenous Operators ===================================================================
 
-// TODO Tensor should be treated as generalization of Matirces. That means, once fully implemented, Matrix inherits from Tensor
-template<typename T = double>
-class Tensor{
- private:
-  std::vector<int> dimensions_;
-  std::vector<T> elements_;
- public:
-  //Tensor with initial value constructor
-  Tensor(const std::vector<int>& dims, T initial_value = T());
-  //copy constructor
-  //allows to create new instance by copying existing instance
-  Tensor(const Tensor& other);
-  //assign new value to existing object
-  Tensor& operator=(const Tensor& other);
-};
+// // TODO Tensor should be treated as generalization of Matirces. That means, once fully implemented, Matrix inherits from Tensor
+// template<typename T = double>
+// class Tensor{
+//  private:
+//   std::vector<int> dimensions_;
+//   std::vector<T> elements_;
+//  public:
+//   //Tensor with initial value constructor
+//   Tensor(const std::vector<int>& dims, T initial_value = T());
+//   //copy constructor
+//   //allows to create new instance by copying existing instance
+//   Tensor(const Tensor& other);
+//   //assign new value to existing object
+//   Tensor& operator=(const Tensor& other);
+// };
 
-} // util
-} // cpp_nn
+// } // util
+// } // cpp_nn
 
 
 #endif  // CPP_NN_UTIL

@@ -67,7 +67,20 @@ int main() {
   // int k = 0;
   // int g = a.genMult(k);
 
-  test(1, 2, 3);
 
-  a1({1,2,3});
+  // test(1, 2, 3);
+
+  // a1({1,2,3});
+
+
+  std::vector<int> arr;
+  arr.resize(10);
+
+  arr[0] = 1;
+  arr[1] = 2;
+
+  std::cout << arr[0] << std::endl;
+  std::cout << arr[1] << std::endl;
+  std::cout << arr[2] << std::endl;
+  std::cout << arr.size() << std::endl;
 }
