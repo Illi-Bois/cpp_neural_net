@@ -120,6 +120,23 @@ T& MatrixReference<T>::getElement(int row, int col) {
   return res;
 }
 // End of Accessors ----------------------------------------------------
+
+// Iteration -----------------------------------------------------------
+template<typename T>
+int MatrixReference<T>::incrementIndex() {
+  for (int order = index_.size() - 1; order >= 0; --order) {
+    if (++index_[order] >= elements_->dimensions[order]) {
+      index_[order] = 0;
+      continue;
+    } else {
+      // incrementation successful
+      return 1;
+    }
+  }
+  // no more index to increment
+  return 0;
+}
+// End of Iteration ----------------------------------------------------
 // End of MatrixReference ==========================================================
 } // util
 } // cpp_nn
