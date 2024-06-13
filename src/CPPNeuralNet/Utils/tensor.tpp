@@ -42,10 +42,11 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
   int array_index = 0;
 
   // block_size is chuck-size that i-th index jumps each time.
-  for (int i = 0, block_size = capacity; i < order(); ++i) {
-    block_size /= dimensions[i];
+  // Bottom-Up apporoach. By multiplying up the block_size, division is avoided
+  for (int i = order() - 1, block_size = 1; i >= 0; --i) {
     if (indices[i] >= 0 && indices[i] < dimensions[i]) {
-      array_index += indices[i] * block_size;
+      array_index += block_size * indices[i];
+      block_size *= dimensions[i];
     } else {
       throw std::invalid_argument("TensorElement ElementGetter- Index Out of Bounds"); 
     }
