@@ -73,8 +73,8 @@ int main() {
   // a1({1,2,3});
 
 
-  std::vector<int> arr;
-  arr.resize(10);
+  std::vector<int> arr(-1);
+  // arr.resize(10);
 
   arr[0] = 1;
   arr[1] = 2;

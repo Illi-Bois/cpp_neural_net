@@ -93,11 +93,17 @@ T& Tensor<T>::getElement(const std::vector<int>& indices) {
 /** Tensor-Referencing */
 template<typename T>
 MatrixReference<T>::MatrixReference(Tensor<T>& tensor)
-    : elements_(tensor.elements_), index_(std::vector<int>(tensor.getOrder() - 2, 0)) {}
+    : elements_(tensor.elements_), index_(std::vector<int>(tensor.getOrder() >= 2 ? tensor.getOrder() - 2 : 0, 0)) {
+  if (tensor.getOrder() < 2) 
+    throw std::invalid_argument("MatrixReference Constructor- Insufficient Tensor Order for Matrix");
+}
 /** Tensor-Referencing with Index */
 template<typename T>
 MatrixReference<T>::MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
     : elements_(tensor.elements_), index_(indices) {
+  if (tensor.getOrder() < 2) 
+    throw std::invalid_argument("MatrixReference Constructor- Insufficient Tensor Order for Matrix");
+
   if (index_.size() != elements_->order() - 2) 
     throw std::invalid_argument("MatrixReference Index Constructor- Index Order Mismatch"); 
   
