@@ -76,6 +76,14 @@ Tensor<T>::Tensor(Tensor&& other)
 }
 // End of Constructors -------------------------------------------------
 
+// Accessors -----------------------------------------------------------
+/** Element Getter */
+template<typename T>
+T& Tensor<T>::getElement(const std::vector<int>& indices) {
+  return elements_->getElement(indices);
+}
+// End of Accessors ----------------------------------------------------
+
 // End of Tensor ===================================================================
 
 }

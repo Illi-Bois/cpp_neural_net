@@ -147,7 +147,7 @@ class Tensor {
 // Accessors ----------------------------------------------------
 /** Element Getter
  *  Throws 'Order Mismatch' when number of indicies is incorrect
- *  Throws 'Dimension Mismatch' when index attempted is out of bounds.
+ *  Throws 'Dimension Out of Bounds' when index attempted is out of bounds.
  * In Practice, intended to be used with init_list {i,j,...}
  */
   T& getElement(const std::vector<int>& indices);
