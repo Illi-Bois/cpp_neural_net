@@ -212,6 +212,23 @@ class Tensor { // ==============================================================
   Tensor operator+(const Tensor& other) const;
 // End of Operations --------------------------------------------
 
+/**
+ * TODO IDEAS TO IMPLEMENT
+ * Broadcasting : used for operations like adding bias to activations and applying layer weights to input tensors
+ * Concat and Splitting : Not needed now just yet, used in CNN so maybe soon
+ * Elementwise Operations (+,-,/) 
+ * Tensor Reduction Operations (sum, mean, max, min) : Loss function and Pooling Layers
+ * Transpose
+ */
+
+/** Broadcasting
+ * Takes in Two Tensors, and returns two broadcasted tensors that hav compatible dimension for 
+ * element-wise operation. Determines which dimension to use, creates NEW tensor with those dimension
+ * with elements from the original tensors. 
+ */
+  std::pair<Tensor<T>, Tensor<T>> broadcast(const Tensor<T>& other) const; //shouldn't this code be in private?
+  
+
 // friends =======================
   friend MatrixReference;
 // end of friends :( =============
