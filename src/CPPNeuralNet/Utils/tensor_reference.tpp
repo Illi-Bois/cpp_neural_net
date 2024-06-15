@@ -83,7 +83,10 @@ template <typename T>
 int TensorReference<T>::incrementIndex() {
   index_address_ += kChunkCapacity; // This provides fast way to increment
 
-  if (index_address_ >= elements_->kCapacity) return 0; // index beyond capacity
+  if (index_address_ >= elements_->kCapacity) {
+    index_address_ = 0 // reset to 0
+    return 0; // index beyond capacity
+  }
   return 1;
 }
 // End of Iteration ----------------------------------------------------
