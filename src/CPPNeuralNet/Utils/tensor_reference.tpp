@@ -37,7 +37,7 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder, std
   // Compute index_address_ while checking
   int jump_size = kChunkCapacity;
   for (int i = index_.size() - 1; i >= 0; --i) {
-    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i]) {
+    if (index_[i] < 0 || index_[i] >= elements_->getDimension(i)) {
       throw std::invalid_argument("TensorReference Index Constructor- Index Out of Bounds"); 
     }
 
