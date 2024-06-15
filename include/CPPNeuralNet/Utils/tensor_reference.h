@@ -15,7 +15,7 @@ namespace util {
  * Given a Tensor and order of TensorChunk, ie 2 for Matrix,
  *    Will provide accessors and iterators over the multiarray of Tensors.
  */
-template <typename T>
+template <typename T = double>
 class TensorReference { // ================================================================================
  private:
 // Members ------------------------------------------------------
@@ -71,11 +71,10 @@ class TensorReference { // =====================================================
  */
 // TODO: MatrixIterator may be a more suitable name. Consider it.
 template<typename T = double>
-class MatrixReference { // ================================================================================
+class MatrixReference : public TensorReference<T> { // ================================================================================
  private: 
-  // Index of Matrix currently referenced on TensorElement
-  Tensor<T>::TensorElement* elements_; // ownership is never given
-  std::vector<int> index_; // order = order(TensorElement) - 2
+  const int kRows;
+  const int kCols;
  public:
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
@@ -96,15 +95,6 @@ class MatrixReference { // =====================================================
 /** Getter Parenthesis Notation */
   inline T& operator()(int row, int col) {return getElement(row, col);}
 // End of Accessors ---------------------------------------------
-
-// Iteration ----------------------------------------------------
-/** increments one matrix over. 
- *  Returns 1 for successful incrementation, 0 for failed incrementation.
- * 
- * After failure, is set to 0th index again. Therefore checking terminatin with return flag is crucial.
- */
-  int incrementIndex();
-// End of Iteration ---------------------------------------------
 }; // End of MatrixReference ==============================================================================
 
 } // util

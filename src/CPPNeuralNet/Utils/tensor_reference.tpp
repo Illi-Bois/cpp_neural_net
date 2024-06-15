@@ -92,65 +92,30 @@ int TensorReference<T>::incrementIndex() {
 // End of Iteration ----------------------------------------------------
 // End of TensorReference ==========================================================
 
-
-
-
-
 // MatrixReference =================================================================
 // Constructor ---------------------------------------------------------
 /** Tensor-Referencing */
 template<typename T>
 MatrixReference<T>::MatrixReference(Tensor<T>& tensor)
-    : elements_(tensor.elements_), index_(std::vector<int>(tensor.getOrder() >= 2 ? tensor.getOrder() - 2 : 0, 0)) {
-  if (tensor.getOrder() < 2) 
-    throw std::invalid_argument("MatrixReference Constructor- Insufficient Tensor Order for Matrix");
-}
+    : TensorReference<T>(tensor, 2),
+      kRows(tensor.getDimension(tensor.getOrder() - 2)),
+      kRows(tensor.getDimension(tensor.getOrder() - 1)) {}
 /** Tensor-Referencing with Index */
 template<typename T>
 MatrixReference<T>::MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
-    : elements_(tensor.elements_), index_(indices) {
-  if (tensor.getOrder() < 2) 
-    throw std::invalid_argument("MatrixReference Constructor- Insufficient Tensor Order for Matrix");
-
-  if (index_.size() != elements_->order() - 2) 
-    throw std::invalid_argument("MatrixReference Index Constructor- Index Order Mismatch"); 
-  
-  for (int i = 0; i < index_.size(); ++i) {
-    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i])
-      throw std::invalid_argument("MatrixReference Index Constructor- Index Out of Bounds"); 
-  }
-}
+    : TensorReference<T>(tensor, 2, indices),
+      kRows(tensor.getDimension(tensor.getOrder() - 2)),
+      kRows(tensor.getDimension(tensor.getOrder() - 1)) {}
 // End of Constructor --------------------------------------------------
 
 // Accessors -----------------------------------------------------------
 template<typename T>
 T& MatrixReference<T>::getElement(int row, int col) {
-  index_.push_back(row);
-  index_.push_back(col);
-  T& res = elements_->getElement(index_);
-  index_.pop_back();
-  index_.pop_back();
-
-  return res;
+  // Best to bypass forming index-vectors at all
+  int array_index = this->index_address_ + kCols * row + col;
+  return elements_->elements[array_index];
 }
 // End of Accessors ----------------------------------------------------
-
-// Iteration -----------------------------------------------------------
-template<typename T>
-int MatrixReference<T>::incrementIndex() {
-  for (int order = index_.size() - 1; order >= 0; --order) {
-    if (++index_[order] >= elements_->dimensions[order]) {
-      index_[order] = 0;
-      continue;
-    } else {
-      // incrementation successful
-      return 1;
-    }
-  }
-  // no more index to increment
-  return 0;
-}
-// End of Iteration ----------------------------------------------------
 // End of MatrixReference ==========================================================
 
 } // util
