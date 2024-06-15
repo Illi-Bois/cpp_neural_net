@@ -168,6 +168,9 @@ class Tensor { // ==============================================================
   inline T& operator()(const std::vector<int>& indices) {
     return getElement(indices);
   }
+  inline int getOrder() const {
+    return elements_->getOrder();
+  }
 // End of Accessors ---------------------------------------------
 
 // Operations ---------------------------------------------------

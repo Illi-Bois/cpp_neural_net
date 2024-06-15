@@ -15,11 +15,12 @@ namespace util {
  * Given a Tensor and order of TensorChunk, ie 2 for Matrix,
  *    Will provide accessors and iterators over the multiarray of Tensors.
  */
-template <typename T, int kChunkOrder>
+template <typename T>
 class TensorReference { // ================================================================================
  private:
 // Members ------------------------------------------------------
   Tensor<T>::TensorElement* elements_; // ownership is never given
+  const int kChunkOrder;   // size of TensorChunk to be iterating
   std::vector<int> index_; // order = order(Tensor) - kChunkOrder
 // End of Members -----------------------------------------------
 
@@ -27,13 +28,17 @@ class TensorReference { // =====================================================
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
  *  Index is set to 0th, or very first matrix. */
-  TensorReference(Tensor<T>& tensor);
+  TensorReference(Tensor<T>& tensor, const int chunkOrder);
 /** Tensor-Referencing with Index
  *  Index is set as specified. 
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
+  TensorReference(Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices);
+  /** Tensor-Referencing with Index 
+   *  ChunkOrder is implied by index*/
   TensorReference(Tensor<T>& tensor, std::initializer_list<int> indices);
+    // TODO is chunkOrder necessary when it can be implied by index's order?
 // End of Constructor -------------------------------------------
 
 
