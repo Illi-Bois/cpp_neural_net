@@ -171,6 +171,9 @@ class Tensor { // ==============================================================
   inline int getOrder() const {
     return elements_->getOrder();
   }
+  inline int getDimension(int axis) const {
+    return elements_->getDimension(axis);
+  }
 // End of Accessors ---------------------------------------------
 
 // Operations ---------------------------------------------------
@@ -217,6 +220,7 @@ class Tensor { // ==============================================================
 
 // friends =======================
   friend MatrixReference;
+  friend TensorReference;
 // end of friends :( =============
 }; // End of Tensor =======================================================================================
 

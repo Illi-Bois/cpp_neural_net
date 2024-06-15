@@ -8,7 +8,9 @@ namespace util {
 /** Tensor-Referencing */
 template <typename T>
 TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder)
-    : elements_(tensor.elements_), kChunkOrder(chunkOrder) {
+    : elements_(tensor.elements_), 
+      kChunkOrder(chunkOrder),
+      index_address_(0) {
   if (kChunkOrder <= 0) 
     throw std::invalid_argument("TensorReference Constructor- Non-Positive ChunkOrder");
   if (tensor.getOrder() < kChunkOrder) 
@@ -19,33 +21,38 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder)
 /** Tensor-Referencing with Index */
 template <typename T>
 TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices) 
-    : elements_(tensor.elements_), kChunkOrder(chunkOrder), 
-      index_(indices) {
+    : elements_(tensor.elements_), 
+      kChunkOrder(chunkOrder), 
+      index_(indices),
+      index_address_(0) {
   if (kChunkOrder <= 0) 
     throw std::invalid_argument("TensorReference Constructor- Non-Positive ChunkOrder");
   if (tensor.getOrder() < kChunkOrder) 
     throw std::invalid_argument("TensorReference Constructor- Insufficient Tensor Order for TensorChunk");
-  if (index_.size() != elements_->order() - kChunkOrder) 
+  if (index_.size() != tensor.getOrder() - kChunkOrder) 
     throw std::invalid_argument("TensorReference Index Constructor- Index Order Mismatch"); 
   
-  for (int i = 0; i < index_.size(); ++i) {
-    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i])
+  // Set ChunkCapacity
+  kChunkCapacity = 1;
+  for (int i = indices.size(); i < tensor.getOrder(); ++i) {
+    kChunkCapacity *= tensor.getDimension(i);
+  }
+
+  // Compute index_address_ while checking
+  int jump_size = kChunkCapacity;
+  for (int i = index_.size() - 1; i >= 0; --i) {
+    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i]) {
       throw std::invalid_argument("TensorReference Index Constructor- Index Out of Bounds"); 
+    }
+
+    index_address_ += jump_size * index_[i];
+    jump_size *= tensor.getDimension(i);
   }
 }
 /** Tensor-Referencing with Index and ChunkOrder implication */
 template <typename T>
 TensorReference<T>::TensorReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
-    : elements_(tensor.elements_), kChunkOrder(tensor.getOrder() - inindices.size()), 
-      index_(indices) {
-  if (kChunkOrder <= 0) 
-    throw std::invalid_argument("TensorReference Constructor- Non-Positive Implied ChunkOrder");
-    
-  for (int i = 0; i < index_.size(); ++i) {
-    if (index_[i] < 0 || index_[i] >= elements_->dimensions[i])
-      throw std::invalid_argument("TensorReference Index Constructor- Index Out of Bounds"); 
-  }
-}
+    : TensorReference(tensor, tensor.getOrder() - indices.size(), indices) {} // Reuse Contructor
 // End of Constructor --------------------------------------------------
 // End of TensorReference ==========================================================
 
