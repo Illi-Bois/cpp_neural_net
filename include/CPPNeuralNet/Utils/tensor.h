@@ -221,12 +221,12 @@ class Tensor { // ==============================================================
  * Transpose
  */
 
-/** Broadcasting
- * Takes in Two Tensors, and returns two broadcasted tensors that hav compatible dimension for 
- * element-wise operation. Determines which dimension to use, creates NEW tensor with those dimension
- * with elements from the original tensors. 
+/** Broadcasting 
+ * Pads the smaller tensor so both shapes are same, allowing element wise operation
+ * Rule : Pad the smaller tensor with 1s on the left until they have the same length
+ * This Function doesn't do Broadcasting; Instead it returns a vector of the size of Broadcasted Tensor
  */
-  std::pair<Tensor<T>, Tensor<T>> broadcast(const Tensor<T>& other) const; //shouldn't this code be in private?
+std::vector<int> broadcast(const Tensor<T>& other) const;
   
 
 // friends =======================
