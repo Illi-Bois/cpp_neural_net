@@ -132,6 +132,30 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
   return res;
 }
 // End of Tensor Operations --------------------------------------------
+
+// Broadcast --------------------------------------------
+template <typename T>
+std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
+  int max_order = std::max(getOrder(), other.getOrder());
+  std::vector<int> result_dim(max_order);
+
+  for (int i = 0; i < max_order; ++i) {
+    // Gets dimension value from right to left, pads with 1 if i >= this->order
+    int this_dim = (i < getOrder()) ? getDimension(getOrder() - 1 - i) : 1;
+    int other_dim = (i < other.getOrder()) ? other.getDimension(other.getOrder() - 1 - i) : 1;
+
+    // Broadcasting requires dimension to be the same, or at least one is 1
+    if (this_dim != other_dim && this_dim != 1 && other_dim != 1) {
+      throw std::runtime_error("Not compatible for broadcasting.");
+    }
+
+    result_dim[max_order - 1 - i] = std::max(this_dim, other_dim);
+  }
+
+  return result_dim;
+}
+// End of Broadcast --------------------------------------------
+
 // End of Tensor ===================================================================
 
 } // util
