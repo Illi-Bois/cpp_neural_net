@@ -83,7 +83,7 @@ namespace cpp_nn {
 namespace util {
 
 // Forward Declarations -------------------------------
-class MatrixReference;
+class TensorReference;
 // End of Forward Declarations ------------------------
 
 template<typename T = double>
@@ -113,15 +113,12 @@ class Tensor { // ==============================================================
     inline int order() const {return dimensions_.size()};
 
     // TODO
-    // Transpose map. Handles transpose as index mapper initially
-    // ie) if tranposed ith and jth axes, let mapper[i]=j and mapper[j]=i
-    // getElement will pass any input index through mapper
-
-    // TODO
     // Export Transpose
     // Function to actually move the data to match transpose.
     // For when multiple transpose is to be done, or when transpose is temperory
     //   first is done only as indices, then only when exported is moved in elements
+
+    // TODO Reshape
    public:
 
   // TensorElement Constructor ----------------------------------
@@ -149,6 +146,8 @@ class Tensor { // ==============================================================
     inline int getOrder() const {return this->order();}
   /** Dimension Getter */
     inline int getDimension(int axis) const {return dimensions_[transpose_map_[i]];}
+                                            // As dimension is accessed in transposed order,
+                                            // it effectively transposes the entire tensor
   // End of Accessors ---------------------------------------------
 
   // TensorElement Modifiers --------------------------------------
@@ -240,7 +239,6 @@ class Tensor { // ==============================================================
 // End of Operations --------------------------------------------
 
 // friends =======================
-  friend MatrixReference;
   friend TensorReference;
 // end of friends :( =============
 }; // End of Tensor =======================================================================================

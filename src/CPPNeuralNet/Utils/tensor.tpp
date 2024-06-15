@@ -40,12 +40,10 @@ template<typename T>
 T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
   if (indicies.size() != order()) throw std::invalid_argument("TensorElement ElementGetter- Indices Order Mismatch"); 
 
-  // TODO apparently, we dont need to reorder it seems
-  // we can just swap swap the dimensions' axis
-  //   If error occurs, check this first!
 
+  // Transpose is handled by the fact that Dimension is accessed in Transposed order
+  
   int array_index = 0;
-
   // block_size is chuck-size that i-th index jumps each time.
   // Bottom-Up apporoach. By multiplying up the block_size, division is avoided
   for (int i = order() - 1, block_size = 1; i >= 0; --i) {
