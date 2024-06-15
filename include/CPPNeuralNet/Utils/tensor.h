@@ -93,13 +93,24 @@ class Tensor { // ==============================================================
    * The contents of elements are stored in TensorElement struct. 
    * This allows easy lightweight multi-accessors. 
    */
-  struct TensorElement { // =================================================================
-   public:
+  class TensorElement { // =================================================================
+   private:
     std::vector<int> dimensions;
     std::vector<T> elements;
     int capacity; // Total Number of elements in Tensor, = Product of Dimensions
     inline int order() const {return dimensions.size()};
     std::vector<int> transpose_map_; // Map maintaining tranpose mapping. 
+                                      // tm_[i] will give which stored-axes corresponds to ith order's dimension
+                                      /**
+                                       * ie) 
+                                       * [4, 5, 2] :=: {0, 1, 2}
+                                       * -> tp(0, 2)
+                                       * [2, 5, 4] :=: {2, 1, 0}
+                                       * -> tp(1, 0)
+                                       * [5, 2, 4] :=: {1, 2, 0}
+                                       */
+                                      // TLDR:
+                                      //  ith dimension is now given by dimension[tanspose_map_[i]]
 
     // TODO
     // Transpose map. Handles transpose as index mapper initially
@@ -111,6 +122,7 @@ class Tensor { // ==============================================================
     // Function to actually move the data to match transpose.
     // For when multiple transpose is to be done, or when transpose is temperory
     //   first is done only as indices, then only when exported is moved in elements
+   public:
 
   // TensorElement Constructor ----------------------------------
   /** Dimension Constructor */
@@ -134,9 +146,9 @@ class Tensor { // ==============================================================
       return getElement(indices);
     }
   /** Order gettet */
-    inline int getOrder() const {return elements_->order();}
+    inline int getOrder() const {return this->order();}
   /** Dimension Getter */
-    inline int getDimension(int axis) const {return elements_->dimensions[axis];}
+    inline int getDimension(int axis) const {return dimensions[transpose_map_[i]];}
   // End of Accessors ---------------------------------------------
 
   // TensorElement Modifiers --------------------------------------

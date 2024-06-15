@@ -33,18 +33,19 @@ Tensor<T>::TensorElement::TensorElement(const TensorElement& other)
 template<typename T>
 T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
   if (indicies.size() != order()) throw std::invalid_argument("TensorElement ElementGetter- Indices Order Mismatch"); 
-  
-  // TODO
-  // transpose should map indiceis at this point.
+
+  // TODO apparently, we dont need to reorder it seems
+  // we can just swap swap the dimensions' axis
+  //   If error occurs, check this first!
 
   int array_index = 0;
 
   // block_size is chuck-size that i-th index jumps each time.
   // Bottom-Up apporoach. By multiplying up the block_size, division is avoided
   for (int i = order() - 1, block_size = 1; i >= 0; --i) {
-    if (indices[i] >= 0 && indices[i] < dimensions[i]) {
+    if (indices[i] >= 0 && indices[i] < getDimension(i)) {
       array_index += block_size * indices[i];
-      block_size *= dimensions[i];
+      block_size *= getDimension(i); // By passing through trans._map_, we can transpose in place
     } else {
       throw std::invalid_argument("TensorElement ElementGetter- Index Out of Bounds"); 
     }
