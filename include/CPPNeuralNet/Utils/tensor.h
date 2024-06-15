@@ -258,7 +258,15 @@ class Tensor { // ==============================================================
  * Rule : Pad the smaller tensor with 1s on the left until they have the same length
  * This Function doesn't do Broadcasting; Instead it returns a vector of the size of Broadcasted Tensor
  */
-std::vector<int> broadcast(const Tensor<T>& other) const;
+  std::vector<int> broadcast(const Tensor<T>& other) const;
+
+// Element Wise Operations -----------------------------------------------
+
+
+
+
+
+//End of Element Wise Operations --------------------------------------------
   
 
 // friends =======================
