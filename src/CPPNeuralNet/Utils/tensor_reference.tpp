@@ -116,6 +116,28 @@ T& MatrixReference<T>::getElement(int row, int col) {
   return elements_->elements[array_index];
 }
 // End of Accessors ----------------------------------------------------
+
+// Matrix Operations ---------------------------------------------------
+/** Multiply Into */
+template<typename T>
+void MatrixReference<T>::MultiplyInto(const MatrixReference<T>& A, const MatrixReference<T>& B) {
+  if (this->kRows != A.kRows ||
+      this->kCols != B.kCols ||
+      A.kCols != B.kCols) {
+    throw std::invalid_argument("MatrixReference Multiplication- Dimension Mismatch"); 
+  }
+
+  for (int r = 0; r < kRows; ++r) {
+    for (int c = 0; c < kCols; ++c) {
+      getElement(r, c) = 0;
+      for (int k = 0; k < A.kCols; ++k) {
+        getElement(r, c) += A.getElement(r, k) * B.getElement(k, c);
+      }
+    }
+  }
+}
+// End of Matrix Operations --------------------------------------------
+
 // End of MatrixReference ==========================================================
 
 } // util

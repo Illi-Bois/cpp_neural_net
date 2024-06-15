@@ -69,7 +69,6 @@ class TensorReference { // =====================================================
  * MatrixReference will allow easy access into given Tensor's lowest level matrices
  *    and iterator through 
  */
-// TODO: MatrixIterator may be a more suitable name. Consider it.
 template<typename T = double>
 class MatrixReference : public TensorReference<T> { // ================================================================================
  private: 
@@ -95,6 +94,14 @@ class MatrixReference : public TensorReference<T> { // =========================
 /** Getter Parenthesis Notation */
   inline T& operator()(int row, int col) {return getElement(row, col);}
 // End of Accessors ---------------------------------------------
+
+// Matrix Operations --------------------------------------------
+/** Multiply Into
+ * Given MatrixReferences A,B, set the current chunk as A*B, where A,B point to their respective chunks
+ * Throws dimension check errors as necessary. 
+ */
+  void MultiplyInto(const MatrixReference<T>& A, const MatrixReference<T>& B);
+// End of Matrix Operations -------------------------------------
 }; // End of MatrixReference ==============================================================================
 
 } // util
