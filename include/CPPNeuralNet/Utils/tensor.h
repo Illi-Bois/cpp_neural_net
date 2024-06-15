@@ -260,6 +260,14 @@ class Tensor { // ==============================================================
  */
   std::vector<int> broadcast(const Tensor<T>& other) const;
 
+
+/** getIndex 
+ * Supporter Function for element wise operators
+ * Takes in an int index and and a vector shape. 
+ * Turns a flat index to multi dimensional vector index based on the shape
+ */
+  std::vector<int> getIndex(int index, const std::vector<int>& shape);
+
 // Element Wise Operations -----------------------------------------------
   Tensor<T> elementwise_add(const Tensor<T>& other) const;
 

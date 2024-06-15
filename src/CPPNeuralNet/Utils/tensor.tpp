@@ -172,9 +172,14 @@ std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
 
 // End of Broadcast --------------------------------------------
 
+// getIndex
+
+
+
 //Element Wise Operations --------------------------------------------
 template <typename T>
 Tensor<T> elementwise_add(const Tensor<T>& other) const {
+  Tensor<T> result(broadcast(other));
 
 }
 
