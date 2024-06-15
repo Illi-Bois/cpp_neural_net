@@ -83,6 +83,7 @@ namespace cpp_nn {
 namespace util {
 
 // Forward Declarations -------------------------------
+template <typename>
 class TensorReference;
 // End of Forward Declarations ------------------------
 
@@ -157,6 +158,11 @@ class Tensor { // ==============================================================
     void Transpose(int axis_one, int axis_two); 
     // TODO: if axes' dimension is 1, maybe no need to tranpose but just move the dimension only in dimensions?
   // End of TensorElement Modifiers -------------------------------
+
+  // friend ===================================
+    friend T& TensorReference<T>::getElement(std::vector<int> index);
+    friend T& MatrixReference<T>::getElement(int row, int col);
+  // end of friend ============================
   }; // End of TensorElement =================================================================
 
   TensorElement* elements_;
@@ -239,7 +245,7 @@ class Tensor { // ==============================================================
 // End of Operations --------------------------------------------
 
 // friends =======================
-  friend TensorReference;
+  friend class TensorReference<T>;
 // end of friends :( =============
 }; // End of Tensor =======================================================================================
 
