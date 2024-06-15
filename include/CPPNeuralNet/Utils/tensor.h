@@ -95,10 +95,10 @@ class Tensor { // ==============================================================
    */
   class TensorElement { // =================================================================
    private:
-    std::vector<int> dimensions;
-    std::vector<T> elements;
-    int capacity; // Total Number of elements in Tensor, = Product of Dimensions
-    inline int order() const {return dimensions.size()};
+    std::vector<int> dimensions_;
+    std::vector<T> elements_;
+    int kCapacity; // Total Number of elements in Tensor, = Product of Dimensions
+    inline int order() const {return dimensions_.size()};
     std::vector<int> transpose_map_; // Map maintaining tranpose mapping. 
                                       // tm_[i] will give which stored-axes corresponds to ith order's dimension
                                       /**
@@ -148,7 +148,7 @@ class Tensor { // ==============================================================
   /** Order gettet */
     inline int getOrder() const {return this->order();}
   /** Dimension Getter */
-    inline int getDimension(int axis) const {return dimensions[transpose_map_[i]];}
+    inline int getDimension(int axis) const {return dimensions_[transpose_map_[i]];}
   // End of Accessors ---------------------------------------------
 
   // TensorElement Modifiers --------------------------------------

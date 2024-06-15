@@ -9,24 +9,24 @@ namespace util {
 /** TensorElement Dimension Const. */
 template<typename T>
 Tensor<T>::TensorElement::TensorElement(const std::initializer_list<int>& dims, T initial_value /*= T()*/)
-    : dimensions(dims), capacity(0) {
-  if (dimensions.size() != 0) {
-    capacity = 1;
+    : dimensions_(dims), kCapacity(0) {
+  if (dimensions_.size() != 0) {
+    kCapacity = 1;
     for (const int& dim : dims) {
       if (dim >= 0) { // Non-Positive dimension is incorrect
-        capacity *= dim;
+        kCapacity *= dim;
         continue;
       }
       throw std::invalid_argument("TensorElement Constructor- Non-Positive Dimension Error"); 
     }
   }
 
-  elements.resize(capacity, initial_value);
+  elements_.resize(kCapacity, initial_value);
 }
 /** TensorElement Copy Constructor */
 template<typename T>
 Tensor<T>::TensorElement::TensorElement(const TensorElement& other)
-    : dimensions(other.dimensions), elements(other.elements), capacity(other.capacity) {}
+    : dimensions_(other.dimensions_), elements_(other.elements_), kCapacity(other.kCapacity) {}
 // End of TensorElement Constructor ----------------------------------
 
 // TensorElement Accessor --------------------------------------------
@@ -51,7 +51,7 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
     }
   }
 
-  return elements[array_index];
+  return elements_[array_index];
 }
 // End of TensorElement Accessor -------------------------------------
 // End of TensorElement =====================================================

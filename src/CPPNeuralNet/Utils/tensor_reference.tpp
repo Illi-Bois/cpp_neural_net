@@ -69,7 +69,7 @@ T& TensorReference<T>::getElement(std::vector<int> index) {
   }
 
   // Retrieves element directly from array, advoid recalculating index's address
-  return elements_->elements[array_index]; 
+  return elements_->elements_[array_index]; 
 }
 // End of Accessors ----------------------------------------------------
 
@@ -83,7 +83,7 @@ template <typename T>
 int TensorReference<T>::incrementIndex() {
   index_address_ += kChunkCapacity; // This provides fast way to increment
 
-  if (index_address_ >= elements_->capacity) return 0; // index beyond capacity
+  if (index_address_ >= elements_->kCapacity) return 0; // index beyond capacity
   return 1;
 }
 // End of Iteration ----------------------------------------------------
@@ -111,7 +111,7 @@ template<typename T>
 T& MatrixReference<T>::getElement(int row, int col) {
   // Best to bypass forming index-vectors at all
   int array_index = this->index_address_ + kCols * row + col;
-  return elements_->elements[array_index];
+  return elements_->elements_[array_index];
 }
 // End of Accessors ----------------------------------------------------
 
