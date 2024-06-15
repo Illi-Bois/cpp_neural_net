@@ -93,7 +93,7 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
   if (getOrder() < 2 || other.getOrder() < 2) 
     throw std::invalid_argument("Tensor Multiplication- Tensor is not Matrix");
 
-  if (elements_->dimensions[getOrder() - 1] != other.elements_->dimensions[other.getOrder() - 2])
+  if (elements_->getDimension(getOrder() - 1)  != other.elements_->getDimension(other.getOrder() - 2))
     throw std::invalid_argument("Tensor Multiplication- Multiplcation Dimension Mismatch");
   
   // [res_rows, inter_dim] * [inter_dim, res_cols]
@@ -102,9 +102,16 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
   int inter_dim = getDimension(getOrder() - 1); 
   
   // given A[dim1..., r, k] and B[dim2..., k, c], the resulting product is of dim C[dim1..., dim2..., r, c]
-  std::vector<int> res_dim{res_rows, res_cols};
-  res_dim.insert(res_dim.begin(), other.elements_->dimensions.begin(), other.elements_->dimensions.end() - 2);
-  res_dim.insert(res_dim.begin(), elements_->dimensions.begin(), elements_->dimensions.end() - 2);
+  std::vector<int> res_dim;
+  res_dim.reserve(this->getOrder() + other.getOrder() - 2);
+  for (int i = 0; i < this->getOrder() - 2; ++i) {
+    res_dim.push_back(this->getDimension(i));
+  }
+  for (int i = 0; i < other.getOrder() - 2; ++i) {
+    res_dim.push_back(other.getDimension(i));
+  }
+  res_dim.push_back(res_rows);
+  res_dim.push_back(res_cols);
   Tensor<T> res(res_dim);
 
   // Each Matrix chunk is handled via MatrixReference
