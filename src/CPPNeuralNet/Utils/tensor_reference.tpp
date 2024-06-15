@@ -54,6 +54,34 @@ template <typename T>
 TensorReference<T>::TensorReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
     : TensorReference(tensor, tensor.getOrder() - indices.size(), indices) {} // Reuse Contructor
 // End of Constructor --------------------------------------------------
+
+// Iteration -----------------------------------------------------------
+/** increments one matrix over. 
+ *  Returns 1 for successful incrementation, 0 for failed incrementation.
+ * 
+ * After failure, is set to 0th index again. Therefore checking terminatin with return flag is crucial.
+ */
+template <typename T>
+int TensorReference<T>::incrementIndex() {
+  index_address_ += kChunkCapacity; // This provides fast way to increment
+
+  // TensorIndex ----------------------------------
+  // TODO Depending on how later code uses this, this may be unecessary
+  for (int order = index_.size() - 1; order >= 0; --order) {
+    if (++index_[order] >= elements_->dimensions[order]) {
+      index_[order] = 0;
+      continue;
+    } else {
+      // incrementation successful
+      return 1;
+    }
+  }
+  // End of TensorIndex ---------------------------
+
+  if (index_address_ >= elements_->capacity) return 0; // index beyond capacity
+  return 1;
+}
+// End of Iteration ----------------------------------------------------
 // End of TensorReference ==========================================================
 
 
