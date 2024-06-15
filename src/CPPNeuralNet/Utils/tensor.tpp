@@ -148,25 +148,39 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
 // Broadcast --------------------------------------------
 template <typename T>
 std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
-  int max_order = std::max(getOrder(), other.getOrder());
-  std::vector<int> result_dim(max_order);
+    int this_order = getOrder();
+    int other_order = other.getOrder();
+    int max_order = std::max(this_order, other_order);
 
-  for (int i = 0; i < max_order; ++i) {
-    // Gets dimension value from right to left, pads with 1 if i >= this->order
-    int this_dim = (i < getOrder()) ? getDimension(getOrder() - 1 - i) : 1;
-    int other_dim = (i < other.getOrder()) ? other.getDimension(other.getOrder() - 1 - i) : 1;
+    std::vector<int> result_dim(max_order);
 
-    // Broadcasting requires dimension to be the same, or at least one is 1
-    if (this_dim != other_dim && this_dim != 1 && other_dim != 1) {
-      throw std::runtime_error("Not compatible for broadcasting.");
+    for (int i = 0; i < max_order; ++i) {
+        // Gets dimension value from right to left, pads with 1 if i >= this->order
+        int this_dim = (i < this_order) ? getDimension(this_order - 1 - i) : 1;
+        int other_dim = (i < other_order) ? other.getDimension(other_order - 1 - i) : 1;
+
+        // Broadcasting requires dimension to be the same, or at least one is 1
+        if (this_dim != other_dim && this_dim != 1 && other_dim != 1) {
+            throw std::runtime_error("Not compatible for broadcasting.");
+        }
+
+        result_dim[max_order - 1 - i] = std::max(this_dim, other_dim);
     }
 
-    result_dim[max_order - 1 - i] = std::max(this_dim, other_dim);
-  }
-
-  return result_dim;
+    return result_dim;
 }
+
 // End of Broadcast --------------------------------------------
+
+//Element Wise Operations --------------------------------------------
+template <typename T>
+Tensor<T> elementwise_add(const Tensor<T>& other) const {
+
+}
+
+
+//End of Element Wise Operatios --------------------------------------------
+
 
 // End of Tensor ===================================================================
 

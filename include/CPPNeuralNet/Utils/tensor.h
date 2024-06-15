@@ -261,7 +261,7 @@ class Tensor { // ==============================================================
   std::vector<int> broadcast(const Tensor<T>& other) const;
 
 // Element Wise Operations -----------------------------------------------
-
+  Tensor<T> elementwise_add(const Tensor<T>& other) const;
 
 
 
