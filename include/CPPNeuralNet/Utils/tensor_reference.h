@@ -23,7 +23,6 @@ class TensorReference { // =====================================================
   const int kChunkOrder;   // size of TensorChunk to be iterating
   const int kChunkCapacity; // Capacity of individual Chunks
 
-  std::vector<int> index_; // order = order(Tensor) - kChunkOrder
   int index_address_; // Direct Integer Address on TensorElement's element_ vector
                       // This will allow us to bypass recalculating array-index from Tensor-Index
 // End of Members -----------------------------------------------

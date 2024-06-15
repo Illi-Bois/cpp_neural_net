@@ -15,15 +15,12 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder)
     throw std::invalid_argument("TensorReference Constructor- Non-Positive ChunkOrder");
   if (tensor.getOrder() < kChunkOrder) 
     throw std::invalid_argument("TensorReference Constructor- Insufficient Tensor Order for Matrix");
-  // Initial Index at {0,...,0}
-  index_.reshape(tensor.getOrder() - kChunkOrder, 0);
 }
 /** Tensor-Referencing with Index */
 template <typename T>
 TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices) 
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder), 
-      index_(indices),
       index_address_(0) {
   if (kChunkOrder <= 0) 
     throw std::invalid_argument("TensorReference Constructor- Non-Positive ChunkOrder");
@@ -64,19 +61,6 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, std::initializer_list<int
 template <typename T>
 int TensorReference<T>::incrementIndex() {
   index_address_ += kChunkCapacity; // This provides fast way to increment
-
-  // TensorIndex ----------------------------------
-  // TODO Depending on how later code uses this, this may be unecessary
-  for (int order = index_.size() - 1; order >= 0; --order) {
-    if (++index_[order] >= elements_->dimensions[order]) {
-      index_[order] = 0;
-      continue;
-    } else {
-      // incrementation successful
-      return 1;
-    }
-  }
-  // End of TensorIndex ---------------------------
 
   if (index_address_ >= elements_->capacity) return 0; // index beyond capacity
   return 1;
