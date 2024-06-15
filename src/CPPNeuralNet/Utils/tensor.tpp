@@ -8,8 +8,7 @@ namespace util {
 // TensorElement Constructor ------------------------------------------
 /** TensorElement Dimension Const. */
 template<typename T>
-Tensor<T>::TensorElement::TensorElement(const std::initializer_list<int>& dims, 
-                                        T initial_value /*= T()*/)
+Tensor<T>::TensorElement::TensorElement(const std::initializer_list<int>& dims, T initial_value /*= T()*/)
     : dimensions(dims), capacity(0) {
   if (dimensions.size() != 0) {
     capacity = 1;

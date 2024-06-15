@@ -99,6 +99,7 @@ class Tensor { // ==============================================================
     std::vector<T> elements;
     int capacity; // Total Number of elements in Tensor, = Product of Dimensions
     inline int order() const {return dimensions.size()};
+    std::vector<int> transpose_map_; // Map maintaining tranpose mapping. 
 
     // TODO
     // Transpose map. Handles transpose as index mapper initially
@@ -137,6 +138,14 @@ class Tensor { // ==============================================================
   /** Dimension Getter */
     inline int getDimension(int axis) const {return elements_->dimensions[axis];}
   // End of Accessors ---------------------------------------------
+
+  // TensorElement Modifiers --------------------------------------
+  /** Tranpose Axes
+   *  Tranposes given axes in the Tensor. 
+   */
+    void Transpose(int axis_one, int axis_two); 
+    // TODO: if axes' dimension is 1, maybe no need to tranpose but just move the dimension only in dimensions?
+  // End of TensorElement Modifiers -------------------------------
   }; // End of TensorElement =================================================================
 
   TensorElement* elements_;

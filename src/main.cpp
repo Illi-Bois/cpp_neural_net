@@ -2,6 +2,8 @@
 #include <initializer_list>
 #include <vector>
 
+#include "CPPNeuralNet/Utils/utils.h"
+
 
 // TESTZONE, modify as you want to test out ideas.
 template<typename T=int>
@@ -87,10 +89,19 @@ int main() {
   // a1({1,2,3});
 
 
-  AA<int, 3> al;
-  al.p();
+  // AA<int, 3> al;
+  // al.p();
 
-  for (int i = 0, j = 0; i < 10; ++i, ++j) {
-    std::cout << i << std::endl;
+  // for (int i = 0, j = 0; i < 10; ++i, ++j) {
+  //   std::cout << i << std::endl;
+  // }
+
+  std::vector<int> ord{0,3,2,1};
+  std::vector<int> val{11, 12, 13, 14};
+
+  cpp_nn::util::reorder(ord.begin(), ord.end(), val.begin());
+
+  for(auto a : val) {
+    std::cout << a << std::endl;
   }
 }

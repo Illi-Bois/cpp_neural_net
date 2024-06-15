@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <initializer_list>
+#include <utility>
 
 namespace cpp_nn {
 namespace util {
@@ -35,7 +36,7 @@ class Matrix {
    * Copy Constructor. 
    *   Contruct deep copy from given matrix.
   */
-  Matrix(Matrix& const other)
+  Matrix(const Matrix& other)
       : num_rows_(other.num_rows), num_cols_(other.num_cols),
         elements_(other.elements) {}
   
@@ -163,9 +164,7 @@ class Vector : public Matrix<T> {
    * Copy Constructor. 
    *   Contruct deep copy from given matrix.
   */
-  Vector(Matrix& const other)
-      : num_rows_(other.num_rows), num_cols_(1),
-        elements_(other.elements) {}
+  Vector(const Matrix<T>& other) : Matrix<T>(other) {}
 // End of Constructor ------------------------------------------------------
 
 // Vector Operators --------------------------------------------------------
@@ -179,7 +178,7 @@ class Vector : public Matrix<T> {
   T& operator()(const int row, const int col) = delete;
 
   inline T& getElement(const int row) {
-    return elements_[row][0];
+    return this->elements_[row][0];
   }
   T& operator()(const int row) {
     return this->getElement(row);
@@ -206,6 +205,34 @@ class Vector : public Matrix<T> {
 //   //assign new value to existing object
 //   Tensor& operator=(const Tensor& other);
 // };
+
+
+// Additional Static Operations ==========================================================================
+/**
+ * Reorder Vector based on Index Mapper
+ * Code from https://stackoverflow.com/questions/838384/reorder-vector-using-a-vector-of-indices
+ */
+template< typename order_iterator, typename value_iterator >
+void reorder( order_iterator order_begin, order_iterator order_end, value_iterator v )  {   
+  typedef typename std::iterator_traits< value_iterator >::value_type value_t;
+  typedef typename std::iterator_traits< order_iterator >::value_type index_t;
+  typedef typename std::iterator_traits< order_iterator >::difference_type diff_t;
+  
+  diff_t remaining = order_end - 1 - order_begin;
+  for ( index_t s = index_t(), d; remaining > 0; ++ s ) {
+    for ( d = order_begin[s]; d > s; d = order_begin[d] ) ;
+    if ( d == s ) {
+      --remaining;
+      value_t temp = v[s];
+      while ( d = order_begin[d], d != s ) {
+        std::swap( temp, v[d] );
+        --remaining;
+      }
+      v[s] = temp;
+    }
+  }
+}
+// End of Additional Static Operations ===================================================================
 
 } // util
 } // cpp_nn
