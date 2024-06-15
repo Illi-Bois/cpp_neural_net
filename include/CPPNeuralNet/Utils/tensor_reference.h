@@ -8,7 +8,6 @@
 
 namespace cpp_nn {
 namespace util {
-
 /**
  * TensorReference.
  * A lightweight accessor and iterator over Tensor. 
@@ -44,7 +43,6 @@ class TensorReference { // =====================================================
     // TODO is chunkOrder necessary when it can be implied by index's order?
 // End of Constructor -------------------------------------------
 
-
 // Accessors ----------------------------------------------------
 /** Getter
  *  Retrieves element at index of current TensorChunk
@@ -63,6 +61,7 @@ class TensorReference { // =====================================================
   int incrementIndex();
 // End of Iteration ---------------------------------------------
 }; // End of TensorReference ==============================================================================
+
 
 /**
  * Intermediary object to aid in referencing matrices in a Tensor. 

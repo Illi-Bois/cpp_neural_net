@@ -2,7 +2,6 @@
 
 namespace cpp_nn {
 namespace util {
-
 // TensorReference =================================================================
 // Constructor ---------------------------------------------------------
 /** Tensor-Referencing */
@@ -72,9 +71,7 @@ T& TensorReference<T>::getElement(std::vector<int> index) {
   // Retrieves element directly from array, advoid recalculating index's address
   return elements_->elements[array_index]; 
 }
-
-// And of Accessors ----------------------------------------------------
-
+// End of Accessors ----------------------------------------------------
 
 // Iteration -----------------------------------------------------------
 /** increments one matrix over. 
@@ -91,6 +88,7 @@ int TensorReference<T>::incrementIndex() {
 }
 // End of Iteration ----------------------------------------------------
 // End of TensorReference ==========================================================
+
 
 // MatrixReference =================================================================
 // Constructor ---------------------------------------------------------
@@ -137,7 +135,6 @@ void MatrixReference<T>::MultiplyInto(const MatrixReference<T>& A, const MatrixR
   }
 }
 // End of Matrix Operations --------------------------------------------
-
 // End of MatrixReference ==========================================================
 
 } // util
