@@ -22,11 +22,17 @@ Tensor<T>::TensorElement::TensorElement(const std::initializer_list<int>& dims, 
   }
 
   elements_.resize(kCapacity, initial_value);
+  // Initially all index maps to self
+  transpose_map_.reserve(order());
+  for (int i = 0; i < order(); ++i) {
+    transpose_map_.push_back(i);
+  }
 }
 /** TensorElement Copy Constructor */
 template<typename T>
 Tensor<T>::TensorElement::TensorElement(const TensorElement& other)
-    : dimensions_(other.dimensions_), elements_(other.elements_), kCapacity(other.kCapacity) {}
+    : dimensions_(other.dimensions_), elements_(other.elements_), 
+      kCapacity(other.kCapacity), transpose_map_(other.transpose_map_) {}
 // End of TensorElement Constructor ----------------------------------
 
 // TensorElement Accessor --------------------------------------------
@@ -54,6 +60,14 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
   return elements_[array_index];
 }
 // End of TensorElement Accessor -------------------------------------
+
+// TensorElement Modifier --------------------------------------------
+/** Transpose */
+template<typename T>
+void Tensor<T>::TensorElement::Transpose(int axis_one, int axis_two) {
+  std::swap(transpose_map_[axis_one], transpose_map_[axis_two]);
+}
+// End of TensorElement Modifier -------------------------------------
 // End of TensorElement =====================================================
 
 // Constructors --------------------------------------------------------

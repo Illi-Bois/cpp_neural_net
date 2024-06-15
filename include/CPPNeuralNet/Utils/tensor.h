@@ -98,7 +98,6 @@ class Tensor { // ==============================================================
     std::vector<int> dimensions_;
     std::vector<T> elements_;
     int kCapacity; // Total Number of elements in Tensor, = Product of Dimensions
-    inline int order() const {return dimensions_.size()};
     std::vector<int> transpose_map_; // Map maintaining tranpose mapping. 
                                       // tm_[i] will give which stored-axes corresponds to ith order's dimension
                                       /**
@@ -111,6 +110,7 @@ class Tensor { // ==============================================================
                                        */
                                       // TLDR:
                                       //  ith dimension is now given by dimension[tanspose_map_[i]]
+    inline int order() const {return dimensions_.size()};
 
     // TODO
     // Transpose map. Handles transpose as index mapper initially
