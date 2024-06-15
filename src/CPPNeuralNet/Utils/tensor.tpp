@@ -116,14 +116,7 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
   do { // while A has next
     do { // while B has next
       // Multiply 
-      for (int r = 0; r < res_rows; ++r) {
-        for (int c = 0; c < res_col; ++c) {
-          C.getElement(r, c) = 0;
-          for (int k = 0; k < inter_dim; ++k) {
-            C.getElement(r, c) += A.getElement(r, k) * B.getElement(k, c);
-          }
-        }
-      }
+      C.MultiplyInto(A, B);
 
       C.incrementIndex(); 
     } while(B.incrementIndex()/* != 0*/);
