@@ -89,4 +89,8 @@ int main() {
 
   AA<int, 3> al;
   al.p();
+
+  for (int i = 0, j = 0; i < 10; ++i, ++j) {
+    std::cout << i << std::endl;
+  }
 }

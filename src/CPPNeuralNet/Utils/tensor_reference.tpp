@@ -52,6 +52,30 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, std::initializer_list<int
     : TensorReference(tensor, tensor.getOrder() - indices.size(), indices) {} // Reuse Contructor
 // End of Constructor --------------------------------------------------
 
+// Accessors -----------------------------------------------------------
+/** Getter */
+template <typename T>
+T& TensorReference<T>::getElement(std::vector<int> index) {
+  // There is no real increase in runtime compared to relying on index-based getters from TensorElement,
+  // As it does the same calculation.   index_address allows us to skip large chunk of recalculation
+  int array_index = index_address_;
+  int block_size = 1;
+  for (int i = elements_->getOrder() - 1; i >= elements_->getOrder() - kChunkOrder; --i) {
+    if (index[i] >= 0 && index[i] < elements_->getDimension(i)) {
+      array_index += block_size * index[i];
+      block_size *= elements_->getDimension(i);
+    } else {
+      throw std::invalid_argument("TensorReference ElementGetter- Index Out of Bounds"); 
+    }
+  }
+
+  // Retrieves element directly from array, advoid recalculating index's address
+  return elements_->elements[array_index]; 
+}
+
+// And of Accessors ----------------------------------------------------
+
+
 // Iteration -----------------------------------------------------------
 /** increments one matrix over. 
  *  Returns 1 for successful incrementation, 0 for failed incrementation.
