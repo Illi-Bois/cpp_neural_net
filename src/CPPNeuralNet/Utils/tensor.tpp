@@ -38,11 +38,24 @@ Tensor<T>::TensorElement::TensorElement(const TensorElement& other)
 // TensorElement Accessor --------------------------------------------
 template<typename T>
 T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
+  return elements_[ConvertToAddress(indices)];
+}
+template<typename T>
+const T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) const {
+  return elements_[ConvertToAddress(indices)];
+}
+// End of TensorElement Accessor -------------------------------------
+
+
+// Housekeeping ------------------------------------------------------
+/** Index Address from Vetor Index
+ * Converts dimension-based index from vector to array-address
+ */
+template<typename T>
+int Tensor<T>::TensorElement::ConvertToAddress(const std::vector<int>& indices) const {
   if (indicies.size() != order()) throw std::invalid_argument("TensorElement ElementGetter- Indices Order Mismatch"); 
 
-
   // Transpose is handled by the fact that Dimension is accessed in Transposed order
-
   int array_index = 0;
   // block_size is chuck-size that i-th index jumps each time.
   // Bottom-Up apporoach. By multiplying up the block_size, division is avoided
@@ -54,10 +67,8 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
       throw std::invalid_argument("TensorElement ElementGetter- Index Out of Bounds"); 
     }
   }
-
-  return elements_[array_index];
 }
-// End of TensorElement Accessor -------------------------------------
+// End of Housekeeping -----------------------------------------------
 
 // TensorElement Modifier --------------------------------------------
 /** Transpose */
@@ -95,6 +106,10 @@ Tensor<T>::Tensor(Tensor<T>&& other)
 /** Element Getter */
 template<typename T>
 T& Tensor<T>::getElement(const std::vector<int>& indices) {
+  return elements_->getElement(indices);
+}
+template<typename T>
+const T& Tensor<T>::getElement(const std::vector<int>& indices) const {
   return elements_->getElement(indices);
 }
 // End of Accessors ----------------------------------------------------

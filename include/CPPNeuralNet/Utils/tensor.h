@@ -105,7 +105,7 @@ class Tensor { // ==============================================================
    private:
     std::vector<int> dimensions_;
     std::vector<T> elements_;
-    int kCapacity; // Total Number of elements in Tensor, = Product of Dimensions
+    const int kCapacity; // Total Number of elements in Tensor, = Product of Dimensions
     std::vector<int> transpose_map_; // Map maintaining tranpose mapping. 
                                       // tm_[i] will give which stored-axes corresponds to ith order's dimension
                                       /**
@@ -119,6 +119,13 @@ class Tensor { // ==============================================================
                                       // TLDR:
                                       //  ith dimension is now given by dimension[tanspose_map_[i]]
     inline int order() const {return dimensions_.size()};
+
+    // Housekeeping ---------------------------------------------
+    /** Index Address from Vetor Index
+     * Converts dimension-based index from vector to array-address
+     */
+    int ConvertToAddress(const std::vector<int>& indices) const;
+    // End of Housekeeping --------------------------------------
 
     // TODO
     // Export Transpose
@@ -143,14 +150,14 @@ class Tensor { // ==============================================================
    * In Practice, intended to be used with init_list {i,j,...}
    */
     T& getElement(const std::vector<int>& indices);
+    const T& getElement(const std::vector<int>& indices) const;
   /** Parenthesis Getter
    *  Same as Element Getter but with More accessible notation.
    * In Practice, intended to be used with init_list {i,j,...}
    */
-    inline T& operator()(const std::vector<int>& indices) {
-      return getElement(indices);
-    }
-  /** Order gettet */
+    inline T& operator()(const std::vector<int>& indices) {return getElement(indices);}
+    inline const T& operator()(const std::vector<int>& indices) const {return getElement(indices);}
+  /** Order getteㄱ */
     inline int getOrder() const {return this->order();}
   /** Dimension Getter */
     inline int getDimension(int axis) const {return dimensions_[transpose_map_[i]];}
@@ -195,11 +202,15 @@ class Tensor { // ==============================================================
  * In Practice, intended to be used with init_list {i,j,...}
  */
   T& getElement(const std::vector<int>& indices);
+  const T& getElement(const std::vector<int>& indices) const;
 /** Parenthesis Getter
  *  Same as Element Getter but with More accessible notation.
  * In Practice, intended to be used with init_list {i,j,...}
  */
   inline T& operator()(const std::vector<int>& indices) {
+    return getElement(indices);
+  }
+  inline const T& operator()(const std::vector<int>& indices) const {
     return getElement(indices);
   }
   inline int getOrder() const {
