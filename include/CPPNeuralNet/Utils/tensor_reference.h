@@ -55,12 +55,12 @@ class TensorReference { // =====================================================
 // End of Accessors ---------------------------------------------
 
 // Iteration ----------------------------------------------------
-/** increments one matrix over. 
+/** increments one Tensor over. 
  *  Returns 1 for successful incrementation, 0 for failed incrementation.
  * 
  * After failure, is set to 0th index again. Therefore checking terminatin with return flag is crucial.
  */
-  int incrementIndex();
+  virtual int incrementIndex();
 // End of Iteration ---------------------------------------------
 }; // End of TensorReference ==============================================================================
 
