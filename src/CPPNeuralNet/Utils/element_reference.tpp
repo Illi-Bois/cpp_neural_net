@@ -11,6 +11,10 @@ ElementReference<T>::ElementReference(const Tensor<T>& tensor)
     : TensorReference<T>(tensor, 0) {}
 /** Tensor-Referencing with Indices */
 template<typename T>
+ElementReference<T>::ElementReference(const Tensor<T>& tensor, const std::vector<int>& indices)
+    : TensorReference<T>(tensor, 0, indices) {}
+/** Tensor-Referencing with Indices as InitList */
+template<typename T>
 ElementReference<T>::ElementReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices)
     : TensorReference<T>(tensor, 0, indices) {}
 // End of Constructor -------------------------------------------
@@ -46,16 +50,14 @@ BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::ve
  */
 template<typename T>
 BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, 
-                                          const std::initializer_list<int>& indices)
-    : ElementReference<T>(tensor), kBroadcastShape(broadcast_shape),
+                                          const std::vector<int>& indices)
+    : ElementReference<T>(tensor, indices), kBroadcastShape(broadcast_shape),
       indices_(indices) {
   // Assumes the shape is boradcastable
   // As such, tensor's dimension check is bypassed
-
   if (this->elements_->order() > indices_.size()) {
     throw std::invalid_argument("BroadcastReference Constrcutor- Broadcast Shape smaller than Tensor Shape");
   }
-
   if (indices_.size() != kBroadcastShape.size) {
     throw std::invalid_argument("BroadcastReference Constrcutor- Index does not match Broadcast Order");
   }
@@ -65,6 +67,11 @@ BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::ve
     }
   }
 }
+/** Tensor-Referencing with Broadcasting and Inex as InitList */
+template<typename T>
+BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, 
+                                          const std::initializer_list<int>& indices)
+    : BroadcastReference<T>(tensor, broadcast_shape, std::vector<int>(indices)) {}
 // End of Constructor -------------------------------------------
 
 
@@ -74,12 +81,11 @@ BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::ve
  */
 template<typename T>
 int BroadcastReference<T>::incrementIndex() {
-  int order = indices_.size();
-  int tensor_order = this->elements_.order();
+  const int order = indices_.size();
+  const int tensor_order = this->elements_.order();
 
   bool carry = false; // to be used to decide of iteration is carrying over
-
-  this->index_address_ = 0;
+  this->index_address_ = 0; // reset and built from start
   int jump_size = 1;
 
   int i = 0;
@@ -102,6 +108,7 @@ int BroadcastReference<T>::incrementIndex() {
        ++i;
       continue; // carry over
     } else {
+      ++i; // has to increment before breaking
       break;
     }
   }
@@ -112,10 +119,9 @@ int BroadcastReference<T>::incrementIndex() {
     while (i < tensor_order) {
       // if dim is 1, index is either 0, or is broadcasted
       this->index_address_ += indices_[order - i] * this->elements_->getDimension(tensor_order - i);
-      jump_size *= this->elements_->getDimension(tensor_order)
+      jump_size *= this->elements_->getDimension(tensor_order);
       ++i;
     }
-
 
     return 1;
   }
@@ -125,5 +131,6 @@ int BroadcastReference<T>::incrementIndex() {
 }
 // End of Iteration ---------------------------------------------
 // End of BroadcastReference =======================================================
+
 } // util
 } // cpp_nn

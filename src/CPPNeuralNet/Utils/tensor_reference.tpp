@@ -17,7 +17,7 @@ TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrde
 }
 /** Tensor-Referencing with Index */
 template <typename T>
-TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::initializer_list<int>& indices) 
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::vector<int>& indices) 
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder), 
       index_address_(0) {
@@ -45,6 +45,10 @@ TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrde
     block_size *= tensor.getDimension(i);
   }
 }
+/** Tensor-Referencing with Index as InitList */
+template <typename T>
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::initializer_list<int>& indices) 
+    : TensorReference<T>(tensor, chunkOrder, std::vector<int>(indices)) {}
 /** Tensor-Referencing with Index and ChunkOrder implication */
 template <typename T>
 TensorReference<T>::TensorReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices) 
@@ -112,6 +116,12 @@ MatrixReference<T>::MatrixReference(const Tensor<T>& tensor)
       kRows(tensor.getDimension(tensor.getOrder() - 2)),
       kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
 /** Tensor-Referencing with Index */
+template<typename T>
+MatrixReference<T>::MatrixReference(const Tensor<T>& tensor, const std::vector<int>& indices) 
+    : TensorReference<T>(tensor, 2, indices),
+      kRows(tensor.getDimension(tensor.getOrder() - 2)),
+      kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
+/** Tensor-Referencing with Index as InitList */
 template<typename T>
 MatrixReference<T>::MatrixReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices) 
     : TensorReference<T>(tensor, 2, indices),

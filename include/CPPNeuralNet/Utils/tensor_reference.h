@@ -44,6 +44,8 @@ class TensorReference { // =====================================================
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
+  TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::vector<int>& indices);
+/** Tensor-Referencing with Index as InitList */
   TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::initializer_list<int>& indices);
   /** Tensor-Referencing with Index 
    *  ChunkOrder is implied by index*/
@@ -93,6 +95,8 @@ class MatrixReference : public TensorReference<T> { // =========================
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
+  MatrixReference(const Tensor<T>& tensor, const std::vector<int>& indices);
+/** Tensor-Referencing with Index as InitList */
   MatrixReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices);
 // End of Constructor -------------------------------------------
 

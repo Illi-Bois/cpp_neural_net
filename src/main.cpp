@@ -28,21 +28,18 @@ class B {
 
 void test(int* const ptr) {
   *ptr = 100;
-}
+};
 
+
+class AAAA {
+ public:
+  AAAA(const std::vector<int>& a) {
+    std::cout << a[0];
+  }
+  AAAA(const std::initializer_list<int>& a) : AAAA(std::vector<int>(a)) {
+  }
+};
 
 int main() {
-  int num = 10;
-  int num2 = 10;
-
-  A a(&num, num2);
-
-  const A c(&num, num2);
-  c.b = 11;
-  // c.aptr_ = &num2;
-
-  c.change();
-
-
-  std::cout << num2 << std::endl;
+  AAAA a({1});
 }
