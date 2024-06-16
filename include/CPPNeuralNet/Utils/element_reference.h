@@ -6,15 +6,12 @@
 
 #include <vector>
 
-/**
- * Subclass of TensorReference, to help in iterating through chosen broadcast shape.
- * Think of as: 1-Chunk-order TensorReference with custum Iteration by given shape
- */
+namespace cpp_nn {
+namespace util {
+
+/** Element-wise iterator of Tensor */
 template<typename T = double>
 class ElementReference : public TensorReference<T> { // ===================================================
- private:
-  std::vector<int> broadcast_shape_; // shape of the target. iteration will follow the broadcastes shape
-                                    // empty if not broadcasted, then will follow original shape
  public:
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
@@ -25,6 +22,28 @@ class ElementReference : public TensorReference<T> { // ========================
  * Broadcasting set to none
  */
   ElementReference(Tensor<T>& tensor, const std::vector<int>& indices);
+// End of Constructor -------------------------------------------
+
+// Accessors ----------------------------------------------------
+  /** Getter */
+  virtual T& getElement();
+// End of Accessors ---------------------------------------------
+
+}; // End of ElementReference =============================================================================
+
+
+/**
+ * Subclass of TensorReference, to help in iterating through chosen broadcast shape.
+ * Think of as: 1-Chunk-order TensorReference with custum Iteration by given shape
+ */
+template<typename T = double>
+class BroadcastReference : ElementReference<T> { // ========================================================
+ private:
+  std::vector<int> broadcast_shape_; // shape of the target. iteration will follow the broadcastes shape
+                                    // empty if not broadcasted, then will follow original shape
+  std::vector<int> indices_; // For this, we need to go back to using vector of indicies
+ public:
+ // Constructor --------------------------------------------------
 /** Tensor-Referencing with Broadcasting
  *  Assumes broadcast shape is valid
  */
@@ -38,7 +57,7 @@ class ElementReference : public TensorReference<T> { // ========================
 
 // Accessors ----------------------------------------------------
   /** Getter */
-  T& getElement();
+  T& getElement() override;
 // End of Accessors ---------------------------------------------
 
 // Iteration ----------------------------------------------------
@@ -47,7 +66,8 @@ class ElementReference : public TensorReference<T> { // ========================
  */
   int incrementIndex() override;
 // End of Iteration ---------------------------------------------
-}; // End of ElementReference =============================================================================
+}; // End of BroadcastReference ===========================================================================
 
-
+} // util
+} // cpp_nn
 #endif // CPP_NN_ELEMENT_REF

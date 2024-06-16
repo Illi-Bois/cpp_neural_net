@@ -62,6 +62,26 @@ void AA<T, kVal>::p() {
 }
 
 
+class Base {
+ public:
+  virtual void p() {
+    std::cout << "pp" << std::endl;
+  }
+  void pp() {
+    std::cout << "pp2" << std::endl;
+  }
+};
+class Der : public Base {
+ public:
+  void p() override {
+    std::cout << "pppp" << std::endl;
+  }
+  void pp() {
+    std::cout << "pp22" << std::endl;
+  }
+};
+
+
 int main() {
   std::cout << "Hello World" << std::endl;
   // Model model;
@@ -104,4 +124,9 @@ int main() {
   for(auto a : val) {
     std::cout << a << std::endl;
   }
+
+  Der d;
+  Base& b = d;
+  b.p();
+  b.pp();
 }
