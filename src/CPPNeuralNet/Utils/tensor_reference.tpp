@@ -84,7 +84,7 @@ int TensorReference<T>::incrementIndex() {
   index_address_ += kChunkCapacity; // This provides fast way to increment
 
   if (index_address_ >= elements_->kCapacity) {
-    index_address_ = 0 // reset to 0
+    index_address_ = 0; // reset to 0
     return 0; // index beyond capacity
   }
   return 1;
@@ -100,13 +100,13 @@ template<typename T>
 MatrixReference<T>::MatrixReference(Tensor<T>& tensor)
     : TensorReference<T>(tensor, 2),
       kRows(tensor.getDimension(tensor.getOrder() - 2)),
-      kRows(tensor.getDimension(tensor.getOrder() - 1)) {}
+      kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
 /** Tensor-Referencing with Index */
 template<typename T>
 MatrixReference<T>::MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
     : TensorReference<T>(tensor, 2, indices),
       kRows(tensor.getDimension(tensor.getOrder() - 2)),
-      kRows(tensor.getDimension(tensor.getOrder() - 1)) {}
+      kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
 // End of Constructor --------------------------------------------------
 
 // Accessors -----------------------------------------------------------
