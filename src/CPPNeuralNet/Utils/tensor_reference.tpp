@@ -10,8 +10,8 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder)
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder),
       index_address_(0) {
-  if (kChunkOrder <= 0) 
-    throw std::invalid_argument("TensorReference Constructor- Non-Positive ChunkOrder");
+  if (kChunkOrder < 0) 
+    throw std::invalid_argument("TensorReference Constructor- Negative ChunkOrder");
   if (tensor.getOrder() < kChunkOrder) 
     throw std::invalid_argument("TensorReference Constructor- Insufficient Tensor Order for Matrix");
 }
@@ -21,8 +21,8 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder, std
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder), 
       index_address_(0) {
-  if (kChunkOrder <= 0) 
-    throw std::invalid_argument("TensorReference Constructor- Non-Positive ChunkOrder");
+  if (kChunkOrder < 0) 
+    throw std::invalid_argument("TensorReference Constructor- Negative ChunkOrder");
   if (tensor.getOrder() < kChunkOrder) 
     throw std::invalid_argument("TensorReference Constructor- Insufficient Tensor Order for TensorChunk");
   if (index_.size() != tensor.getOrder() - kChunkOrder) 

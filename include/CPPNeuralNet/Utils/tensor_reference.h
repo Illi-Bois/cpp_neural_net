@@ -13,6 +13,8 @@ namespace util {
  * A lightweight accessor and iterator over Tensor. 
  * Given a Tensor and order of TensorChunk, ie 2 for Matrix,
  *    Will provide accessors and iterators over the multiarray of Tensors.
+ * 
+ * Chunk can be of order 0, in which case ech individual element is iterated
  */
 template <typename T = double>
 class TensorReference { // ================================================================================
