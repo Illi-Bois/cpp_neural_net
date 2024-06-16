@@ -113,6 +113,13 @@ class Tensor { // ==============================================================
                                       //  ith dimension is now given by dimension[tanspose_map_[i]]
     inline int order() const {return dimensions_.size()};
 
+    // Housekeeping ---------------------------------------------
+    /** Index Address from Vetor Index
+     * Converts dimension-based index from vector to array-address
+     */
+    int ConvertToAddress(const std::vector<int>& indices) const;
+    // End of Housekeeping --------------------------------------
+
     // TODO
     // Export Transpose
     // Function to actually move the data to match transpose.
@@ -141,12 +148,8 @@ class Tensor { // ==============================================================
    *  Same as Element Getter but with More accessible notation.
    * In Practice, intended to be used with init_list {i,j,...}
    */
-    inline T& operator()(const std::vector<int>& indices) {
-      return getElement(indices);
-    }
-    inline const T& operator()(const std::vector<int>& indices) const {
-      return getElement(indices);
-    }
+    inline T& operator()(const std::vector<int>& indices) {return getElement(indices);}
+    inline const T& operator()(const std::vector<int>& indices) const {return getElement(indices);}
   /** Order getteㄱ */
     inline int getOrder() const {return this->order();}
   /** Dimension Getter */
