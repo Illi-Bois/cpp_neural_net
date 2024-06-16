@@ -17,14 +17,16 @@ class ElementReference : public TensorReference<T> { // ========================
 /** Tensor-Referencing */
   ElementReference(const Tensor<T>& tensor);
 /** Tensor-Referencing with Indices */
-  ElementReference(const Tensor<T>& tensor, const std::vector<int>& indices);
+  ElementReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices);
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------
   /** Getter */
   virtual T& getElement();
+  virtual const T& getElement() const;
   /** Getter */
   inline T& operator()() {return getElement();}
+  inline const T& operator()() __EDG_CONSTEXPR_ENABLED__ {return getElement();}
 // End of Accessors ---------------------------------------------
 
 }; // End of ElementReference =============================================================================
@@ -37,7 +39,7 @@ class ElementReference : public TensorReference<T> { // ========================
 template<typename T = double>
 class BroadcastReference : ElementReference<T> { // ========================================================
  private:
-  std::vector<int> broadcast_shape_; // shape of the target. iteration will follow the broadcastes shape
+  const std::vector<int> kBroadcastShape; // shape of the target. iteration will follow the broadcastes shape
                                     // empty if not broadcasted, then will follow original shape
   std::vector<int> indices_; // For this, we need to go back to using vector of indicies
  public:
@@ -50,7 +52,7 @@ class BroadcastReference : ElementReference<T> { // ============================
  *  Assumes broadcast shape is valid
  *  Index is broadcast-set, that is in terms of broadcasted shape
  */
-  BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, const std::vector<int>& indices);
+  BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, const std::initializer_list<int>& indices);
 // End of Constructor -------------------------------------------
 
 // Iteration ----------------------------------------------------

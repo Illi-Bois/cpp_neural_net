@@ -7,17 +7,21 @@ namespace util {
 // Constructor --------------------------------------------------
 /** Tensor-Referencing */
 template<typename T>
-ElementReference<T>::ElementReference(const Tensor<T>& tensor) : TensorReference<T>(tensor, 0) {}
+ElementReference<T>::ElementReference(const Tensor<T>& tensor) 
+    : TensorReference<T>(tensor, 0) {}
 /** Tensor-Referencing with Indices */
 template<typename T>
-ElementReference<T>::ElementReference(const Tensor<T>& tensor, const std::vector<int>& indices)
+ElementReference<T>::ElementReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices)
     : TensorReference<T>(tensor, 0, indices) {}
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------
 template<typename T>
 T& ElementReference<T>::getElement() {
-  // return directly
+  return this->elements_->elements_[this->index_address_];
+}
+template<typename T>
+const T& ElementReference<T>::getElement() const {
   return this->elements_->elements_[this->index_address_];
 }
 // End of Accessors ---------------------------------------------
@@ -30,7 +34,7 @@ T& ElementReference<T>::getElement() {
  */
 template<typename T>
 BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape)
-    : ElementReference<T>(tensor), broadcast_shape_(broadcast_shape), 
+    : ElementReference<T>(tensor), kBroadcastShape(broadcast_shape), 
       indices_(std::vector(broadcast_shape.size(), 0)) {
   if (this->elements_->order() > indices_.size()) {
     throw std::invalid_argument("BroadcastReference Constrcutor- Broadcast Shape smaller than Tensor Shape");
@@ -42,8 +46,8 @@ BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::ve
  */
 template<typename T>
 BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, 
-                                      const std::vector<int>& indices)
-    : ElementReference<T>(tensor), broadcast_shape_(broadcast_shape),
+                                          const std::initializer_list<int>& indices)
+    : ElementReference<T>(tensor), kBroadcastShape(broadcast_shape),
       indices_(indices) {
   // Assumes the shape is boradcastable
   // As such, tensor's dimension check is bypassed
@@ -52,11 +56,11 @@ BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::ve
     throw std::invalid_argument("BroadcastReference Constrcutor- Broadcast Shape smaller than Tensor Shape");
   }
 
-  if (indices_.size() != broadcast_shape_.size) {
+  if (indices_.size() != kBroadcastShape.size) {
     throw std::invalid_argument("BroadcastReference Constrcutor- Index does not match Broadcast Order");
   }
   for (int i = 0; i < indices_.size(); ++i) {
-    if (indices_[i] < 0 || indices_[i] >= broadcast_shape_[i]) {
+    if (indices_[i] < 0 || indices_[i] >= kBroadcastShape[i]) {
       throw std::invalid_argument("BroadcastReference Constrcutor- Index out of Broadcast Bound");
     }
   }
@@ -78,7 +82,8 @@ int BroadcastReference<T>::incrementIndex() {
   this->index_address_ = 0;
   int jump_size = 1;
 
-  for (int i = 0; i < order; ++i) {
+  int i = 0;
+  while (i < order;) {
     carry = false; // reset
     ++indices_[order - i]; // increment index
 
@@ -91,17 +96,31 @@ int BroadcastReference<T>::incrementIndex() {
     }
 
     // check for carry over
-    if (indices_[order - i] >= broadcast_shape_[order - i]) {
+    if (indices_[order - i] >= kBroadcastShape[order - i]) {
       indices_[order - i] = 0;
       carry = true;
+       ++i;
       continue; // carry over
     } else {
       break;
     }
   }
 
+  // TODO: fix index_address getter. will not work as is now, because of break
+
   // success is determined by if final index is carried over or not
-  if (!carry) return 1;
+  if (!carry) {
+    // because vector index may have broekn before traversing full idx, must finish
+    while (i < tensor_order) {
+      // if dim is 1, index is either 0, or is broadcasted
+      this->index_address_ += indices_[order - i] * this->elements_->getDimension(tensor_order - i);
+      jump_size *= this->elements_->getDimension(tensor_order)
+      ++i;
+    }
+
+
+    return 1;
+  }
 
   this->index_address_ = 0; // if incrementation is not successful, reset index to 0 anyway
   return 0;
