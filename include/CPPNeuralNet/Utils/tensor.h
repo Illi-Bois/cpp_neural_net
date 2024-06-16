@@ -85,6 +85,11 @@ namespace util {
 // Forward Declarations -------------------------------
 template <typename>
 class TensorReference;
+template <typename>
+class MatrixReference;
+template <typename>
+class ElementReference;
+
 // End of Forward Declarations ------------------------
 
 template<typename T = double>
@@ -162,6 +167,7 @@ class Tensor { // ==============================================================
   // friend ===================================
     friend T& TensorReference<T>::getElement(std::vector<int> index);
     friend T& MatrixReference<T>::getElement(int row, int col);
+    friend T& ElementReference<T>::getElement(int row, int col);
   // end of friend ============================
   }; // End of TensorElement =================================================================
 
@@ -279,6 +285,9 @@ class Tensor { // ==============================================================
 
 // friends =======================
   friend class TensorReference<T>;
+  friend class MatrixReference<T>;
+  friend class ElementReference<T>;
+  friend class BroadcastReference<T>;
 // end of friends :( =============
 }; // End of Tensor =======================================================================================
 

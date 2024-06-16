@@ -64,6 +64,7 @@ void AA<T, kVal>::p() {
 
 class Base {
  public:
+  int a = 10;
   virtual void p() {
     std::cout << "pp" << std::endl;
   }
@@ -75,6 +76,15 @@ class Der : public Base {
  public:
   void p() override {
     std::cout << "pppp" << std::endl;
+  }
+  void pp() {
+    std::cout << "pp22" << std::endl;
+  }
+};
+class Der2 : public Der {
+ public:
+  void p() override {
+    std::cout << this->a << std::endl;
   }
   void pp() {
     std::cout << "pp22" << std::endl;
@@ -129,4 +139,7 @@ int main() {
   Base& b = d;
   b.p();
   b.pp();
+
+  Der2 d2;
+  d2.p();
 }

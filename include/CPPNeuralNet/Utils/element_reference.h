@@ -14,19 +14,17 @@ template<typename T = double>
 class ElementReference : public TensorReference<T> { // ===================================================
  public:
 // Constructor --------------------------------------------------
-/** Tensor-Referencing
- * Broadcasting set to none
- */
+/** Tensor-Referencing */
   ElementReference(Tensor<T>& tensor);
-/** Tensor-Referencing
- * Broadcasting set to none
- */
+/** Tensor-Referencing with Indices */
   ElementReference(Tensor<T>& tensor, const std::vector<int>& indices);
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------
   /** Getter */
   virtual T& getElement();
+  /** Getter */
+  inline T& operator()() {return getElement();}
 // End of Accessors ---------------------------------------------
 
 }; // End of ElementReference =============================================================================
@@ -47,18 +45,13 @@ class BroadcastReference : ElementReference<T> { // ============================
 /** Tensor-Referencing with Broadcasting
  *  Assumes broadcast shape is valid
  */
-  ElementReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape);
+  BroadcastReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape);
 /** Tensor-Referencing with Broadcasting
  *  Assumes broadcast shape is valid
  *  Index is broadcast-set, that is in terms of broadcasted shape
  */
-  ElementReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape, const std::vector<int>& indices);
+  BroadcastReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape, const std::vector<int>& indices);
 // End of Constructor -------------------------------------------
-
-// Accessors ----------------------------------------------------
-  /** Getter */
-  T& getElement() override;
-// End of Accessors ---------------------------------------------
 
 // Iteration ----------------------------------------------------
 /** Increments index over.
