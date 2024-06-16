@@ -32,16 +32,16 @@ class TensorReference { // =====================================================
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
  *  Index is set to 0th, or very first matrix. */
-  TensorReference(Tensor<T>& tensor, const int chunkOrder);
+  TensorReference(const Tensor<T>& tensor, const int chunkOrder);
 /** Tensor-Referencing with Index
  *  Index is set as specified. 
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
-  TensorReference(Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices);
+  TensorReference(const Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices);
   /** Tensor-Referencing with Index 
    *  ChunkOrder is implied by index*/
-  TensorReference(Tensor<T>& tensor, std::initializer_list<int> indices);
+  TensorReference(const Tensor<T>& tensor, std::initializer_list<int> indices);
     // TODO is chunkOrder necessary when it can be implied by index's order?
 // End of Constructor -------------------------------------------
 
@@ -79,13 +79,13 @@ class MatrixReference : public TensorReference<T> { // =========================
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
  *  Index is set to 0th, or very first matrix. */
-  MatrixReference(Tensor<T>& tensor);
+  MatrixReference(const Tensor<T>& tensor);
 /** Tensor-Referencing with Index
  *  Index is set as specified. 
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
-  MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices);
+  MatrixReference(const Tensor<T>& tensor, std::initializer_list<int> indices);
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------

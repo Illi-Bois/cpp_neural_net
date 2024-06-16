@@ -15,9 +15,9 @@ class ElementReference : public TensorReference<T> { // ========================
  public:
 // Constructor --------------------------------------------------
 /** Tensor-Referencing */
-  ElementReference(Tensor<T>& tensor);
+  ElementReference(const Tensor<T>& tensor);
 /** Tensor-Referencing with Indices */
-  ElementReference(Tensor<T>& tensor, const std::vector<int>& indices);
+  ElementReference(const Tensor<T>& tensor, const std::vector<int>& indices);
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------
@@ -45,12 +45,12 @@ class BroadcastReference : ElementReference<T> { // ============================
 /** Tensor-Referencing with Broadcasting
  *  Assumes broadcast shape is valid
  */
-  BroadcastReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape);
+  BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape);
 /** Tensor-Referencing with Broadcasting
  *  Assumes broadcast shape is valid
  *  Index is broadcast-set, that is in terms of broadcasted shape
  */
-  BroadcastReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape, const std::vector<int>& indices);
+  BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, const std::vector<int>& indices);
 // End of Constructor -------------------------------------------
 
 // Iteration ----------------------------------------------------

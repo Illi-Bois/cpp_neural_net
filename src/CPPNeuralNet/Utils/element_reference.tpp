@@ -7,10 +7,10 @@ namespace util {
 // Constructor --------------------------------------------------
 /** Tensor-Referencing */
 template<typename T>
-ElementReference<T>::ElementReference(Tensor<T>& tensor) : TensorReference<T>(tensor, 0) {}
+ElementReference<T>::ElementReference(const Tensor<T>& tensor) : TensorReference<T>(tensor, 0) {}
 /** Tensor-Referencing with Indices */
 template<typename T>
-ElementReference<T>::ElementReference(Tensor<T>& tensor, const std::vector<int>& indices)
+ElementReference<T>::ElementReference(const Tensor<T>& tensor, const std::vector<int>& indices)
     : TensorReference<T>(tensor, 0, indices) {}
 // End of Constructor -------------------------------------------
 
@@ -29,7 +29,7 @@ T& ElementReference<T>::getElement() {
  *  Assumes broadcast shape is valid
  */
 template<typename T>
-BroadcastReference<T>::BroadcastReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape)
+BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape)
     : ElementReference<T>(tensor), broadcast_shape_(broadcast_shape), 
       indices_(std::vector(broadcast_shape.size(), 0)) {
   if (this->elements_->order() > indices_.size()) {
@@ -41,7 +41,7 @@ BroadcastReference<T>::BroadcastReference(Tensor<T>& tensor, const std::vector<i
  *  Index is broadcast-set, that is in terms of broadcasted shape
  */
 template<typename T>
-BroadcastReference<T>::BroadcastReference(Tensor<T>& tensor, const std::vector<int>& broadcast_shape, 
+BroadcastReference<T>::BroadcastReference(const Tensor<T>& tensor, const std::vector<int>& broadcast_shape, 
                                       const std::vector<int>& indices)
     : ElementReference<T>(tensor), broadcast_shape_(broadcast_shape),
       indices_(indices) {

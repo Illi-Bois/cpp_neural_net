@@ -6,7 +6,7 @@ namespace util {
 // Constructor ---------------------------------------------------------
 /** Tensor-Referencing */
 template <typename T>
-TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder)
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder)
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder),
       index_address_(0) {
@@ -17,7 +17,7 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder)
 }
 /** Tensor-Referencing with Index */
 template <typename T>
-TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices) 
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices) 
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder), 
       index_address_(0) {
@@ -47,7 +47,7 @@ TensorReference<T>::TensorReference(Tensor<T>& tensor, const int chunkOrder, std
 }
 /** Tensor-Referencing with Index and ChunkOrder implication */
 template <typename T>
-TensorReference<T>::TensorReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, std::initializer_list<int> indices) 
     : TensorReference(tensor, tensor.getOrder() - indices.size(), indices) {} // Reuse Contructor
 // End of Constructor --------------------------------------------------
 
@@ -97,13 +97,13 @@ int TensorReference<T>::incrementIndex() {
 // Constructor ---------------------------------------------------------
 /** Tensor-Referencing */
 template<typename T>
-MatrixReference<T>::MatrixReference(Tensor<T>& tensor)
+MatrixReference<T>::MatrixReference(const Tensor<T>& tensor)
     : TensorReference<T>(tensor, 2),
       kRows(tensor.getDimension(tensor.getOrder() - 2)),
       kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
 /** Tensor-Referencing with Index */
 template<typename T>
-MatrixReference<T>::MatrixReference(Tensor<T>& tensor, std::initializer_list<int> indices) 
+MatrixReference<T>::MatrixReference(const Tensor<T>& tensor, std::initializer_list<int> indices) 
     : TensorReference<T>(tensor, 2, indices),
       kRows(tensor.getDimension(tensor.getOrder() - 2)),
       kCols(tensor.getDimension(tensor.getOrder() - 1)) {}

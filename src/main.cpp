@@ -5,141 +5,35 @@
 #include "CPPNeuralNet/Utils/utils.h"
 
 
-// TESTZONE, modify as you want to test out ideas.
-template<typename T=int>
+
 class A {
  public:
-  A mult(A other);
-
-  template<class Derived>
-  Derived genMult(Derived d);
+  int* aptr_;
+  A(int* aptr) : aptr_(aptr) {
+  }
 };
-
-
-template<typename T=int>
-class B : public A<T> {
-};
-
-template<typename T>
-A<T> A<T>::mult(A<T> other) {
-  std::cout << "okay" << std::endl;
-}
-
-template<typename T>
-template<class D>
-D A<T>::genMult(D d) {
-  static_assert(std::is_base_of<A, D>::value, "Error: not a A");
-  std::cout << "weird" << std::endl;
-  return d;
-}
-
-
-void test(int arr...) {
-  std::cout << arr << std::endl;
-  std::cout << *(&arr + sizeof(int)*2) << std::endl;
-}
-
-// void a1(std::initializer_list<int> arr) {
-//   std::cout << "This is init list" << std::endl;
-//   std::cout << arr[0] << std::endl;
-// }
-void a1(std::vector<int> arr) {
-  std::cout << "This is vec" << std::endl;
-  std::cout << arr.size() << std::endl;
-}
-
-
-template<typename T, int kVal>
-class AA {
+class B {
  public:
-  void p();
+  int* bptr_;
+  B(const A& a) : bptr_(a.aptr_) {
+    *a.aptr_ = 12;
+  }
 };
 
-template<typename T, int kVal>
-void AA<T, kVal>::p() {
-  int a = kVal;
-  std::cout << kVal << std::endl;
+void test(int* const ptr) {
+  *ptr = 100;
 }
-
-
-class Base {
- public:
-  int a = 10;
-  virtual void p() {
-    std::cout << "pp" << std::endl;
-  }
-  void pp() {
-    std::cout << "pp2" << std::endl;
-  }
-};
-class Der : public Base {
- public:
-  void p() override {
-    std::cout << "pppp" << std::endl;
-  }
-  void pp() {
-    std::cout << "pp22" << std::endl;
-  }
-};
-class Der2 : public Der {
- public:
-  void p() override {
-    std::cout << this->a << std::endl;
-  }
-  void pp() {
-    std::cout << "pp22" << std::endl;
-  }
-};
 
 
 int main() {
-  std::cout << "Hello World" << std::endl;
-  // Model model;
+  int num = 10;
 
-  // model.addLayer(new Layer(255, 25))
-  //      .addLayer(new Sogmoid())
-  //      .addLayer(new Layer(255, 25))
-  //      .addLayer(new Sogmoid())
-  //      .addLayer(new Layer(255, 25));
+  A a(&num);
 
-  // A<> a;
-  // B<> b;
+  B b(a);
+  std::cout << *b.bptr_ << std::endl;
 
-  // A<> c = b.mult(b);
-  // A<> d = a.mult(b);
-  // B<> e = a.genMult(b);
-  // A<> f = a.genMult(a);
+  test(&num);
 
-  // int k = 0;
-  // int g = a.genMult(k);
-
-
-  // test(1, 2, 3);
-
-  // a1({1,2,3});
-
-
-  // AA<int, 3> al;
-  // al.p();
-
-  // for (int i = 0, j = 0; i < 10; ++i, ++j) {
-  //   std::cout << i << std::endl;
-  // }
-
-  std::vector<int> ord{0,3,2,1};
-  std::vector<int> val{11, 12, 13, 14};
-
-  cpp_nn::util::reorder(ord.begin(), ord.end(), val.begin());
-
-  for(auto a : val) {
-    std::cout << a << std::endl;
-  }
-
-  Der d;
-  Base& b = d;
-  b.p();
-  b.pp();
-
-  Der2 d2;
-  d2.p();
+  std::cout << num << std::endl;
 }
