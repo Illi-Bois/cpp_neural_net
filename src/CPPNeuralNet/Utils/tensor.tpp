@@ -42,7 +42,7 @@ T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
 
 
   // Transpose is handled by the fact that Dimension is accessed in Transposed order
-  
+
   int array_index = 0;
   // block_size is chuck-size that i-th index jumps each time.
   // Bottom-Up apporoach. By multiplying up the block_size, division is avoided
@@ -152,27 +152,48 @@ std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
   int other_order = other.getOrder();
   int max_order = std::max(this_order, other_order);
 
-  std::vector<int> result_dim(max_order);
+  std::vector<int> res_dim(max_order);
 
-  for (int i = 0; i < max_order; ++i) {
-      // Gets dimension value from right to left, pads with 1 if i >= this->order
-      int this_dim = (i < this_order) ? getDimension(this_order - 1 - i) : 1;
-      int other_dim = (i < other_order) ? other.getDimension(other_order - 1 - i) : 1;
+  // traverse dimensions backwards
+  int this_idx = getOrder() - 1;
+  int other_idx = other.getOrder() - 1;
+  int res_idx = max_order - 1;
 
-      // Broadcasting requires dimension to be the same, or at least one is 1
-      if (this_dim != other_dim && this_dim != 1 && other_dim != 1) {
-          throw std::runtime_error("Not compatible for broadcasting.");
-      }
+  while (this_idx >= 0 && other_idx >= 0) { // both index are within order bound
+    int this_dim = getDimension(this_idx);
+    int other_dim = other.getDimension(other_idx);
 
-      result_dim[max_order - 1 - i] = std::max(this_dim, other_dim);
+    if (this_dim != other_dim && this_dim != 1 && other_dim != 1) {
+      throw std::runtime_error("Not compatible for broadcasting.");
+    }
+
+    res_dim[res_idx] = std::max(this_dim, other_dim);
+    
+    // dec counter
+    --this_idx;
+    --other_idx;
+    --res_idx;
   }
 
-  return result_dim;
+  // either or both of this_idx or other is depleted
+  while (this_idx >= 0) {
+    res_dim[res_idx] = getDimension(this_idx);
+    --res_idx;
+    --this_idx;
+  }
+  while (other_idx >= 0) {
+    res_dim[res_idx] = other.getDimension(other_idx);
+    --res_idx;
+    --other_idx;
+  }
+
+  return res_dim;
 }
 
 // End of Broadcast --------------------------------------------
 
 // getIndex --------------------------------------------
+template<typename T>
 std::vector<int> Tensor<T>::getIndex(int index, const std::vector<int>& shape) const {
   std::vector<int> indices(shape.size());
   for (int i = shape.size() - 1; i >= 0; --i) {
@@ -190,6 +211,7 @@ template <typename T>
 Tensor<T> Tensor<T>::elementwise_add(const Tensor<T>& other) const {
   std::vector<int> result_dim = broadcast(other);
   Tensor<T> result(result_dim);
+
   for (int i = 0; i < result.size(); ++i) {
     // Convert the flat index `i` into multi-dimensional indices for the result tensor
     std::vector<int> result_indices = getIndex(i, result_dim);
