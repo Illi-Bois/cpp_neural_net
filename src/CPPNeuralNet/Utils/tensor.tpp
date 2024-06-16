@@ -79,11 +79,11 @@ Tensor<T>::Tensor(std::vector<int> dims, T initial_value)
     : elements_(new TensorElement(dims, initial_value)), ownership_(true) {}
 /** Copy Constructor */
 template<typename T>
-Tensor<T>::Tensor(const Tensor& other)
+Tensor<T>::Tensor(const Tensor<T>& other)
     : elements_(new TensorElement(*other.elements_)), ownership_(true) {}
 /** Move Constrcutor */
 template<typename T>
-Tensor<T>::Tensor(Tensor&& other)
+Tensor<T>::Tensor(Tensor<T>&& other)
     : elements_(other.elements_), ownership_(true) {
   // unlink other
   other.elements_ = nullptr;
@@ -143,6 +143,44 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
 
   return res;
 }
+/** Elementwise
+ *  Given a Tensor that is broadcastable in shape as currewnt, and binary function f: X,Y -> Z
+ *  returns new instance of Tensor where element-wise operations are applied in broadcasted manner
+ */
+template<typename T>
+Tensor<T> Tensor<T>::element_wise(const Tensor<T>& other, std::function<T(T, T)> operation) const {
+  const std::vector<int> broadcast_shape = broadcast(other);
+
+  Tensor<T> res(broadcast_shape);
+
+  BroadcastReference<T> A(*this, broadcast_shape);
+  BroadcastReference<T> B(other, broadcast_shape);
+  BroadcastReference<T> C(res, broadcast_shape);
+
+  do { // while A has next
+    do { // while B has next
+      // Multiply 
+      C.getElement() = operation(A.getElement(), B.getElement());
+
+      C.incrementIndex(); 
+    } while(B.incrementIndex()/* != 0*/);
+  } while(A.incrementIndex()/* != 0*/);
+
+  return res;
+}
+
+/** Tensor Summation
+ * 
+ * Returned Tensor is another instance of the resulting Sum.
+ * 
+ * Rules of Summation:
+ * Elements are summed element-wise in a boradcast manner.
+ * 
+ */
+template<typename T>
+Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
+  return this->element_wise(other, [&](T x, T y)->T{x + y});
+}
 // End of Tensor Operations --------------------------------------------
 
 // Broadcast --------------------------------------------
@@ -168,7 +206,7 @@ std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
     }
 
     res_dim[res_idx] = std::max(this_dim, other_dim);
-    
+
     // dec counter
     --this_idx;
     --other_idx;

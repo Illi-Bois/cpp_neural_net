@@ -78,6 +78,7 @@
 
 #include <vector>
 #include <initializer_list>
+#include <functional>
 
 namespace cpp_nn {
 namespace util {
@@ -89,7 +90,8 @@ template <typename>
 class MatrixReference;
 template <typename>
 class ElementReference;
-
+template <typename>
+class BroadcastReference;
 // End of Forward Declarations ------------------------
 
 template<typename T = double>
@@ -181,9 +183,9 @@ class Tensor { // ==============================================================
 /** Dimension Contructors, Vector*/
   Tensor(std::vector<int> dims, T initial_value = T());
 /** Copy Constructor */
-  Tensor(const Tensor& other);
+  Tensor(const Tensor<T>& other);
 /** Move Constrcutor */
-  Tensor(Tensor&& other);
+  Tensor(Tensor<T>&& other);
 // End of Constructors ------------------------------------------
 
 // Accessors ----------------------------------------------------
@@ -233,21 +235,21 @@ class Tensor { // ==============================================================
  * Outter Product are implemented by
  *  [dim1..., n, 1] * [dim2..., 1, m] -> [dim1..., dim2..., n, m] 
  */
-  Tensor operator*(const Tensor& other) const;
-
+  Tensor<T> operator*(const Tensor<T>& other) const;
+/** Elementwise
+ *  Given a Tensor that is broadcastable in shape as currewnt, and binary function f: X,Y -> Z
+ *  returns new instance of Tensor where element-wise operations are applied in broadcasted manner
+ */
+  Tensor<T> element_wise(const Tensor<T>& other, std::function<T(T, T)> operation) const;
 /** Tensor Summation
  * 
  * Returned Tensor is another instance of the resulting Sum.
  * 
- * TODO: see if other implementation is more valid
  * Rules of Summation:
- * Order of summation does matter. 
- * The latter summand defines shape of block-tensor to be summed
- *  When [dims..., blockDim...] + [blockDim...] -> [dims..., blockDim...]
- * Therefore, if current does not match other's shape in its inner-shape, error is thrown.
+ * Elements are summed element-wise in a boradcast manner.
  * 
  */
-  Tensor operator+(const Tensor& other) const;
+  Tensor<T> operator+(const Tensor<T>& other) const;
 // End of Operations --------------------------------------------
 
 /**
