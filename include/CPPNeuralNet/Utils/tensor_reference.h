@@ -109,6 +109,3 @@ class MatrixReference : public TensorReference<T> { // =========================
 } // cpp_nn
 
 #endif // CPP_NN_TENSOR_REF
-
-
-/// !!!TODO: need to also handle const elemtns!
