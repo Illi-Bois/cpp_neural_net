@@ -106,8 +106,6 @@ int BroadcastReference<T>::incrementIndex() {
     }
   }
 
-  // TODO: fix index_address getter. will not work as is now, because of break
-
   // success is determined by if final index is carried over or not
   if (!carry) {
     // because vector index may have broekn before traversing full idx, must finish
