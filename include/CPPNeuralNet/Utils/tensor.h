@@ -251,7 +251,7 @@ class Tensor { // ==============================================================
  *  Given a Tensor that is broadcastable in shape as currewnt, and binary function f: X,Y -> Z
  *  returns new instance of Tensor where element-wise operations are applied in broadcasted manner
  */
-  Tensor<T> element_wise(const Tensor<T>& other, std::function<T(T, T)> operation) const;
+  Tensor<T> ElementwiseApply(const Tensor<T>& other, const std::function<T(T, T)>& operation) const;
 /** Tensor Summation
  * 
  * Returned Tensor is another instance of the resulting Sum.
@@ -263,38 +263,31 @@ class Tensor { // ==============================================================
   Tensor<T> operator+(const Tensor<T>& other) const;
 // End of Operations --------------------------------------------
 
+// Housekeeping -------------------------------------------------
+/** Broadcasting Dimensions.
+ *  Returns shape of broadcasted tensor. The shape then becomes compatible with both this and other.
+ *  
+ * Broadcasted shape define element-wise behaviours on tensor operations.
+ *  
+ *  Rule: Tensor-shapes are compatible if:
+ *        - when right aligned, the dimensions are either equal or either is 1
+ *  
+ * ie) 
+ * [4, 3, 1, 3, 1]
+ *    [1, 2, 3, 2]  ->  
+ * [4, 3, 2, 3, 2]
+ */
+  std::vector<int> BroadcastedWith(const Tensor<T>& other) const;
+// End of Housekeeping ------------------------------------------
+
 /**
  * TODO IDEAS TO IMPLEMENT
- * Broadcasting : used for operations like adding bias to activations and applying layer weights to input tensors
+ * Broadcasting : used for operations like adding bias to activations and applying layer weights to input tensors DONE
  * Concat and Splitting : Not needed now just yet, used in CNN so maybe soon
- * Elementwise Operations (+,-,/) 
+ * Elementwise Operations (+,-,/)     DONE
  * Tensor Reduction Operations (sum, mean, max, min) : Loss function and Pooling Layers
- * Transpose
+ * Transpose      DONE
  */
-
-/** Broadcasting 
- * Pads the smaller tensor so both shapes are same, allowing element wise operation
- * Rule : Pad the smaller tensor with 1s on the left until they have the same length
- * This Function doesn't do Broadcasting; Instead it returns a vector of the size of Broadcasted Tensor
- */
-  std::vector<int> broadcast(const Tensor<T>& other) const;
-
-
-/** getIndex 
- * Supporter Function for element wise operators
- * Takes in an int index and and a vector shape. 
- * Turns a flat index to multi dimensional vector index based on the shape
- */
-  std::vector<int> getIndex(int index, const std::vector<int>& shape) const;
-
-// Element Wise Operations -----------------------------------------------
-  Tensor<T> elementwise_add(const Tensor<T>& other) const;
-
-
-
-
-//End of Element Wise Operations --------------------------------------------
-  
 
 // friends =======================
   friend class TensorReference<T>;

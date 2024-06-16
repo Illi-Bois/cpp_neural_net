@@ -163,8 +163,8 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const {
  *  returns new instance of Tensor where element-wise operations are applied in broadcasted manner
  */
 template<typename T>
-Tensor<T> Tensor<T>::element_wise(const Tensor<T>& other, std::function<T(T, T)> operation) const {
-  const std::vector<int> broadcast_shape = broadcast(other);
+Tensor<T> Tensor<T>::ElementwiseApply(const Tensor<T>& other, const std::function<T(T, T)>& operation) const {
+  const std::vector<int> broadcast_shape = BroadcastedWith(other);
 
   Tensor<T> res(broadcast_shape);
 
@@ -174,7 +174,6 @@ Tensor<T> Tensor<T>::element_wise(const Tensor<T>& other, std::function<T(T, T)>
 
   do { // while A has next
     do { // while B has next
-      // Multiply 
       C.getElement() = operation(A.getElement(), B.getElement());
 
       C.incrementIndex(); 
@@ -194,13 +193,13 @@ Tensor<T> Tensor<T>::element_wise(const Tensor<T>& other, std::function<T(T, T)>
  */
 template<typename T>
 Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
-  return this->element_wise(other, [&](T x, T y)->T{x + y});
+  return this->ElementwiseApply(other, [&](T x, T y)->T {return x + y;};);
 }
 // End of Tensor Operations --------------------------------------------
 
 // Broadcast --------------------------------------------
-template <typename T>
-std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
+template<typename T>
+std::vector<int> Tensor<T>::BroadcastedWith(const Tensor<T>& other) const {
   int this_order = getOrder();
   int other_order = other.getOrder();
   int max_order = std::max(this_order, other_order);
@@ -212,15 +211,18 @@ std::vector<int> Tensor<T>::broadcast(const Tensor<T>& other) const {
   int other_idx = other.getOrder() - 1;
   int res_idx = max_order - 1;
 
+  int this_dim, other_dim;
   while (this_idx >= 0 && other_idx >= 0) { // both index are within order bound
-    int this_dim = getDimension(this_idx);
-    int other_dim = other.getDimension(other_idx);
+    this_dim = getDimension(this_idx);
+    other_dim = other.getDimension(other_idx);
 
-    if (this_dim != other_dim && this_dim != 1 && other_dim != 1) {
-      throw std::runtime_error("Not compatible for broadcasting.");
+    if (this_dim == other_dim) {
+      res_dim[res_idx] = this_dim;
+    } else if (this_dim == 1 || other_dim == 1) {
+      res_dim[res_idx] = this_dim * other_dim; // either must be 1
+    } else {
+      throw std::runtime_error("Tensor Broadcast- Incompatible Tensors by Broadcast");
     }
-
-    res_dim[res_idx] = std::max(this_dim, other_dim);
 
     // dec counter
     --this_idx;

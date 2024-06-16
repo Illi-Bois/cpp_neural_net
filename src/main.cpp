@@ -1,6 +1,7 @@
 #include <iostream>
 #include <initializer_list>
 #include <vector>
+#include <functional>
 
 #include "CPPNeuralNet/Utils/utils.h"
 
