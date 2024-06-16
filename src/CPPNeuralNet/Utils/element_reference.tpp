@@ -83,7 +83,7 @@ int BroadcastReference<T>::incrementIndex() {
   int jump_size = 1;
 
   int i = 0;
-  while (i < order;) {
+  while (i < order) {
     carry = false; // reset
     ++indices_[order - i]; // increment index
 
