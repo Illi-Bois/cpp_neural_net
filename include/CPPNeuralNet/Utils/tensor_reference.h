@@ -28,6 +28,12 @@ class TensorReference { // =====================================================
                       // This will allow us to bypass recalculating array-index from Tensor-Index
 // End of Members -----------------------------------------------
 
+// Housekeeping -------------------------------------------------
+/** Chunk Index to Address
+ * This is index within the current chunk block,
+ *  Must be summed with index_address_ for absolute address */
+  int ConvertToAddress(const std::vector<int>& indices) const;
+// End of Housekeeping ------------------------------------------
  public:
 // Constructor --------------------------------------------------
 /** Tensor-Referencing
@@ -38,10 +44,10 @@ class TensorReference { // =====================================================
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
-  TensorReference(const Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices);
+  TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::initializer_list<int>& indices);
   /** Tensor-Referencing with Index 
    *  ChunkOrder is implied by index*/
-  TensorReference(const Tensor<T>& tensor, std::initializer_list<int> indices);
+  TensorReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices);
     // TODO is chunkOrder necessary when it can be implied by index's order?
 // End of Constructor -------------------------------------------
 
@@ -49,9 +55,11 @@ class TensorReference { // =====================================================
 /** Getter
  *  Retrieves element at index of current TensorChunk
  */
-  T& getElement(std::vector<int> index);
+  T& getElement(const std::vector<int>& indices);
+  const T& getElement(const std::vector<int>& indices) const ;
 /** Getter Parenthesis Notation */
-  inline T& operator()(std::vector<int> index) {return getElement(index);}
+  inline T& operator()(const std::vector<int>& indices) {return getElement(indices);}
+  inline const T& operator()(const std::vector<int>& indices) const {return getElement(indices);}
 // End of Accessors ---------------------------------------------
 
 // Iteration ----------------------------------------------------
@@ -85,15 +93,17 @@ class MatrixReference : public TensorReference<T> { // =========================
  *    Throws error for 
  *      'Order Mismatch'
  *      'Index out of Bounds' */
-  MatrixReference(const Tensor<T>& tensor, std::initializer_list<int> indices);
+  MatrixReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices);
 // End of Constructor -------------------------------------------
 
 // Accessors ----------------------------------------------------
 /** Getter
  *  for [row][col] on the index_th Matrix of referencing Tensor */
   T& getElement(int row, int col);
+  const T& getElement(int row, int col) const;
 /** Getter Parenthesis Notation */
   inline T& operator()(int row, int col) {return getElement(row, col);}
+  inline const T& operator()(int row, int col) const {return getElement(row, col);}
 // End of Accessors ---------------------------------------------
 
 // Matrix Operations --------------------------------------------

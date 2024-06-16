@@ -9,7 +9,13 @@
 class A {
  public:
   int* aptr_;
-  A(int* aptr) : aptr_(aptr) {
+  int& b;
+  A(int* aptr, int& c) : aptr_(aptr), b(c) {
+  }
+
+  void change() const {
+    this->b = 13;
+    *this->aptr_ = 13;
   }
 };
 class B {
@@ -27,13 +33,16 @@ void test(int* const ptr) {
 
 int main() {
   int num = 10;
+  int num2 = 10;
 
-  A a(&num);
+  A a(&num, num2);
 
-  B b(a);
-  std::cout << *b.bptr_ << std::endl;
+  const A c(&num, num2);
+  c.b = 11;
+  // c.aptr_ = &num2;
 
-  test(&num);
+  c.change();
 
-  std::cout << num << std::endl;
+
+  std::cout << num2 << std::endl;
 }

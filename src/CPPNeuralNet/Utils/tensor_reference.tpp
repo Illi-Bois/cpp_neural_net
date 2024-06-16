@@ -17,7 +17,7 @@ TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrde
 }
 /** Tensor-Referencing with Index */
 template <typename T>
-TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder, std::initializer_list<int> indices) 
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrder, const std::initializer_list<int>& indices) 
     : elements_(tensor.elements_), 
       kChunkOrder(chunkOrder), 
       index_address_(0) {
@@ -35,41 +35,52 @@ TensorReference<T>::TensorReference(const Tensor<T>& tensor, const int chunkOrde
   }
 
   // Compute index_address_ while checking
-  int jump_size = kChunkCapacity;
+  int block_size = kChunkCapacity;
   for (int i = index_.size() - 1; i >= 0; --i) {
     if (index_[i] < 0 || index_[i] >= elements_->getDimension(i)) {
       throw std::invalid_argument("TensorReference Index Constructor- Index Out of Bounds"); 
     }
 
-    index_address_ += jump_size * index_[i];
-    jump_size *= tensor.getDimension(i);
+    index_address_ += block_size * index_[i];
+    block_size *= tensor.getDimension(i);
   }
 }
 /** Tensor-Referencing with Index and ChunkOrder implication */
 template <typename T>
-TensorReference<T>::TensorReference(const Tensor<T>& tensor, std::initializer_list<int> indices) 
+TensorReference<T>::TensorReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices) 
     : TensorReference(tensor, tensor.getOrder() - indices.size(), indices) {} // Reuse Contructor
 // End of Constructor --------------------------------------------------
 
-// Accessors -----------------------------------------------------------
-/** Getter */
-template <typename T>
-T& TensorReference<T>::getElement(std::vector<int> index) {
-  // There is no real increase in runtime compared to relying on index-based getters from TensorElement,
-  // As it does the same calculation.   index_address allows us to skip large chunk of recalculation
-  int array_index = index_address_;
+// Housekeeping --------------------------------------------------------
+/** Chunk Index to Addres */
+template<typename T>
+int TensorReference<T>::ConvertToAddress(const std::vector<int>& indices) const {
+  int chunk_address = 0;
   int block_size = 1;
-  for (int i = elements_->getOrder() - 1; i >= elements_->getOrder() - kChunkOrder; --i) {
+  for (int i = 0; i < kChunkOrder; ++i) {
+    int idx = elements_->getOrder() - 1 - i;
     if (index[i] >= 0 && index[i] < elements_->getDimension(i)) {
-      array_index += block_size * index[i];
+      chunk_address += block_size * index[i];
       block_size *= elements_->getDimension(i);
     } else {
       throw std::invalid_argument("TensorReference ElementGetter- Index Out of Bounds"); 
     }
   }
+  return chunk_address;
+}
+// End of Housekeeping -------------------------------------------------
 
+// Accessors -----------------------------------------------------------
+/** Getter */
+template <typename T>
+T& TensorReference<T>::getElement(const std::vector<int>& indicies) {
   // Retrieves element directly from array, advoid recalculating index's address
-  return elements_->elements_[array_index]; 
+  return elements_->elements_[index_address_ + ConvertToAddress(indicies)]; 
+}
+template <typename T>
+const T& TensorReference<T>::getElement(const std::vector<int>& indicies) const {
+  // Retrieves element directly from array, advoid recalculating index's address
+  return elements_->elements_[index_address_ + ConvertToAddress(indicies)]; 
 }
 // End of Accessors ----------------------------------------------------
 
@@ -92,7 +103,6 @@ int TensorReference<T>::incrementIndex() {
 // End of Iteration ----------------------------------------------------
 // End of TensorReference ==========================================================
 
-
 // MatrixReference =================================================================
 // Constructor ---------------------------------------------------------
 /** Tensor-Referencing */
@@ -103,18 +113,23 @@ MatrixReference<T>::MatrixReference(const Tensor<T>& tensor)
       kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
 /** Tensor-Referencing with Index */
 template<typename T>
-MatrixReference<T>::MatrixReference(const Tensor<T>& tensor, std::initializer_list<int> indices) 
+MatrixReference<T>::MatrixReference(const Tensor<T>& tensor, const std::initializer_list<int>& indices) 
     : TensorReference<T>(tensor, 2, indices),
       kRows(tensor.getDimension(tensor.getOrder() - 2)),
       kCols(tensor.getDimension(tensor.getOrder() - 1)) {}
 // End of Constructor --------------------------------------------------
 
 // Accessors -----------------------------------------------------------
+/** Getter */
 template<typename T>
 T& MatrixReference<T>::getElement(int row, int col) {
   // Best to bypass forming index-vectors at all
-  int array_index = this->index_address_ + kCols * row + col;
-  return elements_->elements_[array_index];
+  return elements_->elements_[this->index_address_ + kCols * row + col];
+}
+template<typename T>
+const T& MatrixReference<T>::getElement(int row, int col) const {
+  // Best to bypass forming index-vectors at all
+  return elements_->elements_[this->index_address_ + kCols * row + col];
 }
 // End of Accessors ----------------------------------------------------
 
