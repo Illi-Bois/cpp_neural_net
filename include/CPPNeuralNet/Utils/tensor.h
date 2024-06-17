@@ -221,6 +221,11 @@ class Tensor { // ==============================================================
   }
 // End of Accessors ---------------------------------------------
 
+// Tensor Modifiers ---------------------------------------------
+/** Transpose */
+  inline void Transpose(int axis1, int axis2) {this->elements_->Transpose(axis1, axis2);}
+// End of Tensor Modifiers --------------------------------------
+
 // Operations ---------------------------------------------------
 /** Tensor Multiplcation
  * To be understood as matrix multiplications when possible. 
