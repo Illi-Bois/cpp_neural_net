@@ -244,56 +244,7 @@ std::vector<int> Tensor<T>::BroadcastedWith(const Tensor<T>& other) const {
 
   return res_dim;
 }
-
 // End of Broadcast --------------------------------------------
-
-// getIndex --------------------------------------------
-template<typename T>
-std::vector<int> Tensor<T>::getIndex(int index, const std::vector<int>& shape) const {
-  std::vector<int> indices(shape.size());
-  for (int i = shape.size() - 1; i >= 0; --i) {
-    // remainder (index & shape[i]) is the index for current dimension i
-    indices[i] = index % shape[i];
-    // Update the flat index to remove the current dimension's contribution
-    index /= shape[i];
-  }
-  return indices;
-}
-// End of getIndex --------------------------------------------
-
-//Element Wise Operations --------------------------------------------
-template <typename T>
-Tensor<T> Tensor<T>::elementwise_add(const Tensor<T>& other) const {
-  std::vector<int> result_dim = broadcast(other);
-  Tensor<T> result(result_dim);
-
-  for (int i = 0; i < result.size(); ++i) {
-    // Convert the flat index `i` into multi-dimensional indices for the result tensor
-    std::vector<int> result_indices = getIndex(i, result_dim);
-    // Initialize vectors to hold the indices for `this` tensor and the `other` tensor
-    std::vector<int> this_indices(this->getOrder(), 0);
-    std::vector<int> other_indices(other.getOrder(), 0);
-    for (int j = 0; j < result_indices.size(); ++j) {
-      // If `j` is a part of `this` tensor's dimensions
-      if (j >= result_indices.size() - this->getOrder()) {
-        // If dimension size == 1 -> 0, otherwise, assign corresponding value from result_indices
-        this_indices[j - (result_indices.size() - this->getOrder())] = (this->getDimension(j - (result_indices.size() - this->getOrder())) == 1) ? 0 : result_indices[j];
-      }
-      // If `j` is a part of the `other` tensor's dimensions
-      if (j >= result_indices.size() - other.getOrder()) {
-        other_indices[j - (result_indices.size() - other.getOrder())] = (other.getDimension(j - (result_indices.size() - other.getOrder())) == 1) ? 0 : result_indices[j];
-      }
-    }
-    result(result_indices) = this->getElement(this_indices) + other.getElement(other_indices);
-  }
-  return result;
-}
-
-
-
-//End of Element Wise Operatios --------------------------------------------
-
-
 // End of Tensor ===================================================================
 
 } // util
