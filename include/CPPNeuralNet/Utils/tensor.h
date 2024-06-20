@@ -162,7 +162,10 @@ class Tensor { // ==============================================================
     inline const T& getElement(const std::vector<int>& indices) const {
       return getElementByAddress(ConvertToAddress(indices))
     }
-  /** Acces element from index */
+  /** Acces element from address index
+   * As long as address is generated from transposed dimensions, will validly conform
+   *  to access by indiices.
+   */
     inline T& getElementByAddress(int address) {
       return elements_[address];
     }
