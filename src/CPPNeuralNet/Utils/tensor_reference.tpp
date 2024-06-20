@@ -79,12 +79,12 @@ int TensorReference<T>::ConvertToAddress(const std::vector<int>& indices) const 
 template <typename T>
 T& TensorReference<T>::getElement(const std::vector<int>& indicies) {
   // Retrieves element directly from array, advoid recalculating index's address
-  return elements_->elements_[index_address_ + ConvertToAddress(indicies)]; 
+  return elements_->getElementByAddress(index_address_ + ConvertToAddress(indicies));
 }
 template <typename T>
 const T& TensorReference<T>::getElement(const std::vector<int>& indicies) const {
   // Retrieves element directly from array, advoid recalculating index's address
-  return elements_->elements_[index_address_ + ConvertToAddress(indicies)]; 
+  return elements_->getElementByAddress(index_address_ + ConvertToAddress(indicies));
 }
 // End of Accessors ----------------------------------------------------
 
@@ -98,7 +98,7 @@ template <typename T>
 int TensorReference<T>::incrementIndex() {
   index_address_ += kChunkCapacity; // This provides fast way to increment
 
-  if (index_address_ >= elements_->kCapacity) {
+  if (index_address_ >= elements_->getCapacity()) {
     index_address_ = 0; // reset to 0
     return 0; // index beyond capacity
   }
@@ -134,12 +134,12 @@ MatrixReference<T>::MatrixReference(const Tensor<T>& tensor, const std::initiali
 template<typename T>
 T& MatrixReference<T>::getElement(int row, int col) {
   // Best to bypass forming index-vectors at all
-  return elements_->elements_[this->index_address_ + kCols * row + col];
+  return elements_->getElementByAddress(this->index_address_ + kCols * row + col);
 }
 template<typename T>
 const T& MatrixReference<T>::getElement(int row, int col) const {
   // Best to bypass forming index-vectors at all
-  return elements_->elements_[this->index_address_ + kCols * row + col];
+  return elements_->getElementByAddress(this->index_address_ + kCols * row + col);
 }
 // End of Accessors ----------------------------------------------------
 

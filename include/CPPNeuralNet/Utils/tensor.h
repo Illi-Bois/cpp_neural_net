@@ -172,6 +172,9 @@ class Tensor { // ==============================================================
     inline const T& getElementByAddress(int address) const {
       return elements_[address];
     }
+    inline int getCapacity() const {
+      return kCapacity;
+    }
   /** Parenthesis Getter
    *  Same as Element Getter but with More accessible notation.
    * In Practice, intended to be used with init_list {i,j,...}
@@ -195,9 +198,9 @@ class Tensor { // ==============================================================
   // End of TensorElement Modifiers -------------------------------
 
   // friend ===================================
-    friend T& TensorReference<T>::getElement(std::vector<int> index);
-    friend T& MatrixReference<T>::getElement(int row, int col);
-    friend T& ElementReference<T>::getElement(int row, int col);
+    // friend T& TensorReference<T>::getElement(std::vector<int> index);
+    // friend T& MatrixReference<T>::getElement(int row, int col);
+    // friend T& ElementReference<T>::getElement(int row, int col);
   // end of friend ============================
   }; // End of TensorElement =================================================================
 

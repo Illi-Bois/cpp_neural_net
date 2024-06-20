@@ -22,11 +22,11 @@ ElementReference<T>::ElementReference(const Tensor<T>& tensor, const std::initia
 // Accessors ----------------------------------------------------
 template<typename T>
 T& ElementReference<T>::getElement() {
-  return this->elements_->elements_[this->index_address_];
+  return this->elements_->getElementByAddress(this->index_address_);
 }
 template<typename T>
 const T& ElementReference<T>::getElement() const {
-  return this->elements_->elements_[this->index_address_];
+  return this->elements_->getElementByAddress(this->index_address_);
 }
 // End of Accessors ---------------------------------------------
 // End of ElementReference =========================================================
