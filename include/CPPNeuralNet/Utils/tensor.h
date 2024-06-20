@@ -198,9 +198,6 @@ class Tensor { // ==============================================================
   // End of TensorElement Modifiers -------------------------------
 
   // friend ===================================
-    // friend T& TensorReference<T>::getElement(std::vector<int> index);
-    // friend T& MatrixReference<T>::getElement(int row, int col);
-    // friend T& ElementReference<T>::getElement(int row, int col);
   // end of friend ============================
   }; // End of TensorElement =================================================================
 
