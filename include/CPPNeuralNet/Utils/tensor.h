@@ -156,8 +156,19 @@ class Tensor { // ==============================================================
    *  Throws 'Dimension Mismatch' when index attempted is out of bounds.
    * In Practice, intended to be used with init_list {i,j,...}
    */
-    T& getElement(const std::vector<int>& indices);
-    const T& getElement(const std::vector<int>& indices) const;
+    inline T& getElement(const std::vector<int>& indices) {
+      return getElementByAddress(ConvertToAddress(indices));
+    }
+    inline const T& getElement(const std::vector<int>& indices) const {
+      return getElementByAddress(ConvertToAddress(indices))
+    }
+  /** Acces element from index */
+    inline T& getElementByAddress(int address) {
+      return elements_[address];
+    }
+    inline const T& getElementByAddress(int address) const {
+      return elements_[address];
+    }
   /** Parenthesis Getter
    *  Same as Element Getter but with More accessible notation.
    * In Practice, intended to be used with init_list {i,j,...}

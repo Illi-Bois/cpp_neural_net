@@ -35,15 +35,8 @@ Tensor<T>::TensorElement::TensorElement(const TensorElement& other)
       kCapacity(other.kCapacity), transpose_map_(other.transpose_map_) {}
 // End of TensorElement Constructor ----------------------------------
 
+
 // TensorElement Accessor --------------------------------------------
-template<typename T>
-T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) {
-  return elements_[ConvertToAddress(indices)];
-}
-template<typename T>
-const T& Tensor<T>::TensorElement::getElement(const std::vector<int>& indices) const {
-  return elements_[ConvertToAddress(indices)];
-}
 // End of TensorElement Accessor -------------------------------------
 
 
