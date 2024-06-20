@@ -125,6 +125,13 @@ class Tensor { // ==============================================================
      * Converts dimension-based index from vector to array-address
      */
     int ConvertToAddress(const std::vector<int>& indices) const;
+    /** Apply Transpose
+     *  Transpose, which are stored as index mapping, is applied to the vector storage.
+     *  If no Transpose is applied, ie) transpose_map is sorted, then nothing happens
+     * 
+     *  In effect, the method is called to 'flatten out' the transpose map
+     */
+    void ApplyTranspose();
     // End of Housekeeping --------------------------------------
 
     // TODO

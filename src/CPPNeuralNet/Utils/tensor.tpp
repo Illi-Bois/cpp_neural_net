@@ -68,6 +68,16 @@ int Tensor<T>::TensorElement::ConvertToAddress(const std::vector<int>& indices) 
     }
   }
 }
+/** Apply Transpose
+ *  Transpose, which are stored as index mapping, is applied to the vector storage.
+ *  If no Transpose is applied, ie) transpose_map is sorted, then nothing happens
+ * 
+ *  In effect, the method is called to 'flatten out' the transpose map
+ */
+template<typename T>
+void Tensor<T>::TensorElement::ApplyTranspose() {
+  // TODO
+}
 // End of Housekeeping -----------------------------------------------
 
 // TensorElement Modifier --------------------------------------------
