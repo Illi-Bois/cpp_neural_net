@@ -60,6 +60,8 @@ int Tensor<T>::TensorElement::ConvertToAddress(const std::vector<int>& indices) 
       throw std::invalid_argument("TensorElement ElementGetter- Index Out of Bounds"); 
     }
   }
+
+  return array_index;
 }
 /** Apply Transpose
  *  Transpose, which are stored as index mapping, is applied to the vector storage.
@@ -70,6 +72,20 @@ int Tensor<T>::TensorElement::ConvertToAddress(const std::vector<int>& indices) 
 template<typename T>
 void Tensor<T>::TensorElement::ApplyTranspose() {
   // TODO
+
+  int toIdx = 0;
+  std::vector<int> fromIdx(this->order(), 0);
+
+  std::vector<int> newElements;
+  newElements.reserve(this->kCapacity);
+
+  for (toIdx < this->kCapacity) {
+    newElements.push_back(fromIdx);
+
+    // increment 
+
+    ++toIdx;
+  }
 }
 // End of Housekeeping -----------------------------------------------
 

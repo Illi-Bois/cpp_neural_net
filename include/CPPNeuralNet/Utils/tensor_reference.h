@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <initializer_list>
+#include <stdexcept>
 
 namespace cpp_nn {
 namespace util {

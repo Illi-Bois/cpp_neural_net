@@ -79,6 +79,7 @@
 #include <vector>
 #include <initializer_list>
 #include <functional>
+#include <stdexcept>
 
 namespace cpp_nn {
 namespace util {
