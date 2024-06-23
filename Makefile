@@ -66,21 +66,34 @@
 
 
 
+CXX = clang++
+
+COMPILER_FLAG = -std=c++17 -Wall -O0 -g 
+LINKER_FLAG = 
+
+INCLUDE_FLAG = $(foreach dir,$(INCLUDE_DIR), -I$(dir))
+
 
 BUILD_DIR = ./build
 TEMP_DIR = $(BUILD_DIR)/temp
 
 SRC_DIR = ./src
+INCLUDE_DIR = ./include
+INCLUDE_DIR += ./include/CPPNeuralNet/Utils
 
 ALL_DIR := $(BUILD_DIR) $(TEMP_DIR) $(SRC_DIR)
 
 TARGET_EXEC = $(BUILD_DIR)/main
 
 
-ALL_FILES = $(wildcard $(SRC_DIR)/*.cpp)
+ALL_FILES = $(wildcard $(SRC_DIR)/*.cpp) 
+ALL_FILES += $(SRC_DIR)/CPPNeuralNet/Utils/sanity_check.cpp
 
-ALL_OBJS = $(TEMP_DIR)/main.o
+ALL_OBJS = $(TEMP_DIR)/main.o $(TEMP_DIR)/sanity_check.o 
 
+
+
+.DELETE_ON_ERROR:
 run: $(ALL_DIR) $(TARGET_EXEC) 
 	$(TARGET_EXEC)
 
@@ -90,7 +103,7 @@ $(ALL_DIR): %:
 
 
 $(TARGET_EXEC): $(ALL_OBJS)
-	clang++ $? -o $@
+	$(CXX) $(LINKER_FLAG) $? -o $@
 
 
 # name of the src file only   .cpp
@@ -98,15 +111,14 @@ $(TARGET_EXEC): $(ALL_OBJS)
 # actual directory location of said src file
 %.o: SRC_FILE_LOC = $(filter %/$(SRC_FILE_NAME), $(ALL_FILES)) 
 %.o:
-	clang++ -c $(SRC_FILE_LOC) -o $@
+	$(CXX) $(COMPILER_FLAG) $(INCLUDE_FLAG) -c $(SRC_FILE_LOC) -o $@
+
+
+
+
 
 .PHONY: clean
 clean:
 	@echo Cleaning....
-	rm *.o
-
-.PHONY: clean_all
-clean_all:
-	@echo Cleaning....
-	rm -rf $(BUILD_DIR)/*
+	rm -rf $(TARGET_EXEC) $(TEMP_DIR)
 
