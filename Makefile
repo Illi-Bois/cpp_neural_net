@@ -1,127 +1,3 @@
-# CXX = clang++
-
-# COMPILER_FLAG := -std=c++17 -Wall -O0 -g 
-# LINKER_FLAG = 
-
-# INCLUDE_FLAG = $(foreach dir,$(INCLUDE_DIR), -I$(dir))
-
-# BUILD_DIR = ./build
-# TEMP_DIR = $(BUILD_DIR)/temp
-
-# OUTPUT_DIR = $(BUILD_DIR) $(TEMP_DIR) $(GTEST_TEMP_DIR)
-
-# SRC_DIR = ./src
-# INCLUDE_DIR = ./include
-# INCLUDE_DIR += ./include/CPPNeuralNet
-
-# ALL_SRC_DIR := $(shell find $(SRC_DIR) -type d -print)
-
-# TARGET_EXEC = $(BUILD_DIR)/main
-
-# ENTRY_FILE = $(SRC_DIR)/main.cpp
-# ALL_FILES := $(shell find $(SRC_DIR) -name "*.cpp" -print)
-# # Strip path and only leave .cpp names
-# ALL_SRC_FILE_NAMES := $(foreach FILE, $(ALL_FILES), $(notdir $(FILE)))
-
-# ALL_OBJS = $(foreach NAME,$(ALL_SRC_FILE_NAMES),$(TEMP_DIR)/$(subst .cpp,.o,$(NAME)))
-
-
-
-# # GTEST------------------------------------------------------
-# # GTEST_DIR = ./googletest
-
-# # GTEST_SRC = $(wildcard $(GTEST_DIR)/src/*.cc)
-
-# # GTEST_INCLUDE_DIR := $(GTEST_DIR)/include
-
-# # GTEST_INCLUDE_FLAG := -I$(GTEST_INCLUDE_DIR)
-
-# # # TODO add to output dir
-# # GTEST_TEMP_DIR := $(build)/gtest_temp
-
-# # GTEST_OBJ = $(foreach FILE,$(GTEST_SRC), $(GTEST_TEMP_DIR)/$(subst .cc,.o,$(notdir $(FILE))))
-
-# # gtests: $(GTEST_OBJ)
-# # 	@echo  $(GTEST_OBJ)
-# # # $(CXX) $(COMPILER_FLAG) $(LINKER_FLAG) $(GTEST_INCLUDE_FLAG) $(GTEST_SRC) -o $(GTEST_TEMP_DIR)
-
-
-# # # # name of the src file only   .cpp
-# # %.o: SRC_FILE_NAME = $(subst .o,.cc,$(notdir $@))
-# # # # actual directory location of said src file
-# # # $(GTEST_OBJ): %.o: SRC_FILE_LOC = $(filter %/$(SRC_FILE_NAME), $(GTEST_SRC)) 
-# # $(GTEST_OBJ): %.o:
-# # 	@echo for $@ $(SRC_FILE_NAME)
-# # #	$(CXX) $(COMPILER_FLAG) $(INCLUDE_FLAG) $(GTEST_INCLUDE_FLAG) $(GTEST_SRC) -o $(GTEST_TEMP_DIR)
-
-
-# TEST_BUILD_DIR = $(BUILD_DIR)/test
-# TEST_BUILD_TEMP_DIR = $(BUILD_DIR)/test_temp
-
-# TEST_EXEC = $(TEST_BUILD_DIR)/test
-
-# TEST_SRC_FILES := $(filter-out $(ENTRY_FILE), $(ALL_FILES))
-# # PUT IN TEMP DIR SO WE CAN RESUE
-# TEST_OBJS := $(foreach FILE,$(TEST_SRC_FILES),$(TEMP_DIR)/$(notdir $(subst .cpp,.o,$(FILE))))
-
-# gtest: $(TEST_BUILD_TEMP_DIR) $(TEST_OBJS)
-# 	@echo $(TEST_OBJS)
-
-
-# #TODO MOVE THIS ALL INTO MAKEDIR
-# $(TEST_BUILD_TEMP_DIR):
-# 	mkdir $@
-
-# .PHONY: test
-# test: $(TEST_EXEC)
-
-# # requires all the testing files and all the gtest files objs
-# $(TEST_EXEC): $(TEST_OBJS) $(GTEST_OBJS)
-# 	$(CXX) $(TEST_OBJS) $(GTEST_OBJS) -o $(TEST_EXEC)
-
-# # Will rely on the old make commands, as it is the same
-# # $(TEST_OBJS): %.o:
-
-# # End of GTEST-----------------------------------------------
-
-# test:
-# 	@echo ALL_SRC_DIR $(ALL_SRC_DIR)
-# 	@echo ALL_FILES $(ALL_FILES)
-# 	@echo ALL_SRC_FILE_NAMES $(ALL_SRC_FILE_NAMES)
-# 	@echo ALL_OBJS $(ALL_OBJS)
-
-
-# .PHONY: run
-# .DELETE_ON_ERROR:
-# run: $(OUTPUT_DIR) $(TARGET_EXEC) 
-# 	$(TARGET_EXEC)
-
-# # Make Output Dir if doesn't exist
-# $(OUTPUT_DIR): %:
-# 	mkdir $@
-
-# $(TARGET_EXEC): $(ALL_OBJS)
-# 	$(CXX) $(LINKER_FLAG) $? -o $@
-
-
-# # name of the src file only   .cpp
-# %.o: SRC_FILE_NAME = $(subst .o,.cpp,$(notdir $@))
-# # actual directory location of said src file
-# %.o: SRC_FILE_LOC = $(filter %/$(SRC_FILE_NAME), $(ALL_FILES)) 
-# $(ALL_OBJS): %.o:
-# 	@echo Making SRC.o
-# 	$(CXX) $(COMPILER_FLAG) $(INCLUDE_FLAG) -c $(SRC_FILE_LOC) -o $@
-
-
-
-
-
-# .PHONY: clean
-# clean:
-# 	@echo Cleaning....
-# 	rm -rf $(TARGET_EXEC) $(TEMP_DIR) $(TEST_BUILD_TEMP_DIR)
-
-
 CXX := clang++
 
 ASSMBLE_FLAG = -c -std=c++17 -Wall -O0 -g 
@@ -220,7 +96,7 @@ $(TEST_EXEC): $(GTEST_OBJS) $(SRC_OBJ) $(TEST_SRC_OBJS)
 
 # OBJ ASSEMBLY ================================================
 # Will only produce .o files
-$(ENTRY_OBJ): $(TEMP_DIR)
+$(ENTRY_OBJ): $(TEMP_DIR)/
 	@echo making main...
 	$(CXX) $(ASSMBLE_FLAG) $(INCLUDE_FLAG) $(ENTRY_FILE) -o $(ENTRY_OBJ)
 
@@ -267,6 +143,6 @@ $(TEMP_DIR) $(GTEST_TEMP_DIR): $(BUILD_DIR)
 #  Except for GTEST DIR
 .PHONY: clean_all
 clean:
-	rm -r $(MAIN_EXEC) $(TEST_EXEC) $(TEMP_DIR)
+	rm -rf $(MAIN_EXEC) $(TEST_EXEC) $(TEST_EXEC) $(TEMP_DIR)
 
 
