@@ -1,8 +1,8 @@
 #ifndef CPP_NN_RELU
 #define CPP_NN_RELU
 
-#include "include/CPPNeuralNet/layer.h"
-#include "include/CPPNeuralNet/Utils/utils.h"
+#include "CPPNeuralNet/layer.h"
+#include "CPPNeuralNet/Utils/utils.h"
 
 namespace cpp_nn{
 

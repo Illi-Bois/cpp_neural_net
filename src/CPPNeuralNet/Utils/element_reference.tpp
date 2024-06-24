@@ -1,4 +1,4 @@
-// #include "include/CPPNeuralNet/Utils/element_reference.h"
+#include "CPPNeuralNet/Utils/element_reference.h"
 
 namespace cpp_nn {
 namespace util {

@@ -1,4 +1,4 @@
-// #include "include/CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 
 namespace cpp_nn {
 namespace util {

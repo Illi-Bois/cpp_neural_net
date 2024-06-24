@@ -1,7 +1,7 @@
 #ifndef CPP_NN_TENSOR_REF
 #define CPP_NN_TENSOR_REF
 
-#include "include/CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 
 #include <vector>
 #include <initializer_list>

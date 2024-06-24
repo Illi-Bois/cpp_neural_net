@@ -1,8 +1,8 @@
 #ifndef CPP_NN_LINEAR
 #define CPP_NN_LINEAR
 
-#include "layer.h"
-#include "Utils/utils.h"
+#include "CPPNeuralNet/layer.h"
+#include "CPPNeuralNet/Utils/utils.h"
 
 #include <random>
 

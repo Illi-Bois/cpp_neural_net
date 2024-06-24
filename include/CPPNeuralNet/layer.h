@@ -1,7 +1,7 @@
 #ifndef CPP_NN_LAYER
 #define CPP_NN_LAYER
 
-#include "Utils/utils.h"
+#include "CPPNeuralNet/Utils/utils.h"
 
 namespace cpp_nn {
 

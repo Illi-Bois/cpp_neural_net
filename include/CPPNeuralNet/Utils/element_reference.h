@@ -1,8 +1,8 @@
 #ifndef CPP_NN_ELEMENT_REF
 #define CPP_NN_ELEMENT_REF
 
-#include "include/CPPNeuralNet/Utils/tensor.h"
-#include "include/CPPNeuralNet/Utils/tensor_reference.h"
+#include "CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/tensor_reference.h"
 
 #include <vector>
 

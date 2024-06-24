@@ -122,6 +122,13 @@
 # 	rm -rf $(TARGET_EXEC) $(TEMP_DIR) $(TEST_BUILD_TEMP_DIR)
 
 
+CXX := clang++
+
+COMPILER_FLAG = -std=c++17 -Wall -O0 -g 
+LINKER_FLAG 	=
+
+INCLUDE_FLAG = -I$(INCLUDE_DIR)
+GTEST_INCLUDE_FLAG = -I$(GTEST_INCLUDE_DIR)
 
 
 BUILD_DIR := ./build
@@ -129,7 +136,7 @@ BUILD_DIR := ./build
 # Where all the src.o goes
 TEMP_DIR := $(BUILD_DIR)/temp
 # Where all the gtest.o goes
-GTEST_DIR := $(BUILD_DIR)/gtest_temp
+GTEST_TEMP_DIR := $(BUILD_DIR)/gtest_temp
 
 # Executables
 MAIN_EXEC := $(BUILD_DIR)/main
@@ -164,7 +171,7 @@ SRC_OBJS := $(foreach FILE,$(SRC_FILES), \
 													$(TEMP_DIR)/$(subst .cpp,.o,$(notdir $(FILE))))
 # Obj for gtest
 GTEST_OBJS := $(foreach FILE,$(GTEST_FILES), \
-													$(GTEST_DIR)/$(subst .cc,.o,$(notdir $(FILE))))
+													$(GTEST_TEMP_DIR)/$(subst .cc,.o,$(notdir $(FILE))))
 
 
 TESTNAMES:
@@ -199,23 +206,27 @@ $(TEST_EXEC): $(GTEST_OBJS) $(SRC_OBJ)
 
 
 # OBJ ASSEMBLY ================================================
-$(ENTRY_OBJ):
+$(ENTRY_OBJ): $(TEMP_DIR)
 	@echo making main...
+	$(CXX) $(COMPILER_FLAG) $(INCLUDE_FLAG) $(ENTRY_FILE) -o $(ENTRY_OBJ)
 
 $(SRC_OBJS): SRC_FILE_NAME = $(subst .o,.cpp,$(notdir $@))
 $(SRC_OBJS): SRC_FILE_LOC = $(filter %/$(SRC_FILE_NAME), $(SRC_FILES))
-$(SRC_OBJS):
+$(SRC_OBJS): $(TEMP_DIR)
 	@echo making src.o, namely: $@
 	@echo     with src.cpp: $(SRC_FILE_NAME)
 	@echo which is $(SRC_FILE_LOC)
+	$(CXX) $(COMPILER_FLAG) $(INCLUDE_FLAG) $(SRC_FILE_LOC) -o $@
 
 
 $(GTEST_OBJS): GTEST_FILE_NAME = $(subst .o,.cc,$(notdir $@))
 $(GTEST_OBJS): GTEST_FILE_LOC = $(filter %/$(GTEST_FILE_NAME), $(GTEST_FILES))
-$(GTEST_OBJS):
+$(GTEST_OBJS): $(GTEST_TEMP_DIR)
 	@echo making gtest.o, namely: $@
 	@echo     with gtest.cpp: $(GTEST_FILE_NAME)
 	@echo which is $(GTEST_FILE_LOC)
+	$(CXX) $(COMPILER_FLAG) $(INCLUDE_FLAG) $(GTEST_INCLUDE_FLAG) $(GTEST_FILE_LOC) -o $@
+
 # End of OBJ ASSEMBLY =========================================
 
 
@@ -224,7 +235,7 @@ $(GTEST_OBJS):
 $(BUILD_DIR):
 	mkdir $@
 # Sub-build dir
-$(TEMP_DIR) $(GTEST_DIR): $(BUILD_DIR)
+$(TEMP_DIR) $(GTEST_TEMP_DIR): $(BUILD_DIR)
 	mkdir $@
 
 
@@ -232,5 +243,5 @@ $(TEMP_DIR) $(GTEST_DIR): $(BUILD_DIR)
 # Cleans everything built
 .PHONY: clean_all
 clean:
-	rm -r $(MAIN_EXEC) $(TEST_EXEC) $(TEMP_DIR) $(GTEST_DIR)
+	rm -r $(MAIN_EXEC) $(TEST_EXEC) $(TEMP_DIR) $(GTEST_TEMP_DIR)
 

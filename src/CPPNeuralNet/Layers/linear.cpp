@@ -1,4 +1,4 @@
-#include "Layers/linear.h"
+#include "CPPNeuralNet/Layers/linear.h"
 
 /** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
 

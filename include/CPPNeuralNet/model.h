@@ -4,8 +4,8 @@
 // TODO preferably find better lower level alternative. Consider array of pointers. 
 #include "vector" 
 
-#include "include/CPPNeuralNet/layer.h"
-#include "include/CPPNeuralNet/Utils/utils.h"
+#include "CPPNeuralNet/layer.h"
+#include "CPPNeuralNet/Utils/utils.h"
 
 namespace cpp_nn {
 

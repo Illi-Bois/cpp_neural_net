@@ -4,8 +4,8 @@
 #include <functional>
 #include <stdexcept>
 
-#include "Utils/sanity_check.h"
-#include "Utils/tensor.h"
+#include "CPPNeuralNet/Utils/sanity_check.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 
 int main() {
   std::cout << "Hello World" << std::endl;
