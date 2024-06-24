@@ -79,7 +79,7 @@ TEMP_DIR = $(BUILD_DIR)/temp
 
 SRC_DIR = ./src
 INCLUDE_DIR = ./include
-INCLUDE_DIR += ./include/CPPNeuralNet/Utils
+INCLUDE_DIR += ./include/CPPNeuralNet
 
 ALL_DIR := $(BUILD_DIR) $(TEMP_DIR) $(SRC_DIR)
 
@@ -87,9 +87,10 @@ TARGET_EXEC = $(BUILD_DIR)/main
 
 
 ALL_FILES = $(wildcard $(SRC_DIR)/*.cpp) 
-ALL_FILES += $(SRC_DIR)/CPPNeuralNet/Utils/sanity_check.cpp
+# ALL_FILES += $(SRC_DIR)/CPPNeuralNet/Utils/sanity_check.cpp
 
-ALL_OBJS = $(TEMP_DIR)/main.o $(TEMP_DIR)/sanity_check.o 
+ALL_OBJS = $(TEMP_DIR)/main.o 
+# ALL_OBJS += $(TEMP_DIR)/sanity_check.o 
 
 
 
