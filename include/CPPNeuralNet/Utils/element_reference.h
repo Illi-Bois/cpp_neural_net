@@ -69,4 +69,8 @@ class BroadcastReference : ElementReference<T> { // ============================
 
 } // util
 } // cpp_nn
+
+#include "../src/CPPNeuralNet/Utils/element_reference.tpp"
+
+
 #endif // CPP_NN_ELEMENT_REF

@@ -68,40 +68,46 @@
 
 CXX = clang++
 
-COMPILER_FLAG = -std=c++17 -Wall -O0 -g 
+COMPILER_FLAG := -std=c++17 -Wall -O0 -g 
 LINKER_FLAG = 
 
 INCLUDE_FLAG = $(foreach dir,$(INCLUDE_DIR), -I$(dir))
 
-
 BUILD_DIR = ./build
 TEMP_DIR = $(BUILD_DIR)/temp
+
+OUTPUT_DIR := $(BUILD_DIR) $(TEMP_DIR)
 
 SRC_DIR = ./src
 INCLUDE_DIR = ./include
 INCLUDE_DIR += ./include/CPPNeuralNet
 
-ALL_DIR := $(BUILD_DIR) $(TEMP_DIR) $(SRC_DIR)
+ALL_SRC_DIR := $(shell find $(SRC_DIR) -type d -print)
 
 TARGET_EXEC = $(BUILD_DIR)/main
 
+ENTRY_FILE = $(SRC_DIR)/main.cpp
+ALL_FILES := $(shell find $(SRC_DIR) -name "*.cpp" -print)
+# Strip path and only leave .cpp names
+ALL_SRC_FILE_NAMES := $(foreach FILE, $(ALL_FILES), $(notdir $(FILE)))
 
-ALL_FILES = $(wildcard $(SRC_DIR)/*.cpp) 
-# ALL_FILES += $(SRC_DIR)/CPPNeuralNet/Utils/sanity_check.cpp
+ALL_OBJS = $(foreach NAME,$(ALL_SRC_FILE_NAMES),$(TEMP_DIR)/$(subst .cpp,.o,$(NAME)))
 
-ALL_OBJS = $(TEMP_DIR)/main.o 
-# ALL_OBJS += $(TEMP_DIR)/sanity_check.o 
+test:
+	@echo ALL_SRC_DIR $(ALL_SRC_DIR)
+	@echo ALL_FILES $(ALL_FILES)
+	@echo ALL_SRC_FILE_NAMES $(ALL_SRC_FILE_NAMES)
+	@echo ALL_OBJS $(ALL_OBJS)
 
 
-
+.PHONY: run
 .DELETE_ON_ERROR:
-run: $(ALL_DIR) $(TARGET_EXEC) 
+run: $(OUTPUT_DIR) $(TARGET_EXEC) 
 	$(TARGET_EXEC)
 
-# For each directory, if doesnt exit, make it
-$(ALL_DIR): %:
+# Make Output Dir if doesn't exist
+$(OUTPUT_DIR): %:
 	mkdir $@
-
 
 $(TARGET_EXEC): $(ALL_OBJS)
 	$(CXX) $(LINKER_FLAG) $? -o $@

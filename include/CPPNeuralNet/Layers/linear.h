@@ -1,8 +1,8 @@
 #ifndef CPP_NN_LINEAR
 #define CPP_NN_LINEAR
 
-#include "include/CPPNeuralNet/layer.h"
-#include "include/CPPNeuralNet/Utils/utils.h"
+#include "layer.h"
+#include "Utils/utils.h"
 
 #include <random>
 
@@ -10,15 +10,22 @@
 namespace cpp_nn {
 
 class Linear : public Layer {
+  
   private:
+/** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
+
     util::Matrix<double> weights_;
     util::Vector<double> biases_;
     double learning_rate_;
+------------------------------------------------------------------------------------------------------------- */
+
   public:
+/** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
     Linear(int in_features, int out_features, double lr = 0.01);
 
     util::Vector<double> forward(const util::Vector<double>& input) override;
     util::Vector<double> backward(const util::Vector<double>& gradient) override;
+------------------------------------------------------------------------------------------------------------- */
 
     /**
      * Linear Backswards:
@@ -35,6 +42,7 @@ class Linear : public Layer {
      * https://math.stackexchange.com/questions/1621948/derivative-of-a-vector-with-respect-to-a-matrix
      */
 
+/** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
     const util::Matrix<double>& get_weights() const {
       return weights_;
     }
@@ -44,6 +52,8 @@ class Linear : public Layer {
     void set_lr(double lr) {
       learning_rate_ = lr;
     }
+------------------------------------------------------------------------------------------------------------- */
+
 };
 
 

@@ -1,8 +1,11 @@
-#include "include/CPPNeuralNet/Layers/linear.h"
+#include "Layers/linear.h"
+
+/** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
+
 
 namespace cpp_nn {
 
-Linear::Linear(int in_features, int out_features, double lr = 0.01)
+Linear::Linear(int in_features, int out_features, double lr)
     : weights_(out_features, in_features, 0.0),
       biases_(out_features, 0.0),
       learning_rate_(lr) {
@@ -44,3 +47,5 @@ util::Vector<double> Linear::backward(const util::Vector<double>& gradient){
 }
 
 } // cpp_nn
+
+------------------------------------------------------------------------------------------------------------- */

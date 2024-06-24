@@ -106,7 +106,7 @@ class Tensor { // ==============================================================
    private:
     std::vector<int> dimensions_;
     std::vector<T> elements_;
-    const int kCapacity; // Total Number of elements in Tensor, = Product of Dimensions
+    int kCapacity; // Total Number of elements in Tensor, = Product of Dimensions
     std::vector<int> transpose_map_; // Map maintaining tranpose mapping. 
                                       // tm_[i] will give which stored-axes corresponds to ith order's dimension
                                       /**
@@ -119,7 +119,7 @@ class Tensor { // ==============================================================
                                        */
                                       // TLDR:
                                       //  ith dimension is now given by dimension[tanspose_map_[i]]
-    inline int order() const {return dimensions_.size()};
+    inline int order() const {return dimensions_.size();};
 
     // Housekeeping ---------------------------------------------
     /** Index Address from Vetor Index
@@ -161,7 +161,7 @@ class Tensor { // ==============================================================
       return getElementByAddress(ConvertToAddress(indices));
     }
     inline const T& getElement(const std::vector<int>& indices) const {
-      return getElementByAddress(ConvertToAddress(indices))
+      return getElementByAddress(ConvertToAddress(indices));
     }
   /** Acces element from address index
    * As long as address is generated from transposed dimensions, will validly conform
@@ -185,7 +185,7 @@ class Tensor { // ==============================================================
   /** Order getteㄱ */
     inline int getOrder() const {return this->order();}
   /** Dimension Getter */
-    inline int getDimension(int axis) const {return dimensions_[transpose_map_[i]];}
+    inline int getDimension(int axis) const {return dimensions_[transpose_map_[axis]];}
                                             // As dimension is accessed in transposed order,
                                             // it effectively transposes the entire tensor
   // End of Accessors ---------------------------------------------
@@ -324,6 +324,10 @@ class Tensor { // ==============================================================
 // end of friends :( =============
 }; // End of Tensor =======================================================================================
 
+
 } // util
 } // cpp_nn
+
+#include "../src/CPPNeuralNet/Utils/tensor.tpp"
+
 #endif // CPP_NN_TENSOR

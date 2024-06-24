@@ -1,4 +1,4 @@
-#include "include/CPPNeuralNet/Utils/tensor.h"
+// #include "include/CPPNeuralNet/Utils/tensor.h"
 
 namespace cpp_nn {
 namespace util {
@@ -46,7 +46,7 @@ Tensor<T>::TensorElement::TensorElement(const TensorElement& other)
  */
 template<typename T>
 int Tensor<T>::TensorElement::ConvertToAddress(const std::vector<int>& indices) const {
-  if (indicies.size() != order()) throw std::invalid_argument("TensorElement ElementGetter- Indices Order Mismatch"); 
+  if (indices.size() != order()) throw std::invalid_argument("TensorElement ElementGetter- Indices Order Mismatch"); 
 
   // Transpose is handled by the fact that Dimension is accessed in Transposed order
   int array_index = 0;
@@ -73,19 +73,19 @@ template<typename T>
 void Tensor<T>::TensorElement::ApplyTranspose() {
   // TODO
 
-  int toIdx = 0;
-  std::vector<int> fromIdx(this->order(), 0);
+  // int toIdx = 0;
+  // std::vector<int> fromIdx(this->order(), 0);
 
-  std::vector<int> newElements;
-  newElements.reserve(this->kCapacity);
+  // std::vector<int> newElements;
+  // newElements.reserve(this->kCapacity);
 
-  for (toIdx < this->kCapacity) {
-    newElements.push_back(fromIdx);
+  // while (toIdx < this->kCapacity) {
+  //   newElements.push_back(fromIdx);
 
-    // increment 
+  //   // increment 
 
-    ++toIdx;
-  }
+  //   ++toIdx;
+  // }
 }
 // End of Housekeeping -----------------------------------------------
 
@@ -212,7 +212,7 @@ Tensor<T> Tensor<T>::ElementwiseApply(const Tensor<T>& other, const std::functio
  */
 template<typename T>
 Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const {
-  return this->ElementwiseApply(other, [&](T x, T y)->T {return x + y;};);
+  return this->ElementwiseApply(other, [&](T x, T y)->T {return x + y;});
 }
 // End of Tensor Operations --------------------------------------------
 

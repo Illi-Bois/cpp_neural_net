@@ -1,7 +1,7 @@
 #ifndef CPP_NN_LAYER
 #define CPP_NN_LAYER
 
-#include "include/CPPNeuralNet/Utils/utils.h"
+#include "Utils/utils.h"
 
 namespace cpp_nn {
 
@@ -17,11 +17,14 @@ class Layer {
 
  public:
 
+/** WAIT TILL TENSOR IS COMPLETE ---------------------------------------------------
   // Compute forward pass of input through the layer.
   virtual util::Vector<double> forward(const util::Vector<double>& input); 
   // Update the layer according to last run input. 
   // Gradient from net layer is passed. Current gradient is returned.
   virtual util::Vector<double> backward(const util::Vector<double>& gradient); 
+---------------------------------------------------------------------------------- */
+
 
   /**
    * Each Layer is a function where input is passed and forwarded.

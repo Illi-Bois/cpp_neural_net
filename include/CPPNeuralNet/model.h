@@ -17,6 +17,7 @@ namespace cpp_nn {
  * Specific types of neural net models, such as Perceptrons, will inherit from Model. 
 */
 class Model {
+/** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
  private:
   std::vector<Layer> layers;
  public: 
@@ -30,6 +31,7 @@ class Model {
   // Update all the layer according to last run input. 
   // Graident of Loss is passed as arguement.
   void backward(util::Vector<double>& const gradient); // TODO see if return should be current gradient.
+------------------------------------------------------------------------------------------------------------- */
 };
 
 }

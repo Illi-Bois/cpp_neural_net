@@ -7,9 +7,12 @@
 namespace cpp_nn{
 
 class RelU : public Layer {
+/** WAIT TILL TENSOR IS FINISHED  ---------------------------------------------------------------------------------------
   public:
     util::Vector<double> forward(const util::Vector<double>& input) override;
     util::Vector<double> backward(const util::Vector<double>& gradient) override;
+------------------------------------------------------------------------------------------------------------- */
+
 };
 
 } //cpp_nn

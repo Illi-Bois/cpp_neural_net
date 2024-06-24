@@ -123,4 +123,6 @@ class MatrixReference : public TensorReference<T> { // =========================
 } // util
 } // cpp_nn
 
+#include "../src/CPPNeuralNet/Utils/tensor_reference.tpp"
+
 #endif // CPP_NN_TENSOR_REF
