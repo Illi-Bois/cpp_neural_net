@@ -145,7 +145,7 @@ class Tensor { // ==============================================================
    public:
 
   // TensorElement Constructor ----------------------------------
-  /** Dimension Constructor */
+  /** Dimension Constructor Init List */
     TensorElement(const std::initializer_list<int>& dims, T initial_value = T());
   /** Copy Constructor */
     TensorElement(const TensorElement& other);
