@@ -8,7 +8,7 @@
 #include "CPPNeuralNet/Utils/tensor.h"
 
 int main() {
-  std::cout << "Hello World" << std::endl;
+  std::cout << "Hello World!!" << std::endl;
 
   TesterClass<int> test(10);
   std::cout << test.getA() << std::endl;
