@@ -11,6 +11,8 @@ BUILD_DIR := ./build
 
 # Where all the src.o goes
 TEMP_DIR := $(BUILD_DIR)/temp
+# Where all the test.o goes, cannot simply be called test cuz test is already a target
+TEST_TEMP_DIR := $(BUILD_DIR)/test_temp
 # Where all the gtest.o goes
 GTEST_TEMP_DIR := $(BUILD_DIR)/gtest_temp
 
@@ -53,22 +55,11 @@ SRC_OBJS := $(foreach FILE,$(SRC_FILES), \
 													$(TEMP_DIR)/$(subst .cpp,.o,$(notdir $(FILE))))
 # Obj for all other src files
 TEST_SRC_OBJS := $(foreach FILE,$(TEST_SRC_FILES), \
-													$(TEMP_DIR)/$(subst .cpp,.o,$(notdir $(FILE))))
+													$(TEST_TEMP_DIR)/$(subst .cpp,.o,$(notdir $(FILE))))
 # Obj for gtest
 GTEST_OBJS := $(foreach FILE,$(GTEST_FILES), \
 													$(GTEST_TEMP_DIR)/$(subst .cc,.o,$(notdir $(FILE))))
 
-
-TESTNAMES:
-	@echo ENTRY_FILE $(ENTRY_FILE)
-	@echo SRC_FILES $(SRC_FILES)
-	@echo GTEST_FILES $(GTEST_FILES)
-	@echo TEST_SRC_FILES $(TEST_SRC_FILES)
-	@echo & echo
-	@echo ENTRY_OBJ $(ENTRY_OBJ)
-	@echo SRC_OBJS $(SRC_OBJS)
-	@echo GTEST_OBJS $(GTEST_OBJS)
-	@echo TEST_SRC_OBJS $(TEST_SRC_OBJS)
 
 # TOP LEVEL TARGETS ===========================================
 .PHONY: run
@@ -110,7 +101,7 @@ $(SRC_OBJS): | $(TEMP_DIR)/
 
 $(TEST_SRC_OBJS): TEST_SRC_FILE_NAME = $(subst .o,.cpp,$(notdir $@))
 $(TEST_SRC_OBJS): TEST_SRC_FILE_LOC = $(filter %/$(TEST_SRC_FILE_NAME), $(TEST_SRC_FILES))
-$(TEST_SRC_OBJS): | $(TEMP_DIR)/
+$(TEST_SRC_OBJS): $(TEST_TEMP_DIR)/
 	@echo making testsrc.o, namely: $@
 	@echo     with testsrc.cpp: $(TEST_SRC_FILE_NAME)
 	@echo which is $(TEST_SRC_FILE_LOC)
@@ -132,15 +123,22 @@ $(GTEST_OBJS): | $(GTEST_TEMP_DIR)/
 $(BUILD_DIR):
 	mkdir $@
 # Sub-build dir
-$(TEMP_DIR) $(GTEST_TEMP_DIR): $(BUILD_DIR)
+$(TEMP_DIR) $(TEST_TEMP_DIR) $(GTEST_TEMP_DIR): $(BUILD_DIR)
 	mkdir $@
-
 
 
 # Cleans everything built
 #  Except for GTEST DIR
 .PHONY: clean_all
-clean:
-	rm -rf $(MAIN_EXEC) $(TEST_EXEC) $(TEST_EXEC) $(TEMP_DIR)
+clean: clean_run clean_test
+	@echo Cleaned All
 
+.PHONY: clean_test
+clean_test: 
+	@echo Cleaning tests....
+	rm -rf $(TEST_EXEC) $(TEST_TEMP_DIR)
+.PHONY: clean_run
+clean_run: 
+	@echo Cleaning src....
+	rm -rf $(MAIN_EXEC) $(TEMP_DIR)
 
