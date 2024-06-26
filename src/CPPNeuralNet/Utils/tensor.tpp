@@ -13,7 +13,7 @@ Tensor<T>::TensorElement::TensorElement(const std::initializer_list<int>& dims, 
   if (dimensions_.size() != 0) {
     kCapacity = 1;
     for (const int& dim : dims) {
-      if (dim >= 0) { // Non-Positive dimension is incorrect
+      if (dim > 0) { // Non-Positive dimension is incorrect
         kCapacity *= dim;
         continue;
       }
