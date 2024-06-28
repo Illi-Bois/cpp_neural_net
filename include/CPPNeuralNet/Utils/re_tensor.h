@@ -8,6 +8,14 @@
 namespace cpp_nn {
 namespace util {
 
+/**
+ * 
+ * FUTURE CONSIDERATIONS:
+ * TODO:
+ * 
+ * should we use size_t instead of int?
+ */
+
 template<typename T>
 class rTensor { // ========================================
  public:
@@ -58,7 +66,7 @@ class rTensor { // ========================================
 /**
  *  retrieves total capacity of Tensor
  */
-  inline int getCapacity() const noexcept;
+  inline size_t getCapacity() const noexcept;
 /** 
  *  retrieves reference through vector of index. 
  */
@@ -83,7 +91,7 @@ class rTensor { // ========================================
  protected:
 // Member Fields ---------------------------------------
   std::vector<int> dimensions_;
-  int capacity_;
+  size_t capacity_;
   std::vector<T>* elements_;
 // End of Member fields --------------------------------
 
@@ -211,7 +219,7 @@ inline int rTensor<T>::getOrder() const noexcept {
 }
 
 template<typename T>
-inline int rTensor<T>::getCapacity() const noexcept {
+inline size_t rTensor<T>::getCapacity() const noexcept {
   return capacity_;
 }
 // End of Accessors -------------------------------------
