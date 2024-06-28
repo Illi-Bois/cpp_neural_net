@@ -145,3 +145,13 @@ TEST(UtilTensor, CopyConstsructor) {
   EXPECT_EQ(copied.getElement({1, 1, 1}), 7);
   EXPECT_EQ(copied.getElement({0, 0, 1}), 1);
 }
+
+TEST(UtilTensor, Dimension_Negative_Index_Getter) {
+  using namespace cpp_nn::util;
+
+  rTensor<int> tensor_one({2, 3, 4});
+
+  EXPECT_EQ(tensor_one.getDimension(-1), 4);
+  EXPECT_EQ(tensor_one.getDimension(-2), 3);
+  EXPECT_EQ(tensor_one.getDimension(-3), 2);
+}

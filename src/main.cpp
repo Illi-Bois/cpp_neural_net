@@ -158,6 +158,11 @@ int main() {
   cpp_nn::util::rTensor<int> tensOtherOther({1});
 
   tensOtherOther = std::move(tens);
+
+
+  std::cout << tens.getDimension(-2) << std::endl;
+  std::cout << tens.getDimension(10) << std::endl;
+  std::cout << tens.getOrder() << std::endl;
 }
 
 

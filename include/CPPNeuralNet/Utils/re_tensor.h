@@ -41,26 +41,30 @@ class rTensor { // ========================================
 /**
  *  retrieves vector representing diemension of tensor.
  */
-  const std::vector<int>& getShape() const noexcept;
+  inline const std::vector<int>& getShape() const noexcept;
 /** 
  *  retrieves dimension at given axis. 
  *  The axis can be nagative to wrap around python style. 
+ * 
+ *  Negative index is allowed only until -order.
+ *  axis in [-order, order)
+ *  Invalid axis will yield undefined behaviour.
  */
-  int getDimension(int axis) const;
+  inline int getDimension(int axis) const;
 /** 
  *  retrieves order of the tensor. 
  */
-  int getOrder() const noexcept;
+  inline int getOrder() const noexcept;
 /**
  *  retrieves total capacity of Tensor
  */
-  int getCapacity() const noexcept;
+  inline int getCapacity() const noexcept;
 /** 
  *  retrieves reference through vector of index. 
  */
   T& getElement(const std::vector<int>& indices);
   const T& getElement(const std::vector<int>& indices) const;
-// End of Accessors ------------------------------------
+// End of Accessors -----------------`-------------------
 
 // Modifiers -------------------------------------------
 /**
@@ -186,6 +190,31 @@ rTensor<T>& rTensor<T>::operator=(rTensor<T> other) noexcept {
 }
 // End of Assignment Operators --------------------------
 
+
+// Accessors --------------------------------------------
+template<typename T>
+inline const std::vector<int>& rTensor<T>::getShape() const noexcept {
+  return dimensions_;
+}
+
+template<typename T>
+inline int rTensor<T>::getDimension(int axis) const {
+  // this accomadates for wrap-around behaviours, but 
+  //  for sake of optimization, we will bypass usual safety checks
+  //  Invalid axis will simply yield UB  
+  return dimensions_[axis + (axis < 0 ? getOrder() : 0)];
+}
+
+template<typename T>
+inline int rTensor<T>::getOrder() const noexcept {
+  return dimensions_.size();
+}
+
+template<typename T>
+inline int rTensor<T>::getCapacity() const noexcept {
+  return capacity_;
+}
+// End of Accessors -------------------------------------
 
 } // util
 } // cpp_nn
