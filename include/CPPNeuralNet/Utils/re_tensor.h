@@ -157,6 +157,15 @@ rTensor<T>::rTensor(const rTensor& other)
       elements_(new std::vector<T>(*other.elements_)) {
   // No exception throwing, as we can assume other is validly costructed
 }
+/** Move Constrcutro */
+template<typename T>
+rTensor<T>::rTensor(rTensor&& other)
+    : dimensions_(other.dimensions_),
+      capacity_(other.capacity_),
+      elements_(other.elements_) {
+  // free up other's pointer
+  other.elements_ = nullptr;
+}
 // End of Constructors ----------------------------------
 
 // Destructor -------------------------------------------
