@@ -81,7 +81,7 @@ class rTensor { // ========================================
  protected:
 // Member Fields ---------------------------------------
   std::vector<int> dimensions_;
-  const int capacity_;
+  int capacity_;
   std::vector<T>* elements_;
 // End of Member fields --------------------------------
 
@@ -89,7 +89,13 @@ class rTensor { // ========================================
 /** recommended for unifying copy constrcutor and operator from:
  *    https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
  */
-  friend void swap(rTensor& first, rTensor& second);
+  friend void swap(rTensor& first, rTensor& second) {
+    // The definition seems to necessarily be placed in here, else
+    //    linker fails to recognize it.
+    std::swap(first.dimensions_, second.dimensions_);
+    std::swap(first.capacity_, second.capacity_);
+    std::swap(first.elements_, second.elements_);
+  } 
 // End of Swap -----------------------------------------
 
  private:
@@ -173,16 +179,6 @@ rTensor<T>& rTensor<T>::operator=(rTensor<T> other) {
 }
 // End of Assignment Operators --------------------------
 
-
-
-// Swap ------------------------------------------------
-template<typename T>
-void swap(rTensor<T>& first, rTensor<T>& second) {
-  std::swap(first.dimensions_, second.dimensions_);
-  std::swap(first.capacity_, second.capacity_);
-  std::swap(first.elements_, second.elements_);
-}
-// End of Swap -----------------------------------------
 
 } // util
 } // cpp_nn
