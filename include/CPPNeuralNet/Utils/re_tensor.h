@@ -21,29 +21,29 @@ class rTensor { // ========================================
 /**
  *  Copy Constructor
  */
-  rTensor(const rTensor& other);
+  rTensor(const rTensor& other) noexcept;
 /**
  *  Move Constructor
  */
-  rTensor(rTensor&& other);
+  rTensor(rTensor&& other) noexcept;
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
-  ~rTensor();
+  ~rTensor() noexcept;
 // End of Destrcutor -----------------------------------
 
 // Assignment Operators --------------------------------
 /** Copy operator */
-  rTensor& operator=(rTensor other); 
+  rTensor& operator=(rTensor other) noexcept; 
 /** Move operator */
-  rTensor& operator=(rTensor&& other); 
+  rTensor& operator=(rTensor&& other) noexcept; 
 // End of Assignment Operators -------------------------
 
 // Accessors -------------------------------------------
 /**
  *  retrieves vector representing diemension of tensor.
  */
-  const std::vector<int>& getShape() const;
+  const std::vector<int>& getShape() const noexcept;
 /** 
  *  retrieves dimension at given axis. 
  *  The axis can be nagative to wrap around python style. 
@@ -52,11 +52,11 @@ class rTensor { // ========================================
 /** 
  *  retrieves order of the tensor. 
  */
-  int getOrder() const;
+  int getOrder() const noexcept;
 /**
  *  retrieves total capacity of Tensor
  */
-  int getCapacity() const;
+  int getCapacity() const noexcept;
 /** 
  *  retrieves reference through vector of index. 
  */
@@ -89,7 +89,7 @@ class rTensor { // ========================================
 /** recommended for unifying copy constrcutor and operator from:
  *    https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
  */
-  friend void swap(rTensor& first, rTensor& second) {
+  friend void swap(rTensor& first, rTensor& second) noexcept {
     // The definition seems to necessarily be placed in here, else
     //    linker fails to recognize it.
     std::swap(first.dimensions_, second.dimensions_);
@@ -151,7 +151,7 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
 }
 /** copy Constructor */
 template<typename T>
-rTensor<T>::rTensor(const rTensor& other) 
+rTensor<T>::rTensor(const rTensor& other) noexcept
     : dimensions_(other.dimensions_),
       capacity_(other.capacity_),
       elements_(new std::vector<T>(*other.elements_)) {
@@ -159,7 +159,7 @@ rTensor<T>::rTensor(const rTensor& other)
 }
 /** Move Constrcutro */
 template<typename T>
-rTensor<T>::rTensor(rTensor&& other)
+rTensor<T>::rTensor(rTensor&& other) noexcept
     : dimensions_(other.dimensions_),
       capacity_(other.capacity_),
       elements_(other.elements_) {
@@ -170,7 +170,7 @@ rTensor<T>::rTensor(rTensor&& other)
 
 // Destructor -------------------------------------------
 template<typename T>
-rTensor<T>::~rTensor() {
+rTensor<T>::~rTensor() noexcept {
   delete this->elements_;
 }
 // End of Destructor ------------------------------------
@@ -178,7 +178,7 @@ rTensor<T>::~rTensor() {
 // Assignment Operators ---------------------------------
 /** Copy Operator */
 template<typename T>
-rTensor<T>& rTensor<T>::operator=(rTensor<T> other) {
+rTensor<T>& rTensor<T>::operator=(rTensor<T> other) noexcept {
   // uses copy-swap idiom
   // As i undersatnd it, by relying on copy-constrcutor and swap
   //    we let paramater be initated with copy constrcutor, then 
