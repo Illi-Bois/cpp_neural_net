@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <stdexcept>
+#include <numeric>
 
 #include "CPPNeuralNet/Utils/sanity_check.h"
 #include "CPPNeuralNet/Utils/tensor.h"
@@ -111,6 +112,8 @@ const A& A::operator=(const SumGlue<T1, T2>& glue) {
   }
 
   std::cout << "total : " << a_ << std::endl;
+
+  return *this;
 }
 
 
@@ -140,6 +143,11 @@ int main() {
 
   A b = a1 + a2 + a3 + a4;
 
+
+  std::vector<int> arr {1,2,3,4,5};
+  int sum = std::accumulate(arr.begin(), arr.end(), 2, [](int a, int b)->int {return a*b;});
+
+  std::cout << sum << std::endl;
 }
 
 

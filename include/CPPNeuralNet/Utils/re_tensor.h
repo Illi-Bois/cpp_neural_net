@@ -31,6 +31,10 @@ class rTensor { // ========================================
 // End of Public Constructor----------------------------
 
 // Accessors -------------------------------------------
+/**
+ *  retrieves vector representing diemension of tensor.
+ */
+  const std::vector<int>& getShape() const;
 /** 
  *  retrieves dimension at given axis. 
  *  The axis can be nagative to wrap around python style. 
