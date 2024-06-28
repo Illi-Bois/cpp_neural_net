@@ -6,7 +6,8 @@
 #include <numeric>
 
 #include "CPPNeuralNet/Utils/sanity_check.h"
-#include "CPPNeuralNet/Utils/tensor.h"
+// #include "CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/re_tensor.h"
 
 template<typename Der>
 class Base {
@@ -66,11 +67,6 @@ class A : public Base<A> {
 
 };
 
-
-
-
-
-
 template<typename T> 
 struct ptr_arr {
   static const int idx = 0;
@@ -117,6 +113,14 @@ const A& A::operator=(const SumGlue<T1, T2>& glue) {
 }
 
 
+struct Testing {
+  std::vector<int> a;
+
+  const std::vector<int>& get() const {
+    return a;
+  }
+};
+
 // class A : public Base<A> {
 
 // };
@@ -144,10 +148,11 @@ int main() {
   A b = a1 + a2 + a3 + a4;
 
 
-  std::vector<int> arr {1,2,3,4,5};
-  int sum = std::accumulate(arr.begin(), arr.end(), 2, [](int a, int b)->int {return a*b;});
+  // std::vector<int> arr {1,2,3,4,5};
+  // int sum = std::accumulate(arr.begin(), arr.end(), 2, [](int a, int b)->int {return a*b;});
 
-  std::cout << sum << std::endl;
+  // std::cout << sum << std::endl;  
+  cpp_nn::util::rTensor<int> tens({2,1,3});
 }
 
 

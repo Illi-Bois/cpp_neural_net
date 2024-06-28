@@ -3,7 +3,7 @@
 #define CPP_NN_R_TENSOR
 
 #include <vector>
-#include <initializer_list>
+#include <numeric>                    // for accumulate 
 
 namespace cpp_nn {
 namespace util {
@@ -18,8 +18,6 @@ class rTensor { // ========================================
  */
   rTensor(const std::vector<int>& dimensions, 
           T init_val = T()); 
-  rTensor(const std::initializer_list<int>& dimensions, 
-          T init_val = T()); 
 /**
  *  Copy Constructor
  */
@@ -29,6 +27,10 @@ class rTensor { // ========================================
  */
   rTensor(rTensor&& other);
 // End of Public Constructor----------------------------
+
+// Destrcutor ------------------------------------------
+  ~rTensor();
+// End of Destrcutor -----------------------------------
 
 // Accessors -------------------------------------------
 /**
@@ -70,6 +72,18 @@ class rTensor { // ========================================
 // End of Modifiers ------------------------------------
 
  protected:
+// Member Fields ---------------------------------------
+  std::vector<int> dimensions_;
+  const int capacity_;
+  std::vector<T>* elements_;
+// End of Member fields --------------------------------
+
+// Swap ------------------------------------------------
+/** recommended for unifying copy constrcutor and operator from:
+ *    https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+ */
+  friend void swap(rTensor& first, rTensor& second);
+// End of Swap -----------------------------------------
 
  private:
 }; // End of Tensor =======================================
@@ -100,7 +114,48 @@ rTensor<T> operator*(const rTensor<T>& A, const rTensor<T>& B);
 namespace cpp_nn {
 namespace util {
 
+// Constructors -----------------------------------------
+/** Tensor Contructor with  */
+template<typename T>
+rTensor<T>::rTensor(const std::vector<int>& dimensions, 
+                    T init_val)
+    try : dimensions_(dimensions),
+          // as capacity_ is constant, must be initiazed this way
+          capacity_(std::accumulate(dimensions.begin(),
+                                    dimensions.end(),
+                                    1, std::multiplies<int>())),
+          // vector initialization with invalid capapcity will throw vector_excp
+          //  which will be caught by function-try-block and throw our own
+          elements_(new std::vector<T>(capacity_, init_val)) {
+  // only need dimension check
+  for (const int& dimension : dimensions_) {
+    if (dimension <= 0) {
+      throw std::invalid_argument("TensorElement Constructor- Non-Positive Dimension Error");
+    }
+  }
+} catch(std::length_error err) {
+  throw std::invalid_argument("TensorElement Constructor- Non-Positive Dimension Error");
+}
+// End of Constructors ----------------------------------
 
+// Destructor -------------------------------------------
+template<typename T>
+rTensor<T>::~rTensor() {
+  delete this->elements_;
+}
+// End of Destructor ------------------------------------
+
+
+
+
+// Swap ------------------------------------------------
+template<typename T>
+void swap(rTensor<T>& first, rTensor<T>& second) {
+  std::swap(first.dimensions_, second.dimensions_);
+  std::swap(first.capacity_, second.capacity_);
+  std::swap(first.elements_, second.elements_);
+}
+// End of Swap -----------------------------------------
 
 } // util
 } // cpp_nn
