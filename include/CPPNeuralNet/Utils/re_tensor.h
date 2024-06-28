@@ -32,6 +32,13 @@ class rTensor { // ========================================
   ~rTensor();
 // End of Destrcutor -----------------------------------
 
+// Assignment Operators --------------------------------
+/** Copy operator */
+  rTensor& operator=(rTensor other); 
+/** Move operator */
+  rTensor& operator=(rTensor&& other); 
+// End of Assignment Operators -------------------------
+
 // Accessors -------------------------------------------
 /**
  *  retrieves vector representing diemension of tensor.
@@ -136,6 +143,14 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
 } catch(std::length_error err) {
   throw std::invalid_argument("TensorElement Constructor- Non-Positive Dimension Error");
 }
+/** copy Constructor */
+template<typename T>
+rTensor<T>::rTensor(const rTensor& other) 
+    : dimensions_(other.dimensions_)
+      capacity_(other.capacity_),
+      elements_(other.elements_) {
+  // No exception throwing, as we can assume other is validly costructed
+}
 // End of Constructors ----------------------------------
 
 // Destructor -------------------------------------------
@@ -145,6 +160,18 @@ rTensor<T>::~rTensor() {
 }
 // End of Destructor ------------------------------------
 
+// Assignment Operators ---------------------------------
+/** Copy Operator */
+template<typename T>
+rTensor<T>& rTensor<T>::operator=(rTensor<T> other) {
+  // uses copy-swap idiom
+  // As i undersatnd it, by relying on copy-constrcutor and swap
+  //    we let paramater be initated with copy constrcutor, then 
+  //    call swap to swap that new instance with current
+  swap(*this, other);
+  return *this;
+}
+// End of Assignment Operators --------------------------
 
 
 
