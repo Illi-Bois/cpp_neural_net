@@ -153,6 +153,7 @@ int main() {
 
   // std::cout << sum << std::endl;  
   cpp_nn::util::rTensor<int> tens({2,1,3});
+  cpp_nn::util::rTensor<int> tensOther( tens );
 }
 
 

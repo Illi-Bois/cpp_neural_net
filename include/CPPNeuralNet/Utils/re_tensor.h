@@ -146,9 +146,9 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
 /** copy Constructor */
 template<typename T>
 rTensor<T>::rTensor(const rTensor& other) 
-    : dimensions_(other.dimensions_)
+    : dimensions_(other.dimensions_),
       capacity_(other.capacity_),
-      elements_(other.elements_) {
+      elements_(new std::vector<T>(*other.elements_)) {
   // No exception throwing, as we can assume other is validly costructed
 }
 // End of Constructors ----------------------------------
