@@ -35,8 +35,6 @@ class rTensor { // ========================================
 // Assignment Operators --------------------------------
 /** Copy operator */
   rTensor& operator=(rTensor other) noexcept; 
-/** Move operator */
-  rTensor& operator=(rTensor&& other) noexcept; 
 // End of Assignment Operators -------------------------
 
 // Accessors -------------------------------------------

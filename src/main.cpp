@@ -157,7 +157,7 @@ int main() {
 
   cpp_nn::util::rTensor<int> tensOtherOther({1});
 
-  tensOtherOther = tens;
+  tensOtherOther = std::move(tens);
 }
 
 
