@@ -181,9 +181,9 @@ rTensor<T>::rTensor(const rTensor& other) noexcept
 /** Move Constrcutro */
 template<typename T>
 rTensor<T>::rTensor(rTensor&& other) noexcept
-    : dimensions_(other.dimensions_),
-      capacity_(other.capacity_),
-      elements_(other.elements_) {
+    : dimensions_(std::move(other.dimensions_)),
+      capacity_(std::move(other.capacity_)),
+      elements_(std::move(other.elements_)) {
   // free up other's pointer
   other.elements_ = nullptr;
 }
