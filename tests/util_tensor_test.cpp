@@ -155,3 +155,22 @@ TEST(UtilTensor, Dimension_Negative_Index_Getter) {
   EXPECT_EQ(tensor_one.getDimension(-2), 3);
   EXPECT_EQ(tensor_one.getDimension(-3), 2);
 }
+
+
+
+TEST(UtilTensor, Constant_Tensor_Element_Getter) {
+  using namespace cpp_nn::util;
+
+  rTensor<int> tensor_one({2, 3, 4}, 10);
+
+  tensor_one.getElement({1, 1, 1}) = 11;
+  tensor_one.getElement({1, 2, 1}) = 11;
+  tensor_one.getElement({1, 2, 3}) = 11;
+
+  // make constant copy
+  const rTensor<int> tensor_two = tensor_one;
+
+  EXPECT_EQ(tensor_two.getElement({1, 1, 1}), 11);
+  EXPECT_EQ(tensor_two.getElement({1, 2, 1}), 11);
+  EXPECT_EQ(tensor_two.getElement({1, 2, 3}), 11);
+}

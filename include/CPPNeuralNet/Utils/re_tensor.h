@@ -88,6 +88,21 @@ class rTensor { // ========================================
   void Reshape(const std::vector<int> new_dimensions);
 // End of Modifiers ------------------------------------
 
+// Tensor Operations -----------------------------------
+/** 
+ *  computes element-wise sum of two tensors.
+ *  When dimension is mismatched, then performs broadcasted sum. 
+ */
+  friend rTensor operator+(const rTensor& A, const rTensor& B);
+/** 
+ *  computes matrix multiplication of tensors,
+ *    traeting each as multi-array of matrices. 
+ *  When dimension mistahced, then produces dimension according to:
+ *    [dim1..., r, k] x [dim2...., k, c] -> [dim1, dim2, r, c] 
+ */
+  friend rTensor operator*(const rTensor& A, const rTensor& B);
+// End of Tensor Operations ----------------------------
+
  protected:
 // Member Fields ---------------------------------------
   std::vector<int> dimensions_;
@@ -110,23 +125,6 @@ class rTensor { // ========================================
 
  private:
 }; // End of Tensor =======================================
-
-// Tensor Operators -------------------------------------
-/** 
- *  computes element-wise sum of two tensors.
- *  When dimension is mismatched, then performs broadcasted sum. 
- */
-template<typename T>
-rTensor<T> operator+(const rTensor<T>& A, const rTensor<T>& B);
-/** 
- *  computes matrix multiplication of tensors,
- *    traeting each as multi-array of matrices. 
- *  When dimension mistahced, then produces dimension according to:
- *    [dim1..., r, k] x [dim2...., k, c] -> [dim1, dim2, r, c] 
- */
-template<typename T>
-rTensor<T> operator*(const rTensor<T>& A, const rTensor<T>& B);
-// End of Tensor Operators ------------------------------
 
 } // util
 } // cpp_ nn
