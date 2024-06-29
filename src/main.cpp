@@ -163,6 +163,23 @@ int main() {
   std::cout << tens.getDimension(-2) << std::endl;
   std::cout << tens.getDimension(10) << std::endl;
   std::cout << tens.getOrder() << std::endl;
+
+  int arr[100];
+
+  int* p = arr + 10;
+
+  arr[8] = 12;
+
+  for (int i = 0; i < 100; ++i) {
+    arr[i] = i;
+  }
+
+  std::cout << p[-2] << std::endl;
+  std::cout << -2[p] << std::endl;
+  std::cout << (-2)[p] << std::endl;
+
+
+
 }
 
 

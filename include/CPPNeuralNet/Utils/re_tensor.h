@@ -123,6 +123,18 @@ class rTensor { // ========================================
   } 
 // End of Swap -----------------------------------------
 
+// Housekeeping ----------------------------------------
+/**
+ *  converts vector-indices to integer address which can be used to access
+ *    elements_ vector.
+ *  Each index can be [-dimension, dimension) 
+ * 
+ *  Invalid index will result in std::invalid_argument("TensorIndex- Incorrect Order"),
+ *                               std::invalid_argument("TensorIndex- Index Out of Bound"),
+ */
+  size_t ConvertToAddress(const std::vector<int>& indices) const;
+// End of Housekeeping ---------------------------------
+
  private:
 }; // End of Tensor =======================================
 
@@ -221,6 +233,39 @@ inline size_t rTensor<T>::getCapacity() const noexcept {
   return capacity_;
 }
 // End of Accessors -------------------------------------
+
+// Housekeeping -----------------------------------------
+template<typename T>
+size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
+  // TODO: consider making block_size which is block-size to be jumped
+  //          by associated with axis's index
+  //       Making it as external member will
+  //          - eliminate need to compute same multiplication each time
+  //        However
+  //          - extra memeber to move around on copy and move
+  //          - need to recompute each time tranpose/reshape is called
+  //          
+  if (indices.size() != getOrder()) {
+    throw std::invalid_argument("TensorIndex- Incorrect Order");
+  }
+
+  size_t address = 0;
+  size_t block_size = 1;
+
+  for (size_t axis = getOrder() - 1; axis >= 0; --axis) {
+    const int& curr_idx = indices[axis];
+    const int& curr_dim = getDimension(axis);
+    if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
+      address += (curr_idx + (curr_idx < 0 ? curr_dim : 0)) * block_size;
+      block_size *= curr_dim;
+    } else {
+      throw std::invalid_argument("TensorIndex- Index Out of Bound");
+    }
+  }
+
+  return address;
+}
+// End of Housekeeping ----------------------------------
 
 } // util
 } // cpp_nn
