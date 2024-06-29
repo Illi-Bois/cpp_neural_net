@@ -131,6 +131,52 @@ struct Testing {
 // };
 
 
+// TODO!!
+/* 
+ We need to test out behaviour of cons-cast magix
+
+ let A have const-cast getter
+
+ Let B have non constant A
+
+ Let b be constant instance of B
+
+ when b internally modifies A, will it be unable to??
+
+
+ CONCLUSION:
+ i dont think we have to worry about that, as const B will not be able to
+  call any non-const members
+  and in const member methods, its members cannot be modified as they are themselves const
+*/
+
+namespace ConstCastMagic {
+class A {
+ public:
+  int a;
+
+  const int& get() const {
+    return a;
+  }
+  int& get() {
+    return const_cast<int&>(const_cast<const A*>(this)->get());
+  }
+
+};
+
+class B {
+  A a_;
+
+  B() {
+    a_.get() = 12;
+  }
+
+  void change() {
+    a_ = A();
+  }
+};
+}
+
 int main() {
   // std::cout << "Hello World!!" << std::endl;
 
@@ -159,6 +205,8 @@ int main() {
 
   tensOtherOther = std::move(tens);
 
+  const auto& ref = tensOtherOther;
+
 
   std::cout << tens.getDimension(-2) << std::endl;
   std::cout << tens.getDimension(10) << std::endl;
@@ -180,6 +228,20 @@ int main() {
 
 
 
+
+  std::cout << "ORder is " << tensOther.getOrder() << std::endl; 
+  std::cout << "CAp is " << tensOther.getCapacity() << std::endl; 
+  // tens.getElement({0, 0, 0}) = 12;
+
+  std::cout << tensOther.getElement({1, 0, 1}) << std::endl;
+
+
+  std::cout << ref.getElement({0,0,0}) << std::endl;
+  tensOtherOther.getElement({0, 0, 0}) = 12;
+  std::cout << ref.getElement({0,0,0}) << std::endl;
+
+  ConstCastMagic::A a;
+  a.get() = 11;
 }
 
 

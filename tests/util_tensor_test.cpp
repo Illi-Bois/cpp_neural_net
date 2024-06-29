@@ -9,11 +9,12 @@ namespace {
 
 // returns 0 when increment failed
 int increment(std::vector<int>& idx, const std::vector<int>& dims) {
-  for (int i = idx.size(); i >= 0; --i) {
+  for (int i = idx.size() - 1; i >= 0; --i) {
     ++idx[i];
 
     if (idx[i] >= dims[i]) {
       idx[i] = 0;
+      continue;
     } else {
       return 1;
     }
@@ -74,7 +75,7 @@ TEST(UtilTensor, Constructor_By_Dimension_Negative_Dimension) {
       catch( const std::invalid_argument& e )
       {
         // and this tests that it has the correct message
-        EXPECT_STREQ( "Tensor Constructor- Non-positive Dimension given.", e.what() );
+        EXPECT_STREQ( "TensorElement Constructor- Non-positive dimension given", e.what() );
         throw;
       }
     }, std::invalid_argument);

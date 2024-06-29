@@ -70,8 +70,8 @@ class rTensor { // ========================================
 /** 
  *  retrieves reference through vector of index. 
  */
-  T& getElement(const std::vector<int>& indices);
-  const T& getElement(const std::vector<int>& indices) const;
+  inline T& getElement(const std::vector<int>& indices);
+  inline const T& getElement(const std::vector<int>& indices) const;
 // End of Accessors -----------------`-------------------
 
 // Modifiers -------------------------------------------
@@ -163,11 +163,12 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
   // only need dimension check
   for (const int& dimension : dimensions_) {
     if (dimension <= 0) {
-      throw std::invalid_argument("TensorElement Constructor- Non-Positive Dimension Error");
+      // throw same error as vector's then let outer catch handle it all
+      throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
     }
   }
 } catch(std::length_error err) {
-  throw std::invalid_argument("TensorElement Constructor- Non-Positive Dimension Error");
+  throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
 }
 /** copy Constructor */
 template<typename T>
@@ -232,6 +233,19 @@ template<typename T>
 inline size_t rTensor<T>::getCapacity() const noexcept {
   return capacity_;
 }
+
+template<typename T>
+inline T& rTensor<T>::getElement(const std::vector<int>& indicies) {
+  // Some const cast magic gotten from 
+  //  https://stackoverflow.com/questions/856542/elegant-solution-to-duplicate-const-and-non-const-getters
+  return const_cast<T&>(const_cast<const rTensor*>(this)->getElement(indicies));
+  // This in effect pushes all getter aspect to const getter
+}
+template<typename T>
+inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
+  const size_t& address = ConvertToAddress(indicies);
+  return (*elements_)[address];
+}
 // End of Accessors -------------------------------------
 
 // Housekeeping -----------------------------------------
@@ -246,20 +260,22 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
   //          - need to recompute each time tranpose/reshape is called
   //          
   if (indices.size() != getOrder()) {
-    throw std::invalid_argument("TensorIndex- Incorrect Order");
+    throw std::invalid_argument("TensorIndex- Incorrect order");
   }
 
   size_t address = 0;
   size_t block_size = 1;
 
-  for (size_t axis = getOrder() - 1; axis >= 0; --axis) {
+  // as dimension accepts int, we should keep axis as int as well
+  for (int axis = getOrder() - 1; axis >= 0; --axis) {
     const int& curr_idx = indices[axis];
     const int& curr_dim = getDimension(axis);
+
     if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
       address += (curr_idx + (curr_idx < 0 ? curr_dim : 0)) * block_size;
       block_size *= curr_dim;
     } else {
-      throw std::invalid_argument("TensorIndex- Index Out of Bound");
+      throw std::invalid_argument("TensorIndex- Index out of bound");
     }
   }
 
