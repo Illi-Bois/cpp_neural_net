@@ -9,6 +9,10 @@
 // #include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/Utils/re_tensor.h"
 
+
+#define quote(x) #x
+
+
 template<typename Der>
 class Base {
  public:
@@ -177,6 +181,145 @@ class B {
 };
 }
 
+
+// namespace VariadicTemplateMagic {
+// template<typename... Args>
+// struct A;
+
+// template<typename First, typename... Args>
+// struct A<First, Args...> {
+
+// }
+
+
+// }
+
+
+namespace tempMagic {
+
+
+void doIt() {
+  std::cout << std::endl;
+}
+
+template<typename T, typename... U, int COUNT = 0>
+void doIt(T a, U... b) {
+  doIt(b...);
+
+  std::cout << a << " " << COUNT << ", ";
+}
+
+
+int sum(int a) {
+  return a;
+}
+int sum(int a, int b...) {
+  return a + sum(b);
+}
+
+
+std::vector<int> asVec(int a...) {
+  return std::vector<int>{a};
+}
+
+// DOESNT WORK....
+template<int OFFSET = 1>
+int magick(int a) {
+  std::cout << "TERMINAL " << OFFSET << " : " << a << std::endl;
+  return OFFSET * a;
+}
+
+template<int OFFSET = 1>
+int magick(int a, int b...) {
+  std::cout << "MID " << OFFSET << " : " << a << std::endl;
+  return magick<OFFSET>(a) + magick<OFFSET + 1>(b);
+}
+
+
+template<int Size>
+struct A {
+  int arr[Size];
+
+  int get(int i) {
+    std::cout << arr[i] << std::endl;
+  }
+  template<typename... T>
+  int get(int i, T... t) {
+    std::cout << arr[i] << " ";
+    (*this).get(t...);
+    // this->operator()(t...);
+  }
+};
+
+}
+
+
+
+namespace PrivatePublic {
+
+class A {
+ private:
+  struct B {
+    int b;
+  };
+
+  int a_;
+ public:
+  A(int a) {
+    a_ = a;
+  }
+
+  A(B b) {
+    // std::cout << "Making from " << quote(b) << std::endl;
+    a_ = b.b;
+  }
+
+  int get() {
+    return a_;
+  }
+
+  B getB() {
+    return B{2 * a_};
+  }
+};
+
+
+A makeA(A a) {
+  return a;
+}
+
+}
+
+
+namespace Anon {
+
+namespace {
+
+struct B {
+  int b;
+};
+
+}
+
+class A {
+ private:
+  int a_;
+ public:
+  A(int a) {
+    a_ = a;
+  }
+
+  A(B b) {
+    a_ = b.b;
+  }
+
+  B getB() {
+    return B{2 * a_};
+  }
+};
+
+}
+
 int main() {
   // std::cout << "Hello World!!" << std::endl;
 
@@ -208,9 +351,9 @@ int main() {
   const auto& ref = tensOtherOther;
 
 
-  std::cout << tens.getDimension(-2) << std::endl;
-  std::cout << tens.getDimension(10) << std::endl;
-  std::cout << tens.getOrder() << std::endl;
+  // std::cout << tens.getDimension(-2) << std::endl;
+  // std::cout << tens.getDimension(10) << std::endl;
+  // std::cout << tens.getOrder() << std::endl;
 
   int arr[100];
 
@@ -240,8 +383,58 @@ int main() {
   tensOtherOther.getElement({0, 0, 0}) = 12;
   std::cout << ref.getElement({0,0,0}) << std::endl;
 
-  ConstCastMagic::A a;
-  a.get() = 11;
+  // ConstCastMagic::A a;
+  // a.get() = 11;
+
+  tempMagic::doIt<int, int, int>(10, 11, 12);
+
+
+  try {
+    std::cout << "Doing osme things" << std::endl;
+    throw 1;
+    std::cout << "Doing osme things" << std::endl;
+  } catch (int a) {
+    std::cout << a << std::endl;
+  }
+
+  std::vector<int> vec = tempMagic::asVec(111,112,113);
+  for (auto i : vec) {
+    std::cout << i << " ";
+  }
+
+  std::cout << std::endl << std::endl;
+  std::cout << tempMagic::magick(1, 2, 3) << std::endl;
+
+
+  tempMagic::A<3> a = {1,2,3};
+
+  a.get(0,0,1,0,2);
+
+
+  PrivatePublic::A pa(10);
+  PrivatePublic::A pb(pa.getB());
+
+  PrivatePublic::A pc = pb.getB();
+  auto pd = pc.getB(); // seems capturable but compiler cannot view anything from it?
+  // treating as A works
+  PrivatePublic::A pe = PrivatePublic::makeA(pc.getB());
+
+  std::cout << pa.get() << std::endl;
+  std::cout << pb.get() << std::endl;
+  std::cout << pc.get() << std::endl;
+  std::cout << typeid(pa).name() << std::endl;
+  std::cout << typeid(pd).name() << std::endl;
+  std::cout << pe.get() << std::endl;
+
+  Anon::A aa(10);
+  Anon::A ab(aa.getB());
+  Anon::A ac = ab.getB();
+  auto ad = ac.getB(); // seems capturable but compiler cannot view anything from it?
+  // unnamed namespace will make it local and private
+  // Anon::A::B bb = ac.getB();
+  std::cout << typeid(ad).name() << std::endl;
+  std::cout << ad.b << std::endl;
+
 }
 
 

@@ -66,3 +66,205 @@ where glue has virtual function or member of 'apply'
 and Tensor can move= from these Glue
 
 The glues may need to be either protected or private.
+
+
+
+
+
+
+ON OPERATIONS AND OEPRATION WRAPPERS
+
+
+Tranpose should not modify tensor on its own, but rather,
+
+must be used like:
+
+tensor = tensor.Tranpose(a1, a2)
+
+With the idea of static polymorphism, we might let tranpose return some tempHolder object which can then be moved to Contrcutor of Tensor
+
+
+
+
+Using CRTP, 
+
+We may have TensorOperationHolder class which are returned by each operations
+
+and TensorOperationHolder may have method of retrieving each index as per:
+https://conradsanderson.id.au/pdfs/sanderson_curtin_armadillo_pasc_2017.pdf
+
+
+Im not usre how further inheritence will happen, but the idea is to have TransposeOperationHolde, SumOperationHolder, MultiplyOperationHolder
+which will all in all allow efficient uses?
+
+
+
+OperationHolder {
+  // or by CRTP ??
+  virtual T getAt(idx {...})
+}
+
+TranposeHolder : OperatioHolder { 
+  const inst axis1, axis2;
+  const& tensor
+  virtual T getAt(idx {...})
+}
+
+SumHolder : OperationHolder {
+  const& tensor a, b;
+  T getAt(idx {...})
+}
+
+
+
+Maybe follow idea of
+Tensor(operaton holder) {
+  // get all references as array first,
+  // get all operation types
+}
+
+
+WITH CRTP
+
+template<typename Derived>
+class Base {
+  const Derived& getRef() const {
+    return static_cast<const Derived>(*this);
+  }
+}
+
+Tensor : BAse<Tensor> {
+
+}
+
+OperationHolder : Base<OperationHolder> {
+
+}
+
+
+
+
+
+
+Maybe with CRTP we do not need dynamic polymorphism?
+
+
+
+template<typename Derived>
+class Base {
+  const Derived& getRef() const {
+    return static_cast<const Derived>(*this);
+  }
+}
+
+Tensor : BAse<Tensor> {
+
+}
+
+TransposeOperationHolder : Base<OperationHolder> {
+  const Tensor& primary;
+  const int axis1, axis2.
+}
+
+SumOperationHolder : Base<OperationHolder> {
+  const Tensor& primary;
+  const Tensor& secondary;
+}
+
+MultOperationHolder : Base<OperationHolder> {
+  const Tensor& primary;
+  const Tensor& secondary;
+}
+
+
+
+
+
+
+
+
+!!!!!!
+
+Brief intermediate summary:
+
+Tensor Operation must be done efficently, minimizing movement of data.
+It may be unlikely that tensor multiplication does not have in-place optimization, and Strassen algorithm may be prefered over other optimization tactics done thorugh CRTP. 
+However, element-wise operation with broadcasting, such as summation, may benefit from static polymorphism and OperationHolder optimzation. Same may be said for Tranpose. 
+However, implementing for summatuion only may necessitate that multiplication be also implemented. This later is at worst as bad as regular multiplcation (as we may simply perform multiplication within the operationHandler), but again obscures the operation which may lead to compiler failing to optimze our code.
+
+Furthermore, we would idealy not want expose the OperationHolder, therefore require it to be private; however by the virtue of it facilitating public Tensor operations, it is doomed to be exposed and capturable. 
+
+From a small test run, such design:
+```
+class A {
+ private:
+  struct B {
+    int b;
+  };
+
+  int a_;
+ public:
+  A(int a) {
+    a_ = a;
+  }
+
+  A(B b) {
+    // std::cout << "Making from " << quote(b) << std::endl;
+    a_ = b.b;
+  }
+
+  int get() {
+    return a_;
+  }
+
+  B getB() {
+    return B{2 * a_};
+  }
+};
+
+
+A makeA(A a) {
+  return a;
+}
+```
+will allow opertaionHolder to be private while still allowing OperationHolder to be used inbwteen Tensor definition.
+
+Or, we can use unnamed namesapce for similar effect.
+```
+namespace Anon {
+
+namespace {
+
+struct B {
+  int b;
+};
+
+}
+
+class A {
+ private:
+  int a_;
+ public:
+  A(int a) {
+    a_ = a;
+  }
+
+  A(B b) {
+    a_ = b.b;
+  }
+
+  B getB() {
+    return B{2 * a_};
+  }
+};
+
+}
+```
+
+However, we are stilll vulnerable to auto-catching. This may not be such a terrible issue, however. Under practical circumstances, we would never expect auto to be used to catch Tensor operation results.
+
+However, we should call into question of above steps even being necessary. In wanting to reduce data-movement, we have sacrificed readablity. 
+And not to mention, the correct and fast implementation of move operator may eleiminate this need completely. 
+Only tranpose, which, with our current design of each tensor being a complete object (meaning no in-place tranposing), only tranpose require data moving. This may suggest above OperationHolder may only be needed for TranposeHolder. 
+
+The above will require discussion with my partner to lay down the final decision. 
