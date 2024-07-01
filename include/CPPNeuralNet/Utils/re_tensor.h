@@ -27,6 +27,12 @@ class rTensor;
 namespace {
 /**
  *  for CRTP
+ * TODO:
+ *  it may be more necessary to make Base a TensorLike 
+ *    
+ * That is, this base is to provide interface for tensor-like objects
+ * 
+ * 
  */
 template<typename Derived>
 struct Base {
