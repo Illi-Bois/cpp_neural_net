@@ -36,14 +36,14 @@ struct Base {
 };
 
 
-template<typename T>
-class TransposeHolder : public Base<TransposeHolder<T>> {
-  const rTensor<T>& tensor_;
+template<typename T, typename HolderType>
+class TransposeHolder : public Base<TransposeHolder<T, HolderType>> {
+  const HolderType& tensor_;
   const int axis_1_;
   const int axis_2_;
 
  public:
-  TransposeHolder(const rTensor<T>& tensor, const int axis_1, const int axis_2)
+  TransposeHolder(const HolderType& tensor, const int axis_1, const int axis_2)
       : tensor_(tensor), 
         axis_1_(axis_1 + (axis_1 < 0 ? tensor.getOrder() : 0)), 
         axis_2_(axis_2 + (axis_2 < 0 ? tensor.getOrder() : 0)) {
@@ -61,6 +61,14 @@ class TransposeHolder : public Base<TransposeHolder<T>> {
     std::vector<int> original_shape = tensor_.getShape();
     std::swap(original_shape[axis_1_], original_shape[axis_2_]);
     return original_shape;
+  }
+
+  inline int getOrder() const {
+    return tensor_.getOrder();
+  }
+
+  TransposeHolder<T, TransposeHolder<T, HolderType>> Tranpose(int axis_1, int axis_2) {
+    return {*this, axis_1, axis_2};
   }
 };
 
@@ -89,7 +97,8 @@ class rTensor : public Base<rTensor<T>> { // ===================================
 /** 
  *  Tranpose Constructor
  */
-  rTensor(const TransposeHolder<T>& tranpose_holder);
+  template<typename Holder>
+  rTensor(const TransposeHolder<T, Holder>& tranpose_holder);
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
@@ -136,7 +145,7 @@ class rTensor : public Base<rTensor<T>> { // ===================================
  *  By default, transposes last two axes. 
  *    This conforms to Matrix tranpose.
  */
-  TransposeHolder<T> Transpose(int axis1 = -2, int axis2 = -1) const;
+  TransposeHolder<T, rTensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const;
 /**
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
@@ -260,7 +269,8 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
  *  Tranpose Constrcutor
  */
 template<typename T>
-rTensor<T>::rTensor(const TransposeHolder<T>& holder)
+template<typename Holder>
+rTensor<T>::rTensor(const TransposeHolder<T, Holder>& holder)
     : rTensor(holder.getShape()) {
   // with tensor initized to 0s, set each element one by one
 
@@ -334,8 +344,8 @@ inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
 
 // Modifiers --------------------------------------------
 template<typename T>
-TransposeHolder<T> rTensor<T>::Transpose(int axis1, int axis2) const {
-  return TransposeHolder{*this, axis1, axis2};
+TransposeHolder<T, rTensor<T>> rTensor<T>::Transpose(int axis1, int axis2) const {
+  return TransposeHolder<T, rTensor<T>>{*this, axis1, axis2};
 }
 // End of Modifiers -------------------------------------
 

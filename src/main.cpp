@@ -454,20 +454,27 @@ int main() {
 
 
   std::cout << "Tranposing" << std::endl;
-  cpp_nn::util::rTensor<int> tensT = tens.Transpose();
+  cpp_nn::util::rTensor<int> tensT = tens.Transpose().Tranpose(0, 1);
   std::cout << "Tranposing done" << std::endl;
 
   std::cout << std::endl << " Original : " << std::endl;
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      std::cout << tens.getElement({0, i, j}) << " ";
+  for (int k = 0; k < 2; ++k) {
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        std::cout << tens.getElement({k, i, j}) << " ";
+      }
+      std::cout << std::endl;
     }
     std::cout << std::endl;
   }
   std::cout << std::endl << " Tranposed : " << std::endl;
   for (int j = 0; j < 4; ++j) {
-    for (int i = 0; i < 3; ++i) {
-      std::cout << tensT.getElement({0, j, i}) << " ";
+    for (int k = 0; k < 2; ++k) {
+
+      for (int i = 0; i < 3; ++i) {
+        std::cout << tensT.getElement({j, k, i}) << " ";
+      }
+      std::cout << std::endl;
     }
     std::cout << std::endl;
   }
