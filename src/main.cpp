@@ -321,120 +321,156 @@ class A {
 }
 
 int main() {
-  // std::cout << "Hello World!!" << std::endl;
+  // // std::cout << "Hello World!!" << std::endl;
 
-  // TesterClass<int> test(10);
-  // std::cout << test.getA() << std::endl;
+  // // TesterClass<int> test(10);
+  // // std::cout << test.getA() << std::endl;
 
-  // cpp_nn::util::Tensor<int> tens({1, 2, 3});
-  // std::cout << tens.getDimension(0) << std::endl;
+  // // cpp_nn::util::Tensor<int> tens({1, 2, 3});
+  // // std::cout << tens.getDimension(0) << std::endl;
 
-  A a1(10);
-  A a2(11);
-  A a3(12);
-  A a4(13);
+  // A a1(10);
+  // A a2(11);
+  // A a3(12);
+  // A a4(13);
 
-  A b = a1 + a2 + a3 + a4;
-
-
-  // std::vector<int> arr {1,2,3,4,5};
-  // int sum = std::accumulate(arr.begin(), arr.end(), 2, [](int a, int b)->int {return a*b;});
-
-  // std::cout << sum << std::endl;  
-  cpp_nn::util::rTensor<int> tens({2,1,3});
-  cpp_nn::util::rTensor<int> tensOther( tens );
-
-  cpp_nn::util::rTensor<int> tensOtherOther({1});
-
-  tensOtherOther = std::move(tens);
-
-  const auto& ref = tensOtherOther;
+  // A b = a1 + a2 + a3 + a4;
 
 
-  // std::cout << tens.getDimension(-2) << std::endl;
-  // std::cout << tens.getDimension(10) << std::endl;
-  // std::cout << tens.getOrder() << std::endl;
+  // // std::vector<int> arr {1,2,3,4,5};
+  // // int sum = std::accumulate(arr.begin(), arr.end(), 2, [](int a, int b)->int {return a*b;});
 
-  int arr[100];
+  // // std::cout << sum << std::endl;  
+  // cpp_nn::util::rTensor<int> tens({2,1,3});
+  // cpp_nn::util::rTensor<int> tensOther( tens );
 
-  int* p = arr + 10;
+  // cpp_nn::util::rTensor<int> tensOtherOther({1});
 
-  arr[8] = 12;
+  // tensOtherOther = std::move(tens);
 
-  for (int i = 0; i < 100; ++i) {
-    arr[i] = i;
+  // const auto& ref = tensOtherOther;
+
+
+  // // std::cout << tens.getDimension(-2) << std::endl;
+  // // std::cout << tens.getDimension(10) << std::endl;
+  // // std::cout << tens.getOrder() << std::endl;
+
+  // int arr[100];
+
+  // int* p = arr + 10;
+
+  // arr[8] = 12;
+
+  // for (int i = 0; i < 100; ++i) {
+  //   arr[i] = i;
+  // }
+
+  // std::cout << p[-2] << std::endl;
+  // std::cout << -2[p] << std::endl;
+  // std::cout << (-2)[p] << std::endl;
+
+
+
+
+  // std::cout << "ORder is " << tensOther.getOrder() << std::endl; 
+  // std::cout << "CAp is " << tensOther.getCapacity() << std::endl; 
+  // // tens.getElement({0, 0, 0}) = 12;
+
+  // std::cout << tensOther.getElement({1, 0, 1}) << std::endl;
+
+
+  // std::cout << ref.getElement({0,0,0}) << std::endl;
+  // tensOtherOther.getElement({0, 0, 0}) = 12;
+  // std::cout << ref.getElement({0,0,0}) << std::endl;
+
+  // // ConstCastMagic::A a;
+  // // a.get() = 11;
+
+  // tempMagic::doIt<int, int, int>(10, 11, 12);
+
+
+  // try {
+  //   std::cout << "Doing osme things" << std::endl;
+  //   throw 1;
+  //   std::cout << "Doing osme things" << std::endl;
+  // } catch (int a) {
+  //   std::cout << a << std::endl;
+  // }
+
+  // std::vector<int> vec = tempMagic::asVec(111,112,113);
+  // for (auto i : vec) {
+  //   std::cout << i << " ";
+  // }
+
+  // std::cout << std::endl << std::endl;
+  // std::cout << tempMagic::magick(1, 2, 3) << std::endl;
+
+
+  // tempMagic::A<3> a = {1,2,3};
+
+  // a.get(0,0,1,0,2);
+
+
+  // PrivatePublic::A pa(10);
+  // PrivatePublic::A pb(pa.getB());
+
+  // PrivatePublic::A pc = pb.getB();
+  // auto pd = pc.getB(); // seems capturable but compiler cannot view anything from it?
+  // // treating as A works
+  // PrivatePublic::A pe = PrivatePublic::makeA(pc.getB());
+
+  // std::cout << pa.get() << std::endl;
+  // std::cout << pb.get() << std::endl;
+  // std::cout << pc.get() << std::endl;
+  // std::cout << typeid(pa).name() << std::endl;
+  // std::cout << typeid(pd).name() << std::endl;
+  // std::cout << pe.get() << std::endl;
+
+  // Anon::A aa(10);
+  // Anon::A ab(aa.getB());
+  // Anon::A ac = ab.getB();
+  // auto ad = ac.getB(); // seems capturable but compiler cannot view anything from it?
+  // // unnamed namespace will make it local and private
+  // // Anon::A::B bb = ac.getB();
+  // std::cout << typeid(ad).name() << std::endl;
+  // std::cout << ad.b << std::endl;
+
+
+
+  //
+
+  std::cout << "Started" << std::endl;
+  cpp_nn::util::rTensor<int> tens({2, 3, 4});
+
+
+  std::cout << "Setting" << std::endl;
+  std::vector<int> idx(tens.getOrder(), 0);
+  int i = 0;
+  do {
+    tens.getElement(idx) = i;
+    ++i;
+  } while (cpp_nn::util::incrementIndices(idx, tens.getShape()));
+  std::cout << "Setting Finished" << std::endl;
+
+
+  std::cout << "Tranposing" << std::endl;
+  cpp_nn::util::rTensor<int> tensT = tens.Transpose();
+  std::cout << "Tranposing done" << std::endl;
+
+  std::cout << std::endl << " Original : " << std::endl;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      std::cout << tens.getElement({0, i, j}) << " ";
+    }
+    std::cout << std::endl;
   }
-
-  std::cout << p[-2] << std::endl;
-  std::cout << -2[p] << std::endl;
-  std::cout << (-2)[p] << std::endl;
-
-
-
-
-  std::cout << "ORder is " << tensOther.getOrder() << std::endl; 
-  std::cout << "CAp is " << tensOther.getCapacity() << std::endl; 
-  // tens.getElement({0, 0, 0}) = 12;
-
-  std::cout << tensOther.getElement({1, 0, 1}) << std::endl;
-
-
-  std::cout << ref.getElement({0,0,0}) << std::endl;
-  tensOtherOther.getElement({0, 0, 0}) = 12;
-  std::cout << ref.getElement({0,0,0}) << std::endl;
-
-  // ConstCastMagic::A a;
-  // a.get() = 11;
-
-  tempMagic::doIt<int, int, int>(10, 11, 12);
-
-
-  try {
-    std::cout << "Doing osme things" << std::endl;
-    throw 1;
-    std::cout << "Doing osme things" << std::endl;
-  } catch (int a) {
-    std::cout << a << std::endl;
+  std::cout << std::endl << " Tranposed : " << std::endl;
+  for (int j = 0; j < 4; ++j) {
+    for (int i = 0; i < 3; ++i) {
+      std::cout << tensT.getElement({0, j, i}) << " ";
+    }
+    std::cout << std::endl;
   }
-
-  std::vector<int> vec = tempMagic::asVec(111,112,113);
-  for (auto i : vec) {
-    std::cout << i << " ";
-  }
-
-  std::cout << std::endl << std::endl;
-  std::cout << tempMagic::magick(1, 2, 3) << std::endl;
-
-
-  tempMagic::A<3> a = {1,2,3};
-
-  a.get(0,0,1,0,2);
-
-
-  PrivatePublic::A pa(10);
-  PrivatePublic::A pb(pa.getB());
-
-  PrivatePublic::A pc = pb.getB();
-  auto pd = pc.getB(); // seems capturable but compiler cannot view anything from it?
-  // treating as A works
-  PrivatePublic::A pe = PrivatePublic::makeA(pc.getB());
-
-  std::cout << pa.get() << std::endl;
-  std::cout << pb.get() << std::endl;
-  std::cout << pc.get() << std::endl;
-  std::cout << typeid(pa).name() << std::endl;
-  std::cout << typeid(pd).name() << std::endl;
-  std::cout << pe.get() << std::endl;
-
-  Anon::A aa(10);
-  Anon::A ab(aa.getB());
-  Anon::A ac = ab.getB();
-  auto ad = ac.getB(); // seems capturable but compiler cannot view anything from it?
-  // unnamed namespace will make it local and private
-  // Anon::A::B bb = ac.getB();
-  std::cout << typeid(ad).name() << std::endl;
-  std::cout << ad.b << std::endl;
-
 }
 
 

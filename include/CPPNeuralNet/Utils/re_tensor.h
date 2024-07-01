@@ -16,8 +16,59 @@ namespace util {
  * should we use size_t instead of int?
  */
 
+// Forward Declaration ======================================
 template<typename T>
-class rTensor { // ========================================
+class rTensor;
+// End of Forward Declaration ===============================
+
+/**
+ * Unnamed namespace for all local structs.
+ */
+namespace {
+/**
+ *  for CRTP
+ */
+template<typename Derived>
+struct Base {
+  const Derived& getRef() const {
+    return static_cast<const Derived&>(*this);
+  }
+};
+
+
+template<typename T>
+class TransposeHolder : public Base<TransposeHolder<T>> {
+  const rTensor<T>& tensor_;
+  const int axis_1_;
+  const int axis_2_;
+
+ public:
+  TransposeHolder(const rTensor<T>& tensor, const int axis_1, const int axis_2)
+      : tensor_(tensor), 
+        axis_1_(axis_1 + (axis_1 < 0 ? tensor.getOrder() : 0)), 
+        axis_2_(axis_2 + (axis_2 < 0 ? tensor.getOrder() : 0)) {
+  }
+
+  const T& getElement(std::vector<int>& indices) const {
+    std::swap(indices[axis_1_], indices[axis_2_]);
+    const T& res = tensor_.getElement(indices);
+    // swap back
+    std::swap(indices[axis_1_], indices[axis_2_]);
+    return res;
+  }
+
+  std::vector<int> getShape() const {
+    std::vector<int> original_shape = tensor_.getShape();
+    std::swap(original_shape[axis_1_], original_shape[axis_2_]);
+    return original_shape;
+  }
+};
+
+} // unnamed
+
+
+template<typename T>
+class rTensor : public Base<rTensor<T>> { // ========================================
  public:
 // Public Constructor-----------------------------------
 /**
@@ -34,6 +85,11 @@ class rTensor { // ========================================
  *  Move Constructor
  */
   rTensor(rTensor&& other) noexcept;
+
+/** 
+ *  Tranpose Constructor
+ */
+  rTensor(const TransposeHolder<T>& tranpose_holder);
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
@@ -80,7 +136,7 @@ class rTensor { // ========================================
  *  By default, transposes last two axes. 
  *    This conforms to Matrix tranpose.
  */
-  void Transpose(int axis1 = -2, int axis2 = -1);
+  TransposeHolder<T> Transpose(int axis1 = -2, int axis2 = -1) const;
 /**
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
@@ -138,15 +194,27 @@ class rTensor { // ========================================
  private:
 }; // End of Tensor =======================================
 
+// Extreneous ---------------------------------------------
+/**
+ * increments passed indicies to loop the shape given.
+ * When incrementation is successful, returns true.
+ * If incrementatoin fails, ie) loops back to 0, returns false.
+ *  So the return value can be used in while loop.
+ * 
+ * When return is false, indicies are reset to 0, and so ready to increment again.
+ */
+bool incrementIndices(std::vector<int>& indices, const std::vector<int>& shape);
+// End of Extreneous --------------------------------------
+
 } // util
 } // cpp_ nn
 
 
 
-// rTensor DEFINITION ============================================
 namespace cpp_nn {
 namespace util {
 
+// rTensor DEFINITION ============================================
 // Constructors -----------------------------------------
 /** Tensor Contructor with  */
 template<typename T>
@@ -186,6 +254,21 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
       elements_(std::move(other.elements_)) {
   // free up other's pointer
   other.elements_ = nullptr;
+}
+
+/** 
+ *  Tranpose Constrcutor
+ */
+template<typename T>
+rTensor<T>::rTensor(const TransposeHolder<T>& holder)
+    : rTensor(holder.getShape()) {
+  // with tensor initized to 0s, set each element one by one
+
+  std::vector<int> indices(getOrder(), 0);
+
+  do {
+    getElement(indices) = holder.getElement(indices);
+  } while (incrementIndices(indices, getShape()));
 }
 // End of Constructors ----------------------------------
 
@@ -248,6 +331,14 @@ inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
 }
 // End of Accessors -------------------------------------
 
+
+// Modifiers --------------------------------------------
+template<typename T>
+TransposeHolder<T> rTensor<T>::Transpose(int axis1, int axis2) const {
+  return TransposeHolder{*this, axis1, axis2};
+}
+// End of Modifiers -------------------------------------
+
 // Housekeeping -----------------------------------------
 template<typename T>
 size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
@@ -282,9 +373,28 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
   return address;
 }
 // End of Housekeeping ----------------------------------
+// End of rTensor DEFINITION =====================================
+
+
+// Extreneous ---------------------------------------------
+bool incrementIndices(std::vector<int>& indices, const std::vector<int>& shape) {
+  int axis = indices.size() - 1; 
+  while (axis >= 0) {
+    if (++indices[axis] >= shape[axis]) {
+      // loop back to 0 and continue on next axis down
+      indices[axis] = 0;
+      --axis;
+    } else {
+      return true;
+    }
+  }
+  // loop continued for all axis thus failed
+  return false;
+}
+// End of Extreneous --------------------------------------
+
 
 } // util
 } // cpp_nn
-// End of rTensor DEFINITION =====================================
 
 #endif // CPP_NN_R_TENSOR
