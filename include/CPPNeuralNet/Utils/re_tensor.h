@@ -31,15 +31,6 @@ class rTensor;
  */
 namespace {
 /**
- *  for CRTP
- * TODO:
- *  it may be more necessary to make Base a TensorLike 
- *    
- * That is, this base is to provide interface for tensor-like objects
- * 
- * 
- */
-/**
  *  is Interace for objects with Tensor-like behaviours.
  *  With CRTP, provides static polymorphic interactions.
  * 
@@ -166,6 +157,127 @@ class SummationHolder : public TensorLike<T, SummationHolder<T, HolderType1, Hol
 
 };
 
+// instead of all-combination tensor mult, 
+//  we will choose matrix-broadcast shape propagation
+// As for initial proof of concept, we will only allow if all
+//    multi-array shape matches
+template<typename T, typename HolderType1, typename HolderType2>
+class MultiplicationHolder : public TensorLike<T, MultiplicationHolder<T, HolderType1, HolderType2>> {
+  rTensor<T> element_;
+  std::vector<int> product_shape_; 
+
+  // again, right now assumes same multi array shape
+  //  indices may either be order or order - 2.
+  bool MatrixIncrementIndices(std::vector<int>& indices) {
+    int axis = product_shape_.size() - 2;
+    // overall repeat of increment for Tensor, and ideally would want to clean up
+    while(axis >= 0) {
+      if (++indices[axis] >= product_shape_[axis]) {
+        indices[axis] = 0;
+        --axis;
+      } else {
+        return true;
+      }
+    }
+    return false;
+  }
+ public:
+
+  // TODO, with this design, a special construcor for rTensor may be prefered for Multiplcation Holder, where a simple move is prefered
+  // Product is handled upon constrcution
+  MultiplicationHolder(const TensorLike<T, HolderType1>& A, const TensorLike<T, HolderType2>& B)
+      : element_({1}) /* dummy for later*/ {
+    // assert  [dim1,  r, k] [dim2, k, c] that dim == dim1
+    if (A.getOrder() != B.getOrder()) {
+      throw std::invalid_argument("Multiplcation- Order Mismatch");
+    }
+    if (A.getOrder() < 2) {
+      throw std::invalid_argument("Multiplication- Insufficient Dimension");
+    }
+
+    int capacity = 1;
+
+    // as for now order therefore must be equal 
+    product_shape_ = std::vector<int>(A.getOrder());
+    for (int i = 0; i < product_shape_.size() - 2; ++i) {
+      if (A.getDimension(i) == B.getDimension(i)) {
+        product_shape_[i] = A.getDimension(i);
+        capacity *= product_shape_[i];
+      } else {
+        throw std::invalid_argument("Multiplication- Dimension Mismatch");
+      }
+    }
+
+    if (A.getDimension(-1) != B.getDimension(-2)) {
+      throw std::invalid_argument("Multiplication- Multiplcation Dimension Mismatch");
+    }
+
+    const int interm = A.getDimension(-1);
+    const int rows = A.getDimension(-2);
+    const int cols = B.getDimension(-1);
+
+    product_shape_[product_shape_.size() - 2] = rows;
+    capacity *= rows;
+    product_shape_[product_shape_.size() - 1] = cols;
+    capacity *= cols;
+
+
+    element_ = rTensor<T>(product_shape_);
+    // TODO implement product
+    std::vector<int> a_idx(getOrder(), 0);
+    std::vector<int> b_idx(getOrder(), 0);
+    std::vector<int> c_idx(getOrder(), 0);
+
+    do {
+      for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+          c_idx[getOrder() - 2] = r;
+          c_idx[getOrder() - 1] = c;
+
+          element_.getElement(c_idx) = T();
+
+          a_idx[getOrder() - 2] = r;
+
+          b_idx[getOrder() - 1] = c;
+          for (int k = 0; k < interm; ++k) {
+            a_idx[getOrder() - 1] = k;
+            b_idx[getOrder() - 2] = k;
+
+            element_.getElement(c_idx) += A.getElement(a_idx) * B.getElement(b_idx);
+          }
+        }
+      }
+
+      MatrixIncrementIndices(a_idx);
+      MatrixIncrementIndices(b_idx);
+    } while (MatrixIncrementIndices(c_idx));
+  }
+
+
+  inline const std::vector<int>& getShape() const noexcept {
+    // as first and second are the same
+    return product_shape_;
+  } 
+
+  inline int getDimension(int axis) const {
+    return product_shape_[axis + (axis < 0 ? getOrder() : 0)];
+  }
+
+  inline int getOrder() const noexcept {
+    return product_shape_.size();
+  }
+
+  inline const T getElement(const std::vector<int>& indices) const {
+    return element_.getElement(indices);
+  }
+
+  inline TransposeHolder<T, MultiplicationHolder<T, HolderType1, HolderType2>> Transpose(int axis1 = -2, int axis2 = -1) const {
+    return {*this, axis1, axis2};
+  }
+};
+
+// BROADCASTING MIGHT BE DONE IN THIS MANNER AS WELL!
+
 } // unnamed
 
 
@@ -255,13 +367,13 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
 //   template<typename Holder1, typename Holder2>
 //   friend SummationHolder<T, Holder1, Holder2>  operator+(const TensorLike<T, Holder1>& A, const TensorLike<T, Holder2>& B);
 // TODO: MAYBE THIS SHOULD NOT BE FRIEND AT ALL
-/** 
- *  computes matrix multiplication of tensors,
- *    traeting each as multi-array of matrices. 
- *  When dimension mistahced, then produces dimension according to:
- *    [dim1..., r, k] x [dim2...., k, c] -> [dim1, dim2, r, c] 
- */
-  friend rTensor operator*(const rTensor& A, const rTensor& B);
+// /** 
+//  *  computes matrix multiplication of tensors,
+//  *    traeting each as multi-array of matrices. 
+//  *  When dimension mistahced, then produces dimension according to:
+//  *    [dim1..., r, k] x [dim2...., k, c] -> [dim1, dim2, r, c] 
+//  */
+//   friend rTensor operator*(const rTensor& A, const rTensor& B);
 // End of Tensor Operations ----------------------------
 
  protected:
@@ -451,6 +563,11 @@ TransposeHolder<T, rTensor<T>> rTensor<T>::Transpose(int axis1, int axis2) const
 template<typename T, typename Holder1, typename Holder2> 
 SummationHolder<T, Holder1, Holder2> operator+(const TensorLike<T, Holder1>& A, const TensorLike<T, Holder2>& B) {
   return {A, B};
+}
+
+template<typename T, typename Holder1, typename Holder2>
+MultiplicationHolder<T, Holder1, Holder2> operator*(const TensorLike<T, Holder1>& A, const TensorLike<T, Holder2>& B) {
+  return{A, B};
 }
 // End of Modifiers -------------------------------------
 

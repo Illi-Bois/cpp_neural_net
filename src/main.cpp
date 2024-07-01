@@ -496,7 +496,38 @@ int main() {
     std::cout << std::endl;
   }
 
+
+  std::cout << "PRODT " << std::endl;
+
+  cpp_nn::util::rTensor first({2,4,3}, 0);
+  first.getElement({0, 0, 0}) = 1;
+  first.getElement({0, 1, 1}) = 1;
+  first.getElement({0, 2, 2}) = 1;
+
+  first.getElement({1, 0, 0}) = 2;
+  first.getElement({1, 1, 1}) = 2;
+  first.getElement({1, 2, 2}) = 2;
+  cpp_nn::util::rTensor second({2,3,5}, 2);
+
+  cpp_nn::util::rTensor third = first * second;
+
+  auto shape = third.getShape();
+  for (auto i : shape) {
+    std::cout << i << " ";
+  }
+  std::cout << std::endl;
+  for (int k = 0; k < third.getDimension(0); ++k) {
+    for (int i = 0; i < third.getDimension(1); ++i) {
+      for (int j = 0; j < third.getDimension(2); ++j) {
+        std::cout << third.getElement({k, i, j}) << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
 }
+
 
 
 
