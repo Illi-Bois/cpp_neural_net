@@ -478,6 +478,24 @@ int main() {
     }
     std::cout << std::endl;
   }
+
+
+
+  cpp_nn::util::rTensor one({2,3,4}, 1);
+  cpp_nn::util::rTensor two({2,3,4}, 2);
+
+  cpp_nn::util::rTensor three = one + two;
+  std::cout << "Summed" << std::endl;
+  for (int k = 0; k < 2; ++k) {
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        std::cout << three.getElement({k, i, j}) << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
 }
 
 

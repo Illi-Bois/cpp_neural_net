@@ -17,6 +17,11 @@ namespace util {
  */
 
 // Forward Declaration ======================================
+namespace {
+template<typename T, typename HolderType>
+class TransposeHolder;
+}
+
 template<typename T>
 class rTensor;
 // End of Forward Declaration ===============================
@@ -34,55 +39,138 @@ namespace {
  * 
  * 
  */
-template<typename Derived>
-struct Base {
-  const Derived& getRef() const {
+/**
+ *  is Interace for objects with Tensor-like behaviours.
+ *  With CRTP, provides static polymorphic interactions.
+ * 
+ *  Will provide all const interface for Tensor-Like behaviour.
+ */
+template<typename T, typename Derived>
+class TensorLike {
+ public:
+/** 
+ * downcasting of current Object.
+ */
+  inline const Derived& getRef() const {
     return static_cast<const Derived&>(*this);
   }
+
+  inline const std::vector<int>& getShape() const noexcept {
+    return getRef().getShape();
+  }
+
+  inline int getDimension(int axis) const {
+    return getRef().getDimension(axis);
+  }
+
+  inline int getOrder() const noexcept {
+    return getRef().getOrder();
+  }
+
+  inline const T getElement(const std::vector<int>& indices) const {
+    return getRef().getElement(indices);
+  }
+
+  const TransposeHolder<T, Derived> Transpose(int axis1 = -2, int axis2 = -1) const {
+    return getRef().Transpose(axis1, axis2);
+  }
+
 };
 
 
 template<typename T, typename HolderType>
-class TransposeHolder : public Base<TransposeHolder<T, HolderType>> {
+class TransposeHolder : public TensorLike<T, TransposeHolder<T, HolderType>> {
   const HolderType& tensor_;
   const int axis_1_;
   const int axis_2_;
 
+  std::vector<int> dimension_;
+
  public:
-  TransposeHolder(const HolderType& tensor, const int axis_1, const int axis_2)
-      : tensor_(tensor), 
+  TransposeHolder(const TensorLike<T, HolderType>& tensor, const int axis_1, const int axis_2)
+      : tensor_(tensor.getRef()), 
         axis_1_(axis_1 + (axis_1 < 0 ? tensor.getOrder() : 0)), 
-        axis_2_(axis_2 + (axis_2 < 0 ? tensor.getOrder() : 0)) {
+        axis_2_(axis_2 + (axis_2 < 0 ? tensor.getOrder() : 0)),
+        dimension_(tensor.getShape()) {
+    std::swap(dimension_[axis_1_], dimension_[axis_2_]);
   }
 
-  const T& getElement(std::vector<int>& indices) const {
+
+
+  inline const std::vector<int>& getShape() const {
+    return dimension_;
+  }
+
+  inline int getDimension(int axis) const {
+    return dimension_[axis + (axis < 0 ? getOrder() : 0)];
+  }
+
+  inline int getOrder() const noexcept {
+    return dimension_.size();
+  }  
+
+  // this is non-reference now as manipulating index alone is easier to pass down
+  const T getElement(std::vector<int> indices) const {
     std::swap(indices[axis_1_], indices[axis_2_]);
     const T& res = tensor_.getElement(indices);
     // swap back
-    std::swap(indices[axis_1_], indices[axis_2_]);
     return res;
   }
 
-  std::vector<int> getShape() const {
-    std::vector<int> original_shape = tensor_.getShape();
-    std::swap(original_shape[axis_1_], original_shape[axis_2_]);
-    return original_shape;
-  }
-
-  inline int getOrder() const {
-    return tensor_.getOrder();
-  }
-
-  TransposeHolder<T, TransposeHolder<T, HolderType>> Tranpose(int axis_1, int axis_2) {
+  const TransposeHolder<T, TransposeHolder<T, HolderType>> Tranpose(int axis_1, int axis_2) const {
     return {*this, axis_1, axis_2};
   }
+};
+
+// FOR NOW, PURE ELEMENTWISE SUMMATION
+template<typename T, typename HolderType1, typename HolderType2>
+class SummationHolder : public TensorLike<T, SummationHolder<T, HolderType1, HolderType2>> {
+    const HolderType1& first_;
+    const HolderType2& second_;
+ public:
+  SummationHolder(const TensorLike<T, HolderType1>& first, const TensorLike<T, HolderType2>& second) 
+      : first_(first.getRef()), second_(second.getRef()) {
+    // check for dimension match
+    // TODO....?
+    if (first_.getOrder() != second_.getOrder()) {
+      throw std::invalid_argument("Summation Error- Order Mismatch.");
+    }
+    for (int i = 0; i < first_.getOrder(); ++i) {
+      if (first_.getDimension(i) != second_.getDimension(i)) {
+        throw std::invalid_argument("Summation Error- Dimension Mismatch.");
+      }
+    }
+  }
+
+
+  inline const std::vector<int>& getShape() const noexcept {
+    // as first and second are the same
+    return first_.getShape();
+  } 
+
+  inline int getDimension(int axis) const {
+    return first_.getDimension(axis);
+  }
+
+  inline int getOrder() const noexcept {
+    return first_.getOrder();
+  }
+
+  inline const T getElement(const std::vector<int>& indices) const {
+    return first_.getElement(indices) + second_.getElement(indices);
+  }
+
+  inline TransposeHolder<T, SummationHolder<T, HolderType1, HolderType2>> Transpose(int axis1 = -2, int axis2 = -1) const {
+    return {*this, axis1, axis2};
+  }
+
 };
 
 } // unnamed
 
 
 template<typename T>
-class rTensor : public Base<rTensor<T>> { // ========================================
+class rTensor : public TensorLike<T, rTensor<T>> { // ========================================
  public:
 // Public Constructor-----------------------------------
 /**
@@ -101,10 +189,10 @@ class rTensor : public Base<rTensor<T>> { // ===================================
   rTensor(rTensor&& other) noexcept;
 
 /** 
- *  Tranpose Constructor
+ * TensorLike constructor
  */
-  template<typename Holder>
-  rTensor(const TransposeHolder<T, Holder>& tranpose_holder);
+  template<typename Derived>
+  rTensor(const TensorLike<T, Derived>& tensor_like);
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
@@ -160,11 +248,13 @@ class rTensor : public Base<rTensor<T>> { // ===================================
 // End of Modifiers ------------------------------------
 
 // Tensor Operations -----------------------------------
-/** 
- *  computes element-wise sum of two tensors.
- *  When dimension is mismatched, then performs broadcasted sum. 
- */
-  friend rTensor operator+(const rTensor& A, const rTensor& B);
+// /** 
+//  *  computes element-wise sum of two tensors.
+//  *  When dimension is mismatched, then performs broadcasted sum. 
+//  */
+//   template<typename Holder1, typename Holder2>
+//   friend SummationHolder<T, Holder1, Holder2>  operator+(const TensorLike<T, Holder1>& A, const TensorLike<T, Holder2>& B);
+// TODO: MAYBE THIS SHOULD NOT BE FRIEND AT ALL
 /** 
  *  computes matrix multiplication of tensors,
  *    traeting each as multi-array of matrices. 
@@ -275,15 +365,15 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
  *  Tranpose Constrcutor
  */
 template<typename T>
-template<typename Holder>
-rTensor<T>::rTensor(const TransposeHolder<T, Holder>& holder)
-    : rTensor(holder.getShape()) {
+template<typename Derived>
+rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
+    : rTensor(tensor_like.getShape()) {
   // with tensor initized to 0s, set each element one by one
 
   std::vector<int> indices(getOrder(), 0);
 
   do {
-    getElement(indices) = holder.getElement(indices);
+    getElement(indices) = tensor_like.getElement(indices);
   } while (incrementIndices(indices, getShape()));
 }
 // End of Constructors ----------------------------------
@@ -352,6 +442,15 @@ inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
 template<typename T>
 TransposeHolder<T, rTensor<T>> rTensor<T>::Transpose(int axis1, int axis2) const {
   return TransposeHolder<T, rTensor<T>>{*this, axis1, axis2};
+}
+
+/**
+ *  Summs elementwise if dimensions all match.
+ *  Will impement broadcasting later.
+ */
+template<typename T, typename Holder1, typename Holder2> 
+SummationHolder<T, Holder1, Holder2> operator+(const TensorLike<T, Holder1>& A, const TensorLike<T, Holder2>& B) {
+  return {A, B};
 }
 // End of Modifiers -------------------------------------
 
