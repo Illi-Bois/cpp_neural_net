@@ -499,7 +499,7 @@ int main() {
 
   std::cout << "PRODT " << std::endl;
 
-  cpp_nn::util::rTensor first({2,4,3}, 0);
+  cpp_nn::util::rTensor first({2,3,3}, 0);
   first.getElement({0, 0, 0}) = 1;
   first.getElement({0, 1, 1}) = 1;
   first.getElement({0, 2, 2}) = 1;
@@ -507,7 +507,7 @@ int main() {
   first.getElement({1, 0, 0}) = 2;
   first.getElement({1, 1, 1}) = 2;
   first.getElement({1, 2, 2}) = 2;
-  cpp_nn::util::rTensor second({2,3,5}, 2);
+  cpp_nn::util::rTensor second({2,3,4}, 2);
 
   cpp_nn::util::rTensor third = first * second;
 
@@ -526,6 +526,72 @@ int main() {
     std::cout << std::endl;
   }
 
+
+  cpp_nn::util::rTensor<int> fin = three + third + third + three;
+  std::cout << std::endl;
+  for (int k = 0; k < fin.getDimension(0); ++k) {
+    for (int i = 0; i < fin.getDimension(1); ++i) {
+      for (int j = 0; j < fin.getDimension(2); ++j) {
+        std::cout << fin.getElement({k, i, j}) << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
+
+
+  // if( equal(vector1.begin(), vector1.end(), vector2.begin()) )
+    // DoSomething();
+
+  std::vector<int> arr1 = {1,2,3,4,5};
+  std::vector<int> arr2 = {1,2,3,5, 5, 5};
+
+  if (std::equal(arr1.begin(), arr1.end() - 2, arr2.begin())) {
+    std::cout << "EQ" << std::endl;
+  }
+
+  if (true) {
+    cpp_nn::util::rTensor<int> aTen({3, 4}, 0);
+    /*
+        1 2 0 0
+        0 1 0 0
+        0 0 0 1
+    */
+    aTen.getElement({0, 0}) = 1;
+    aTen.getElement({0, 1}) = 2;
+
+    aTen.getElement({1, 1}) = 1;
+    
+    aTen.getElement({2, 3}) = 1;
+
+    cpp_nn::util::rTensor<int> bTen({4, 4}, 0);
+    /*
+      2 1 0 1
+      0 0 0 0
+      1 0 0 1
+      0 1 0 1
+    */
+    bTen.getElement({0, 0}) = 2;
+    bTen.getElement({0, 1}) = 1;
+    bTen.getElement({0, 3}) = 1;
+
+    bTen.getElement({2, 0}) = 1;
+    bTen.getElement({2, 3}) = 1;
+    
+    bTen.getElement({3, 1}) = 1;
+    bTen.getElement({3, 3}) = 1;
+
+    cpp_nn::util::rTensor res = aTen * bTen;
+    for (int r = 0; r < res.getDimension(0); ++r) { 
+      for (int c = 0; c < res.getDimension(1); ++c) {
+        std::cout << res.getElement({r, c});
+      }
+      std::cout << std::endl;
+    }
+
+
+  }
 }
 
 
