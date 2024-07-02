@@ -48,6 +48,8 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
     if (*first_shape_end == 1 ||
         *first_shape_end == *second_shape_end) {
       *curr = *second_shape_end;
+    } else if (*second_shape_end == 1) {
+      *curr = *first_shape_end;
     } else {
       throw std::invalid_argument("Broadcast- Incompatible shapes");
     }
