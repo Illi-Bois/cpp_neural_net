@@ -3,16 +3,10 @@
 
 
 #include <vector>
-#include <initializer_list>
 #include <utility>
 
 namespace cpp_nn {
 namespace util {
-
-/** increments index by given shape. 
- * Index will be matched at given shape's end
- *  and increment forth until shape's begi
- */
 /** 
  *  increments given vector defining shape of a tensor and vector defining 
  *    indicies to be traversed, increments the indicies vector to the next 
@@ -29,8 +23,17 @@ namespace util {
 bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
-                             std::vector<int>::iterator             idx_end);
-
+                             std::vector<int>::iterator             idx_end) noexcept;
+/**
+ *  given sub-vectors defining shapes two tensors to be broadcasted,
+ *    returns shape of broadcasted tensor.
+ *  
+ *  throws "Broadcast- Incompatible Shapes" when two are not compatible by broadcasting
+ */
+std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_begin, 
+                           std::vector<int>::const_iterator       first_shape_end,
+                           const std::vector<int>::const_iterator second_shape_begin,
+                           std::vector<int>::const_iterator       second_shape_end);
 
 } // util
 } // cpp_nn

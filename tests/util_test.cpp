@@ -6,6 +6,8 @@ TEST(Util, SanityCheck) {
   EXPECT_TRUE(1);
 }
 
+
+// INCREMENT TESTS ----------------------------------------------------------------------------
 TEST(Util, Increment_Idx) {
   std::vector<int> shape{2,3,1,4};
   std::vector<int> idx{0, 0, 0, 0};
@@ -108,3 +110,56 @@ TEST(Util, Increment_Idx_Subvector_Change) {
   EXPECT_FALSE(res);
   EXPECT_EQ(idx, std::vector<int>({1, 0, 0, 3}));
 }
+// END OF INCREMENT TESTS ---------------------------------------------------------------------
+
+
+// BROADCAST TESTS ----------------------------------------------------------------------------
+TEST(Util, Broadcast) {
+  //                             |           |   
+  std::vector<int> a =    {4, 3, 1, 1, 7, 8, 5, 3, 4, 1, 2};
+  std::vector<int> b = {5, 4, 3, 1, 6, 1, 8, 5, 3};
+
+  std::vector<int> expected = {1, 6, 7, 8};
+
+  std::vector<int> res = cpp_nn::util::Broadcast(a.begin() + 2, a.end() - 5, 
+                                                 b.begin() + 3, b.end() - 2);
+  
+  EXPECT_EQ(res, expected);
+}
+
+TEST(Util, Broadcast_Diff_Order) {
+  //                       |                 |   
+  std::vector<int> a =    {4, 3, 1, 1, 7, 8, 5, 3, 4, 1, 2};
+  //                             |           |   
+  std::vector<int> b = {5, 4, 3, 1, 6, 1, 8, 5, 3};
+
+  std::vector<int> expected = {4, 3, 1, 6, 7, 8};
+
+  std::vector<int> res = cpp_nn::util::Broadcast(a.begin()    , a.end() - 5, 
+                                                 b.begin() + 3, b.end() - 2);
+  
+  EXPECT_EQ(res, expected);
+}
+
+
+TEST(Util, Broadcast_Diff_Incomp) {
+  //                       |                 |   
+  std::vector<int> a =    {4, 3, 1, 1, 7, 8, 5, 3, 4, 1, 2};
+  //                             |           |   
+  std::vector<int> b = {5, 4, 3, 1, 6, 3, 8, 5, 3};
+
+  EXPECT_THROW({
+    try
+    {
+      cpp_nn::util::Broadcast(a.begin()    , a.end() - 5, 
+                                                 b.begin() + 3, b.end() - 2);
+    }
+    catch( const std::invalid_argument& e )
+    {
+      // and this tests that it has the correct message
+      EXPECT_STREQ( "Broadcast- Incompatible shapes", e.what() );
+      throw;
+    }
+  }, std::invalid_argument);
+}
+// END OF BROADCAST TESTS ---------------------------------------------------------------------
