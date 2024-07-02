@@ -9,6 +9,28 @@
 namespace cpp_nn {
 namespace util {
 
+/** increments index by given shape. 
+ * Index will be matched at given shape's end
+ *  and increment forth until shape's begi
+ */
+/** 
+ *  increments given vector defining shape of a tensor and vector defining 
+ *    indicies to be traversed, increments the indicies vector to the next 
+ *    within the defined shape. 
+ *  If next index does not exist, meaning iteration is terminated,
+ *    returns false. Otherwise returns true.
+ * 
+ *  Iterators are given defining begin and end of vector. 
+ *    Incrementation is only performed within given order.
+ *    If either vector is shroter than the other,
+ *      they are right-aligned and only considered until smaller
+ *      terminates.
+ */
+bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end);
+
 
 } // util
 } // cpp_nn

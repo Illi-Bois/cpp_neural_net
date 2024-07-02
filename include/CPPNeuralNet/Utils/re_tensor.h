@@ -2,6 +2,8 @@
 #ifndef CPP_NN_R_TENSOR
 #define CPP_NN_R_TENSOR
 
+#include "CPPNeuralNet/Utils/utils.h"
+
 #include <vector>
 #include <numeric>                    // for accumulate 
 
@@ -23,6 +25,10 @@ class TensorLike;
 
 template<typename T, typename HeldOperation>
 class TransposeOperation;
+template<typename T, typename HeldOperation1, typename HeldOperation2>
+class SummationOperation;
+template<typename T, typename HeldOperation1, typename HeldOperation2>
+class MatrixIncrementIndices;
 }
 
 template<typename T>
@@ -267,7 +273,8 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
           }
         }
       }
-    } while (MatrixIncrementIndices(indices));
+    } while (IncrementIndicesByShape(product_shape_.begin(), product_shape_.end() - 2,
+                                     indices.begin(),        indices.end() - 2));
   }
 // End of Constructor ----------------------------------
 
@@ -433,15 +440,6 @@ MultiplicationOperation<T, Holder1, Holder2> operator*(const TensorLike<T, Holde
 
 
 // Extreneous ---------------------------------------------
-/**
- * increments passed indicies to loop the shape given.
- * When incrementation is successful, returns true.
- * If incrementatoin fails, ie) loops back to 0, returns false.
- *  So the return value can be used in while loop.
- * 
- * When return is false, indicies are reset to 0, and so ready to increment again.
- */
-bool incrementIndices(std::vector<int>& indices, const std::vector<int>& shape);
 // End of Extreneous --------------------------------------
 } // util
 } // cpp_ nn
@@ -506,7 +504,8 @@ rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
 
   do {
     getElement(indices) = tensor_like.getElement(indices);
-  } while (incrementIndices(indices, getShape()));
+  } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
+                                   indices.begin(),    indices.end()));
 }
 // End of Constructors ----------------------------------
 
@@ -629,20 +628,6 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
 
 
 // Extreneous ---------------------------------------------
-bool incrementIndices(std::vector<int>& indices, const std::vector<int>& shape) {
-  int axis = indices.size() - 1; 
-  while (axis >= 0) {
-    if (++indices[axis] >= shape[axis]) {
-      // loop back to 0 and continue on next axis down
-      indices[axis] = 0;
-      --axis;
-    } else {
-      return true;
-    }
-  }
-  // loop continued for all axis thus failed
-  return false;
-}
 // End of Extreneous --------------------------------------
 
 

@@ -8,6 +8,7 @@
 #include "CPPNeuralNet/Utils/sanity_check.h"
 // #include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/Utils/re_tensor.h"
+#include "CPPNeuralNet/Utils/utils.h"
 
 
 #define quote(x) #x
@@ -449,7 +450,8 @@ int main() {
   do {
     tens.getElement(idx) = i;
     ++i;
-  } while (cpp_nn::util::incrementIndices(idx, tens.getShape()));
+  } while (cpp_nn::util::IncrementIndicesByShape(tens.getShape().begin(), tens.getShape().end(),
+                                                  idx.begin(), idx.end()));
   std::cout << "Setting Finished" << std::endl;
 
 
@@ -544,8 +546,21 @@ int main() {
   // if( equal(vector1.begin(), vector1.end(), vector2.begin()) )
     // DoSomething();
 
-  std::vector<int> arr1 = {1,2,3,4,5};
-  std::vector<int> arr2 = {1,2,3,5, 5, 5};
+  std::vector<int> arr1 = {3, 2, 4};
+  std::vector<int> arr2 = {0, 0, 0};
+
+
+  
+  for (int i = 0; i < 30; ++i) {
+    bool res = cpp_nn::util::IncrementIndicesByShape(arr1.begin(), arr1.end() - 1,
+                                          arr2.begin(), arr2.end() - 1 );
+    for (int i : arr2) {
+      std::cout << i << ", ";
+    }
+    std::cout << " with " << res << std::endl;
+  }
+
+
 
   if (std::equal(arr1.begin(), arr1.end() - 2, arr2.begin())) {
     std::cout << "EQ" << std::endl;
@@ -589,8 +604,6 @@ int main() {
       }
       std::cout << std::endl;
     }
-
-
   }
 }
 
