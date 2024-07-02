@@ -79,9 +79,9 @@ $(MAIN_EXEC): $(ENTRY_OBJ) $(SRC_OBJS)
 	@echo Main Exec Linking....
 	$(CXX) $(LINKER_FLAG)  $(ENTRY_OBJ) $(SRC_OBJS)  -o $@
 
-$(TEST_EXEC): $(SRC_OBJ) $(TEST_SRC_OBJS) | $(GTEST_OBJS) 
+$(TEST_EXEC): $(SRC_OBJS) $(TEST_SRC_OBJS) | $(GTEST_OBJS) 
 	@echo Test Exec Linking....
-	$(CXX) $(LINKER_FLAG)  $(SRC_OBJ) $(TEST_SRC_OBJS) $(GTEST_OBJS)   -o $@
+	$(CXX) $(LINKER_FLAG)  $(SRC_OBJS) $(TEST_SRC_OBJS) $(GTEST_OBJS)   -o $@
 # End of EXEC LINKAGE =========================================
 
 
