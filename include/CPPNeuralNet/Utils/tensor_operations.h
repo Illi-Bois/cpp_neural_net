@@ -52,8 +52,8 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
                      const int axis_1, const int axis_2)
       : tensor_(tensor_like.getRef()), 
         // axis are stored as positive int, though it can be given as negative
-        axis_1_((axis_1 < 0 ? (axis_1 + tensor_like.getOrder()) : axis_1)), 
-        axis_2_((axis_2 < 0 ? (axis_2 + tensor_like.getOrder()) : axis_2)),
+        axis_1_(MakePositive(axis_1, tensor_.getOrder())), 
+        axis_2_(MakePositive(axis_2, tensor_.getOrder())), 
         dimension_(tensor_like.getShape()) {
     std::swap(dimension_[axis_1_], dimension_[axis_2_]);
   }
@@ -64,7 +64,7 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     return dimension_;
   }
   inline int getDimension(int axis) const {
-    return dimension_[axis + (axis < 0 ? getOrder() : 0)];
+    return dimension_[MakePositive(axis, getOrder())];
   }
   inline int getOrder() const noexcept {
     return dimension_.size();
@@ -232,7 +232,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     return product_shape_;
   } 
   inline int getDimension(int axis) const {
-    return product_shape_[(axis < 0 ? (axis + getOrder()) : axis)];
+    return product_shape_[MakePositive(axis, getOrder())];
   }
   inline int getOrder() const noexcept {
     return product_shape_.size();

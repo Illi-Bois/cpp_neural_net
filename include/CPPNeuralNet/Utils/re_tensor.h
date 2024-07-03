@@ -249,7 +249,7 @@ inline int rTensor<T>::getDimension(int axis) const {
   // this accomadates for wrap-around behaviours, but 
   //  for sake of optimization, we will bypass usual safety checks
   //  Invalid axis will simply yield UB  
-  return dimensions_[axis + (axis < 0 ? getOrder() : 0)];
+  return dimensions_[MakePositive(axis, getOrder())];
 }
 
 template<typename T>
@@ -271,8 +271,7 @@ inline T& rTensor<T>::getElement(const std::vector<int>& indicies) {
 }
 template<typename T>
 inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
-  const size_t& address = ConvertToAddress(indicies);
-  return (*elements_)[address];
+  return (*elements_)[ConvertToAddress(indicies)];
 }
 // End of Accessors -------------------------------------
 
@@ -293,14 +292,15 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
   }
 
   size_t address = 0;
-
+  int curr_idx,
+      curr_dim;
   // as dimension accepts int, we should keep axis as int as well
   for (int axis = getOrder() - 1; axis >= 0; --axis) {
-    const int& curr_idx = indices[axis];
-    const int& curr_dim = getDimension(axis);
+    curr_idx = indices[axis];
+    curr_dim = getDimension(axis);
 
     if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
-      address += ((curr_idx < 0 ? (curr_idx + curr_dim) : curr_idx)) * chunk_size_[axis];
+      address += MakePositive(curr_idx, curr_dim) * chunk_size_[axis];
     } else {
       throw std::invalid_argument("TensorIndex- Index out of bound");
     }
