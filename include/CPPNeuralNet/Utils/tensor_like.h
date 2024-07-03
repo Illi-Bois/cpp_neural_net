@@ -61,6 +61,10 @@ class TensorLike {
     return {*this, axis1, axis2};
   }
 // End of Tensor-Behaviours ----------------------------
+
+// TODO: Element-wise iterator for fast and lightweight iteration of each element.
+//  if each tensor-like has a lightweight iteration, each can call the previous's iterator to
+//   quickly access element
 };
 
 /* End of Operation Facilitators --------------------------------------------------- */
