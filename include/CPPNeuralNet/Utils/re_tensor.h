@@ -54,6 +54,9 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
   template<typename Derived>
   rTensor(const TensorLike<T, Derived>& tensor_like);
 
+  // TODO: I want to be able to specify Multiplcation and Reshape in implementation through template specialization
+  //  how will i encapsulate all the different types of Derived as such?
+
   /** 
    *  for Multiplcation which allows specific optimzation
    */
