@@ -604,6 +604,18 @@ int main() {
       }
       std::cout << std::endl;
     }
+
+
+    res.Reshape({3, 2, 2});
+    for (int r = 0; r < res.getDimension(0); ++r) { 
+      for (int c = 0; c < res.getDimension(1); ++c) {
+        for (int k = 0; k < res.getDimension(2); ++k) {
+          std::cout << res.getElement({r, c, k});
+        }
+        std::cout << std::endl;
+      }
+      std::cout << std::endl;
+    }
   }
 }
 

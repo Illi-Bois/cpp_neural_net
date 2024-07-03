@@ -105,7 +105,7 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  void Reshape(const std::vector<int> new_dimensions);
+  rTensor<T>& Reshape(const std::vector<int>& new_dimensions);
 // End of Modifiers ------------------------------------
 
  protected:
@@ -140,6 +140,20 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *                               std::invalid_argument("TensorIndex- Index Out of Bound"),
  */
   size_t ConvertToAddress(const std::vector<int>& indices) const;
+
+  /** 
+   *  with the assumption that 
+   *    capacity_ = 1
+   *    chunk_sizes = {1.... 1}
+   *  compute capacity and chunk_sizes from dimensions.
+   *  
+   *  This is intended to be used for both constructor and reshape.
+   *  
+   *  Throws 
+   * 
+   *  TODO, make this a static in util so it may be used later?
+   */
+  inline void ComputeCapacityAndChunkSizes();
 // End of Housekeeping ---------------------------------
 
  private:
@@ -163,19 +177,8 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
       chunk_size_(dimensions.size(), 1),
       capacity_(1),
       elements_(nullptr) {
-  for (int axis = dimensions.size() - 1; axis >= 1; --axis) {
-    if (dimensions_[axis] > 0) {
-      chunk_size_[axis - 1] = chunk_size_[axis] * dimensions_[axis];
-    } else {
-      throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
-    }
-  }
-  if (dimensions_[0] > 0) {
-    capacity_ = chunk_size_[0] * dimensions_[0];
-  } else {
-    throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
-  }
-
+  
+  ComputeCapacityAndChunkSizes();
   elements_ = new std::vector<T>(capacity_, init_val);
 }
 
@@ -200,7 +203,9 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
 }
 
 /** 
- *  Tranpose Constrcutor
+ *  Operation Constrcutor
+ * 
+ * TODO: make specialized constructor for specific Operation such as Multiplication and Reshape
  */
 template<typename T>
 template<typename Derived>
@@ -276,6 +281,29 @@ inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
 // End of Accessors -------------------------------------
 
 
+// Modifiers --------------------------------------------
+// TODO, make reshape for Tensor-Like
+template<typename T>
+rTensor<T>& rTensor<T>::Reshape(const std::vector<int>& new_dimensions) {
+  
+  
+  int old_capacity = capacity_;
+  
+  // Reset for new values
+  capacity_ = 1;
+  chunk_size_ = std::vector<int>(new_dimensions.size(), 1);
+  dimensions_ = new_dimensions;
+
+  ComputeCapacityAndChunkSizes();
+
+  if (getCapacity() != old_capacity) {
+    throw std::invalid_argument("TensorReshape- Capacity mismatch");
+  }
+  return *this;
+}
+
+// End of Modifiers -------------------------------------
+
 // Housekeeping -----------------------------------------
 template<typename T>
 size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
@@ -308,6 +336,27 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
 
   return address;
 }
+
+template<typename T>
+inline void rTensor<T>::ComputeCapacityAndChunkSizes() {
+  /*
+    assumes capacity_ = 1
+            chunk_size_ = std::vector<int>(getOrder(), 1);
+  */
+  for (int axis = dimensions_.size() - 1; axis >= 1; --axis) {
+    if (dimensions_[axis] > 0) {
+      chunk_size_[axis - 1] = chunk_size_[axis] * dimensions_[axis];
+    } else {
+      throw std::invalid_argument("Tensor Dimension- Non-positive dimension given");
+    }
+  }
+  if (dimensions_[0] > 0) {
+    capacity_ = chunk_size_[0] * dimensions_[0];
+  } else {
+    throw std::invalid_argument("Tensor Dimension- Non-positive dimension given");
+  }
+}
+
 // End of Housekeeping ----------------------------------
 // End of rTensor DEFINITION =====================================
 

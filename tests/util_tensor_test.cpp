@@ -75,7 +75,7 @@ TEST(UtilTensor, Constructor_By_Dimension_Negative_Dimension) {
       catch( const std::invalid_argument& e )
       {
         // and this tests that it has the correct message
-        EXPECT_STREQ( "TensorElement Constructor- Non-positive dimension given", e.what() );
+        EXPECT_STREQ( "Tensor Dimension- Non-positive dimension given", e.what() );
         throw;
       }
     }, std::invalid_argument);
