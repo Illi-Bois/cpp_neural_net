@@ -249,7 +249,7 @@ inline int rTensor<T>::getDimension(int axis) const {
   // this accomadates for wrap-around behaviours, but 
   //  for sake of optimization, we will bypass usual safety checks
   //  Invalid axis will simply yield UB  
-  return dimensions_[MakePositive(axis, getOrder())];
+  return dimensions_[SumIfNegative(axis, getOrder())];
 }
 
 template<typename T>
@@ -300,7 +300,7 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
     curr_dim = getDimension(axis);
 
     if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
-      address += MakePositive(curr_idx, curr_dim) * chunk_size_[axis];
+      address += SumIfNegative(curr_idx, curr_dim) * chunk_size_[axis];
     } else {
       throw std::invalid_argument("TensorIndex- Index out of bound");
     }

@@ -36,13 +36,10 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
                            std::vector<int>::const_iterator       second_shape_end);
 
 /** 
- *  simulates python style indexing, where negative indices corresponds to
- *    capacity - index.
- *  When index is positiver, remains returns as is.
- * 
- *  Assuming inputs are valid, will return positive.
+ *  adds the two values if first arguement if negative.
+ *  Returns first value if it is non-negative.
  */
-inline size_t MakePositive(int index, int capacity) {
+inline size_t SumIfNegative(int index, int capacity) {
   return index < 0 ? index + capacity
                    : index;
 }
