@@ -111,6 +111,7 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  protected:
 // Member Fields ---------------------------------------
   std::vector<int> dimensions_;
+  std::vector<int> chunk_size_;   // capacity of chunk associated with each index
   size_t capacity_;
   std::vector<T>* elements_;
 // End of Member fields --------------------------------
@@ -123,6 +124,7 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
     // The definition seems to necessarily be placed in here, else
     //    linker fails to recognize it.
     std::swap(first.dimensions_, second.dimensions_);
+    std::swap(first.chunk_size_, second.chunk_size_);
     std::swap(first.capacity_, second.capacity_);
     std::swap(first.elements_, second.elements_);
   } 
@@ -157,28 +159,31 @@ namespace util {
 template<typename T>
 rTensor<T>::rTensor(const std::vector<int>& dimensions, 
                     T init_val)
-    try : dimensions_(dimensions),
-          // as capacity_ is constant, must be initiazed this way
-          capacity_(std::accumulate(dimensions.begin(),
-                                    dimensions.end(),
-                                    1, std::multiplies<int>())),
-          // vector initialization with invalid capapcity will throw vector_excp
-          //  which will be caught by function-try-block and throw our own
-          elements_(new std::vector<T>(capacity_, init_val)) {
-  // only need dimension check
-  for (const int& dimension : dimensions_) {
-    if (dimension <= 0) {
-      // throw same error as vector's then let outer catch handle it all
+    : dimensions_(dimensions),
+      chunk_size_(dimensions.size(), 1),
+      capacity_(1),
+      elements_(nullptr) {
+  for (int axis = dimensions.size() - 1; axis >= 1; --axis) {
+    if (dimensions_[axis] > 0) {
+      chunk_size_[axis - 1] = chunk_size_[axis] * dimensions_[axis];
+    } else {
       throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
     }
   }
-} catch(std::length_error err) {
-  throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
+  if (dimensions_[0] > 0) {
+    capacity_ = chunk_size_[0] * dimensions_[0];
+  } else {
+    throw std::invalid_argument("TensorElement Constructor- Non-positive dimension given");
+  }
+
+  elements_ = new std::vector<T>(capacity_, init_val);
 }
+
 /** copy Constructor */
 template<typename T>
 rTensor<T>::rTensor(const rTensor& other) noexcept
     : dimensions_(other.dimensions_),
+      chunk_size_(other.chunk_size_),
       capacity_(other.capacity_),
       elements_(new std::vector<T>(*other.elements_)) {
   // No exception throwing, as we can assume other is validly costructed
@@ -187,6 +192,7 @@ rTensor<T>::rTensor(const rTensor& other) noexcept
 template<typename T>
 rTensor<T>::rTensor(rTensor&& other) noexcept
     : dimensions_(std::move(other.dimensions_)),
+      chunk_size_(std::move(other.chunk_size_)),
       capacity_(std::move(other.capacity_)),
       elements_(std::move(other.elements_)) {
   // free up other's pointer
@@ -287,7 +293,6 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
   }
 
   size_t address = 0;
-  size_t block_size = 1;
 
   // as dimension accepts int, we should keep axis as int as well
   for (int axis = getOrder() - 1; axis >= 0; --axis) {
@@ -295,8 +300,7 @@ size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
     const int& curr_dim = getDimension(axis);
 
     if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
-      address += (curr_idx + (curr_idx < 0 ? curr_dim : 0)) * block_size;
-      block_size *= curr_dim;
+      address += ((curr_idx < 0 ? (curr_idx + curr_dim) : curr_idx)) * chunk_size_[axis];
     } else {
       throw std::invalid_argument("TensorIndex- Index out of bound");
     }
