@@ -376,6 +376,9 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   }
 // End of Tensor-Behaviours ----------------------------
 
+// friend  ---------------------------------------------
+  friend rTensor<T>;
+// end of friend  --------------------------------------
 /*
  when moving, will move tensor_ to recieving tensor,
   then compute dimension again

@@ -629,7 +629,7 @@ int main() {
     }
 
 
-    cpp_nn::util::rTensor<int> exRes2 = res.ExternalReshape({4, 3, 1}).ExternalReshape({2, 3, 2});
+    cpp_nn::util::rTensor<int> exRes2 = (res + cpp_nn::util::rTensor<int>({3, 2, 2}, 2)).ExternalReshape({4, 3, 1}).ExternalReshape({2, 3, 2});
     for (int r = 0; r < exRes2.getDimension(0); ++r) { 
       for (int c = 0; c < exRes2.getDimension(1); ++c) {
         for (int k = 0; k < exRes2.getDimension(2); ++k) {

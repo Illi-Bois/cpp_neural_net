@@ -59,6 +59,11 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
    */
   template<typename HeldOperation1, typename HeldOperation2>
   rTensor(const MultiplicationOperation<T, HeldOperation1, HeldOperation2>& product_tensor);
+  /** 
+   *  for reshape which allows specific optimzation
+   */
+  template<typename HeldOperation>
+  rTensor(const ReshapeOperation<T, HeldOperation>& reshaped_tensor);
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
@@ -238,6 +243,18 @@ template<typename T>
 template<typename HeldOperation1, typename HeldOperation2>
 rTensor<T>::rTensor(const MultiplicationOperation<T, HeldOperation1, HeldOperation2>& product_tensor)
     : rTensor(std::move( *(product_tensor.element_) )) {}
+// Reshape Specific Constructor
+template<typename T>
+  template<typename HeldOperation>
+rTensor<T>::rTensor(const ReshapeOperation<T, HeldOperation>& reshaped_tensor)
+    // first initize with unreshaped data
+    : rTensor(std::move(reshaped_tensor.tensor_like_)) {
+  // after data is in place, initiate the reshaping
+  dimensions_ = std::move(reshaped_tensor.dimension_);
+  chunk_size_ = std::move(std::vector<int>(dimensions_.size(), 1));
+  capacity_ = 1; 
+  ComputeCapacityAndChunkSizes();
+}
 // End of Constructors ----------------------------------
 
 // Destructor -------------------------------------------
