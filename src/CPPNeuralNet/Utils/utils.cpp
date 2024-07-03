@@ -97,6 +97,8 @@ std::vector<int> AddressToIndices(const std::vector<int>& shape, int address) {
     int curr_dim = shape[axis];
     res[axis] = address % curr_dim;
     address /= curr_dim;
+
+    if (address == 0) break;
   }
 
   return res;
