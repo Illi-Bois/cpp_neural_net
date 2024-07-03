@@ -16,6 +16,7 @@ namespace util {
 namespace {
 template<typename T, typename Derived>
 class TensorLike; 
+
 template<typename T, typename HeldOperation>
 class TransposeOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>
@@ -54,19 +55,15 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
   template<typename Derived>
   rTensor(const TensorLike<T, Derived>& tensor_like);
 
-  // TODO: I want to be able to specify Multiplcation and Reshape in implementation through template specialization
-  //  how will i encapsulate all the different types of Derived as such?
-
-  /** 
-   *  for Multiplcation which allows specific optimzation
-   */
+// Psuedo-Specializations -------------------------
+// Some Operations will be optimized from
+//    specialization. However, this requires explicit statements.
   template<typename HeldOperation1, typename HeldOperation2>
-  rTensor(const MultiplicationOperation<T, HeldOperation1, HeldOperation2>& product_tensor);
-  /** 
-   *  for reshape which allows specific optimzation
-   */
+  rTensor(const TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>>& product_tensor);
+
   template<typename HeldOperation>
-  rTensor(const ReshapeOperation<T, HeldOperation>& reshaped_tensor);
+  rTensor(const TensorLike<T, ReshapeOperation<T, HeldOperation>>& reshaped_tensor);
+// End of Psuedo-Specializations ------------------
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
@@ -228,7 +225,6 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
  */
 template<typename T>
 template<typename Derived>
-// TODO maybe make derived a template template? maybe even with varidatic template tempalte?
 rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
     : rTensor(tensor_like.getShape()) {
   // with tensor initized to 0s, set each element one by one
@@ -244,16 +240,16 @@ rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
 // Multiplcation Specific Constrcutor
 template<typename T>
 template<typename HeldOperation1, typename HeldOperation2>
-rTensor<T>::rTensor(const MultiplicationOperation<T, HeldOperation1, HeldOperation2>& product_tensor)
-    : rTensor(std::move( *(product_tensor.element_) )) {}
+rTensor<T>::rTensor(const TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>>& product_tensor)
+    : rTensor(std::move( *(product_tensor.getRef().element_) )) {}
 // Reshape Specific Constructor
 template<typename T>
   template<typename HeldOperation>
-rTensor<T>::rTensor(const ReshapeOperation<T, HeldOperation>& reshaped_tensor)
+rTensor<T>::rTensor(const TensorLike<T, ReshapeOperation<T, HeldOperation>>& reshaped_tensor)
     // first initize with unreshaped data
-    : rTensor(std::move(reshaped_tensor.tensor_like_)) {
+    : rTensor(std::move(reshaped_tensor.getRef().tensor_like_)) {
   // after data is in place, initiate the reshaping
-  dimensions_ = std::move(reshaped_tensor.dimension_);
+  dimensions_ = std::move(reshaped_tensor.getRef().dimension_);
   chunk_size_ = std::move(std::vector<int>(dimensions_.size(), 1));
   capacity_ = 1; 
   ComputeCapacityAndChunkSizes();
