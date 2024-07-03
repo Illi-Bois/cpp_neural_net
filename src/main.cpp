@@ -616,6 +616,29 @@ int main() {
       }
       std::cout << std::endl;
     }
+
+    cpp_nn::util::rTensor<int> exRes = res.ExternalReshape({4, 3, 1});
+    for (int r = 0; r < exRes.getDimension(0); ++r) { 
+      for (int c = 0; c < exRes.getDimension(1); ++c) {
+        for (int k = 0; k < exRes.getDimension(2); ++k) {
+          std::cout << exRes.getElement({r, c, k});
+        }
+        std::cout << std::endl;
+      }
+      std::cout << std::endl;
+    }
+
+
+    cpp_nn::util::rTensor<int> exRes2 = res.ExternalReshape({4, 3, 1}).ExternalReshape({2, 3, 2});
+    for (int r = 0; r < exRes2.getDimension(0); ++r) { 
+      for (int c = 0; c < exRes2.getDimension(1); ++c) {
+        for (int k = 0; k < exRes2.getDimension(2); ++k) {
+          std::cout << exRes2.getElement({r, c, k});
+        }
+        std::cout << std::endl;
+      }
+      std::cout << std::endl;
+    }
   }
 }
 

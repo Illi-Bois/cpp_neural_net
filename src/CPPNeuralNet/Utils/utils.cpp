@@ -72,5 +72,35 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
   return res;
 }
 
+
+void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
+                                  std::vector<int>& chunk_size,
+                                  size_t& capacity) {
+  
+  for (int axis = shape.size() - 1; axis >= 1; --axis) {
+    if (shape[axis] > 0) {
+      chunk_size[axis - 1] = chunk_size[axis] * shape[axis];
+    } else {
+      throw std::invalid_argument("ChunkSize and Capacity- Non-positive dimension given");
+    }
+  }
+  if (shape[0] > 0) {
+    capacity = chunk_size[0] * shape[0];
+  } else {
+    throw std::invalid_argument("ChunkSize and Capacity- Non-positive dimension given");
+  }
+}
+
+std::vector<int> AddressToIndices(const std::vector<int>& shape, int address) {
+  std::vector<int> res(shape.size(), 0);
+  for (int axis = shape.size() - 1; axis >= 0; --axis) {
+    int curr_dim = shape[axis];
+    res[axis] = address % curr_dim;
+    address /= curr_dim;
+  }
+
+  return res;
+}
+
 }
 }

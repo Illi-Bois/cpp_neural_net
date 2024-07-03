@@ -10,8 +10,11 @@ namespace util {
 
 // Forward Declaration ======================================
 namespace {
+// These are possible return types from member methods
 template<typename T, typename HeldOperation>
 class TransposeOperation;
+template<typename T, typename HeldOperation>
+class ReshapeOperation;
 } // unnamed namespace
 
 // End of Forward Declaration ===============================
@@ -49,6 +52,9 @@ class TensorLike {
   inline int getDimension(int axis) const {
     return getRef().getDimension(axis);
   }
+  inline size_t getCapacity() const {
+    return getRef().getCapacity();
+  }
   inline int getOrder() const noexcept {
     return getRef().getOrder();
   }
@@ -59,6 +65,10 @@ class TensorLike {
   inline const TransposeOperation<T, Derived> Transpose(int axis1 = -2, int axis2 = -1) const {
     // return getRef().Transpose(axis1, axis2);
     return {*this, axis1, axis2};
+  }
+  inline const ReshapeOperation<T, Derived> 
+               ExternalReshape(const std::vector<int>& new_dimensions) const {
+    return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
 

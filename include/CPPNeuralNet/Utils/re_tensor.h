@@ -15,14 +15,15 @@ namespace util {
 // Forward Declaration ======================================
 namespace {
 template<typename T, typename Derived>
-class TensorLike;
-
+class TensorLike; 
 template<typename T, typename HeldOperation>
 class TransposeOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>
-class MatrixIncrementIndices;
+class MultiplicationOperation;
+template<typename T, typename HeldOperation>
+class ReshapeOperation;
 }
 // End of Forward Declaration ===============================
 
@@ -112,6 +113,10 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  The capacity of new dimension must be same as current. 
  */
   rTensor<T>& Reshape(const std::vector<int>& new_dimensions);
+
+  ReshapeOperation<T, rTensor<T>> ExternalReshape(const std::vector<int>& new_dimensions) const {
+    return {*this, new_dimensions};
+  }
 // End of Modifiers ------------------------------------
 
  protected:
@@ -215,6 +220,7 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
  */
 template<typename T>
 template<typename Derived>
+// TODO maybe make derived a template template? maybe even with varidatic template tempalte?
 rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
     : rTensor(tensor_like.getShape()) {
   // with tensor initized to 0s, set each element one by one
@@ -355,18 +361,7 @@ inline void rTensor<T>::ComputeCapacityAndChunkSizes() {
     assumes capacity_ = 1
             chunk_size_ = std::vector<int>(getOrder(), 1);
   */
-  for (int axis = dimensions_.size() - 1; axis >= 1; --axis) {
-    if (dimensions_[axis] > 0) {
-      chunk_size_[axis - 1] = chunk_size_[axis] * dimensions_[axis];
-    } else {
-      throw std::invalid_argument("Tensor Dimension- Non-positive dimension given");
-    }
-  }
-  if (dimensions_[0] > 0) {
-    capacity_ = chunk_size_[0] * dimensions_[0];
-  } else {
-    throw std::invalid_argument("Tensor Dimension- Non-positive dimension given");
-  }
+  cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, chunk_size_, capacity_);
 }
 
 // End of Housekeeping ----------------------------------

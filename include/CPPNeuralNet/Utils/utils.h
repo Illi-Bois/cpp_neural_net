@@ -44,6 +44,16 @@ inline size_t SumIfNegative(int index, int capacity) {
                    : index;
 }
 
+// computes chunk size and capacity
+//  updates chunk_size and capacity in place
+// Will assume capacity and chunk_size is all set to one and correvt shape
+void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
+                                  std::vector<int>& chunk_size,
+                                  size_t& capacity);
+
+
+std::vector<int> AddressToIndices(const std::vector<int>& shape, int address);
+
 } // util
 } // cpp_nn
 
