@@ -52,6 +52,12 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  */
   template<typename Derived>
   rTensor(const TensorLike<T, Derived>& tensor_like);
+
+  /** 
+   *  for Multiplcation which allows specific optimzation
+   */
+  template<typename HeldOperation1, typename HeldOperation2>
+  rTensor(const MultiplicationOperation<T, HeldOperation1, HeldOperation2>& product_tensor);
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
@@ -220,6 +226,12 @@ rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
   } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
                                    indices.begin(),    indices.end()));
 }
+
+// Multiplcation Specific Constrcutor
+template<typename T>
+template<typename HeldOperation1, typename HeldOperation2>
+rTensor<T>::rTensor(const MultiplicationOperation<T, HeldOperation1, HeldOperation2>& product_tensor)
+    : rTensor(std::move( *(product_tensor.element_) )) {}
 // End of Constructors ----------------------------------
 
 // Destructor -------------------------------------------

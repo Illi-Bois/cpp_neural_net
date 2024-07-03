@@ -245,6 +245,10 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     return {*this, axis1, axis2};
   }
 // End of Tensor-Behaviours ----------------------------
+
+// friends ---------------------------------------------
+  friend rTensor<T>;  // required for constrctor
+// end of friedns --------------------------------------
 }; // End of MultiplicationOperation
 
 // BROADCASTING MIGHT BE DONE IN THIS MANNER AS WELL!
