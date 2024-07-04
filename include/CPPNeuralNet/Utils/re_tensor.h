@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <numeric>                    // for accumulate 
+#include <iostream>
 
 namespace cpp_nn {
 namespace util {
