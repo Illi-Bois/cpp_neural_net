@@ -266,9 +266,34 @@ int main() {
 
       cpp_nn::util::PrintTensor(big);
 
-      cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 6});
+      // MATRIX CUTTING
+      /*
+        Cut at initial rows, 
+        Tranpose,
+        cut at columns,
+        Tranpose
+      */
+                                                                          // 3 4 6
+      cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 6})        // 3 2 2 6
+                                            .Transpose()                  // 3 2 6 2
+                                            .Reshape({3, 2, 2, 3, 2})     // 3 2 2 3 2
+                                            .Transpose();                 // 3 2 2 2 3
       cpp_nn::util::PrintTensor(small);
 
+      // Recombiner
+      /*
+        Tranpose, 
+        Combine col,
+        Tranpose,
+        Combin
+       */
+      cpp_nn::util::rTensor<int> back = small                       // 3 2 2 2 3
+                                             .Transpose()           // 3 2 2 3 2
+                                             .Reshape({3, 2, 6, 2}) // 3 2 6 2
+                                             .Transpose()           // 3 2 2 6
+                                             .Reshape({3, 4, 6}) // 3 4 6
+                                            ;
+      cpp_nn::util::PrintTensor(back);
     }
   }
   
