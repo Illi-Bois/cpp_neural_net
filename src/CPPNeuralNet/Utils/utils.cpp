@@ -9,7 +9,6 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
                              std::vector<int>::const_iterator shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator idx_end) noexcept {
-
   while (shape_end != shape_begin &&
          idx_end != idx_begin) {
     shape_end--;
@@ -74,34 +73,44 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
 
 
 void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
-                                  std::vector<int>& chunk_size,
+                                  std::vector<int>& chunk_sizes,
                                   size_t& capacity) {
-  
   for (int axis = shape.size() - 1; axis >= 1; --axis) {
     if (shape[axis] > 0) {
-      chunk_size[axis - 1] = chunk_size[axis] * shape[axis];
+      chunk_sizes[axis - 1] = chunk_sizes[axis] * shape[axis];
     } else {
       throw std::invalid_argument("ChunkSize and Capacity- Non-positive dimension given");
     }
   }
   if (shape[0] > 0) {
-    capacity = chunk_size[0] * shape[0];
+    capacity = chunk_sizes[0] * shape[0];
   } else {
     throw std::invalid_argument("ChunkSize and Capacity- Non-positive dimension given");
   }
 }
 
-std::vector<int> AddressToIndices(const std::vector<int>& shape, int address) {
+std::vector<int> AddressToIndices(const std::vector<int>& shape, size_t address) noexcept {
   std::vector<int> res(shape.size(), 0);
+  int curr_dim;
   for (int axis = shape.size() - 1; axis >= 0; --axis) {
-    int curr_dim = shape[axis];
+    curr_dim = shape[axis];
     res[axis] = address % curr_dim;
     address /= curr_dim;
-
+    // quick exit
     if (address == 0) break;
   }
-
   return res;
+}
+
+
+size_t IndicesToAddress(const std::vector<int>& shape,
+                        const std::vector<int>& chunk_sizes,
+                        const std::vector<int>& indices) noexcept {
+  size_t address = 0;
+  for (int axis = indices.size() - 1; axis >= 0; --axis) {
+    address += SumIfNegative(indices[axis], shape[axis]) * chunk_sizes[axis];
+  }
+  return address;
 }
 
 }

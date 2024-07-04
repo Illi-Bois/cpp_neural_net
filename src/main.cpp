@@ -207,6 +207,7 @@ int main() {
     bTen.getElement({3, 3}) = 1;
 
     cpp_nn::util::rTensor res = aTen * bTen;
+    std::cout << "Product" << std::endl;
     for (int r = 0; r < res.getDimension(0); ++r) { 
       for (int c = 0; c < res.getDimension(1); ++c) {
         std::cout << res.getElement({r, c});
@@ -215,18 +216,21 @@ int main() {
     }
 
 
+    std::cout << "Reshape No Call" << std::endl;
     res.Reshape({3, 2, 2});
+    for (auto d : res.getShape()) {
+      std::cout << d << ", ";
+    }
+    std::cout << std::endl;
     for (int r = 0; r < res.getDimension(0); ++r) { 
       for (int c = 0; c < res.getDimension(1); ++c) {
-        for (int k = 0; k < res.getDimension(2); ++k) {
-          std::cout << res.getElement({r, c, k});
-        }
-        std::cout << std::endl;
+        std::cout << res.getElement({r, c});
       }
       std::cout << std::endl;
     }
 
-    cpp_nn::util::rTensor<int> exRes = res.ExternalReshape({4, 3, 1});
+    std::cout << "Reshape called" << std::endl;
+    cpp_nn::util::rTensor<int> exRes = res.Reshape({4, 3, 1});
     for (int r = 0; r < exRes.getDimension(0); ++r) { 
       for (int c = 0; c < exRes.getDimension(1); ++c) {
         for (int k = 0; k < exRes.getDimension(2); ++k) {
@@ -237,8 +241,8 @@ int main() {
       std::cout << std::endl;
     }
 
-
-    cpp_nn::util::rTensor<int> exRes2 = (res + cpp_nn::util::rTensor<int>({3, 2, 2}, 2)).ExternalReshape({4, 3, 1}).ExternalReshape({2, 3, 2});
+    std::cout << "Reshape Chained" << std::endl;
+    cpp_nn::util::rTensor<int> exRes2 = (res.Reshape({3, 2, 2}) + cpp_nn::util::rTensor<int>({3, 2, 2}, 2)).Reshape({4, 3, 1}).Reshape({2, 3, 2});
     for (int r = 0; r < exRes2.getDimension(0); ++r) { 
       for (int c = 0; c < exRes2.getDimension(1); ++c) {
         for (int k = 0; k < exRes2.getDimension(2); ++k) {

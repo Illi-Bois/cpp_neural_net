@@ -1,9 +1,7 @@
-
 #ifndef CPP_NN_R_TENSOR_LIKE
 #define CPP_NN_R_TENSOR_LIKE
 
 #include "CPPNeuralNet/Utils/utils.h"
-
 
 namespace cpp_nn {
 namespace util {
@@ -18,8 +16,6 @@ class ReshapeOperation;
 } // unnamed namespace
 
 // End of Forward Declaration ===============================
-
-
 
 
 namespace { // ===============================================================================
@@ -62,12 +58,14 @@ class TensorLike {
   inline const T getElement(const std::vector<int>& indices) const {
     return getRef().getElement(indices);
   }
+
+  // TODO, move these externally to tensor_operation 
+  //    that is, make these call static inline function
   inline const TransposeOperation<T, Derived> Transpose(int axis1 = -2, int axis2 = -1) const {
-    // return getRef().Transpose(axis1, axis2);
     return {*this, axis1, axis2};
   }
   inline const ReshapeOperation<T, Derived> 
-               ExternalReshape(const std::vector<int>& new_dimensions) const {
+               Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------

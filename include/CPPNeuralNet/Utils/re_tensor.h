@@ -117,9 +117,7 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  rTensor<T>& Reshape(const std::vector<int>& new_dimensions);
-
-  ReshapeOperation<T, rTensor<T>> ExternalReshape(const std::vector<int>& new_dimensions) const {
+  ReshapeOperation<T, rTensor<T>> Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 // End of Modifiers ------------------------------------
@@ -147,16 +145,6 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
 // End of Swap -----------------------------------------
 
 // Housekeeping ----------------------------------------
-/**
- *  converts vector-indices to integer address which can be used to access
- *    elements_ vector.
- *  Each index can be [-dimension, dimension) 
- * 
- *  Invalid index will result in std::invalid_argument("TensorIndex- Incorrect Order"),
- *                               std::invalid_argument("TensorIndex- Index Out of Bound"),
- */
-  size_t ConvertToAddress(const std::vector<int>& indices) const;
-
   /** 
    *  with the assumption that 
    *    capacity_ = 1
@@ -191,20 +179,18 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
                     T init_val)
     : dimensions_(dimensions),
       chunk_size_(dimensions.size(), 1),
-      capacity_(1),
-      elements_(nullptr) {
-  
-  ComputeCapacityAndChunkSizes();
+      capacity_(  1),
+      elements_(  nullptr) {
+  ComputeCapacityAndChunkSizes();         // computes chunk_sizes and capacity,   may throw exception
   elements_ = new std::vector<T>(capacity_, init_val);
 }
-
 /** copy Constructor */
 template<typename T>
 rTensor<T>::rTensor(const rTensor& other) noexcept
     : dimensions_(other.dimensions_),
       chunk_size_(other.chunk_size_),
-      capacity_(other.capacity_),
-      elements_(new std::vector<T>(*other.elements_)) {
+      capacity_(  other.capacity_),
+      elements_(  new std::vector<T>(*other.elements_)) {
   // No exception throwing, as we can assume other is validly costructed
 }
 /** Move Constrcutro */
@@ -212,48 +198,53 @@ template<typename T>
 rTensor<T>::rTensor(rTensor&& other) noexcept
     : dimensions_(std::move(other.dimensions_)),
       chunk_size_(std::move(other.chunk_size_)),
-      capacity_(std::move(other.capacity_)),
-      elements_(std::move(other.elements_)) {
+      capacity_(  std::move(other.capacity_)),
+      elements_(  std::move(other.elements_)) {
   // free up other's pointer
   other.elements_ = nullptr;
 }
-
-/** 
- *  Operation Constrcutor
- * 
- * TODO: make specialized constructor for specific Operation such as Multiplication and Reshape
+/**
+ *  tensor-like / operation constructor
  */
 template<typename T>
 template<typename Derived>
 rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
     : rTensor(tensor_like.getShape()) {
-  // with tensor initized to 0s, set each element one by one
-
+  // For each index, assign associated data from operation.
+  // TODO: implement a element-wise iterator, or global address system
+  //                                          latter may now be possible with AddressToIndex
   std::vector<int> indices(getOrder(), 0);
-
   do {
     getElement(indices) = tensor_like.getElement(indices);
   } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
                                    indices.begin(),    indices.end()));
 }
-
-// Multiplcation Specific Constrcutor
+// Psuedo-Specializations -------------------------
+/** Multiplication Specific Constructor */
 template<typename T>
 template<typename HeldOperation1, typename HeldOperation2>
-rTensor<T>::rTensor(const TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>>& product_tensor)
-    : rTensor(std::move( *(product_tensor.getRef().element_) )) {}
-// Reshape Specific Constructor
+rTensor<T>::rTensor(const TensorLike<T, 
+                                     MultiplicationOperation<T, 
+                                                             HeldOperation1, 
+                                                             HeldOperation2>>& product_tensor)
+      // Only utilize move constrcutor from pre-computed product                                                        
+    : rTensor(std::move( *(product_tensor.getRef().product_tensor_) )) {}
+
+/** Reshape Specific Constructor */
 template<typename T>
-  template<typename HeldOperation>
-rTensor<T>::rTensor(const TensorLike<T, ReshapeOperation<T, HeldOperation>>& reshaped_tensor)
-    // first initize with unreshaped data
+template<typename HeldOperation>
+rTensor<T>::rTensor(const TensorLike<T, 
+                                     ReshapeOperation<T, 
+                                                      HeldOperation>>& reshaped_tensor)
+    // Initialize elements data from previous operation
     : rTensor(std::move(reshaped_tensor.getRef().tensor_like_)) {
-  // after data is in place, initiate the reshaping
-  dimensions_ = std::move(reshaped_tensor.getRef().dimension_);
-  chunk_size_ = std::move(std::vector<int>(dimensions_.size(), 1));
-  capacity_ = 1; 
-  ComputeCapacityAndChunkSizes();
+  // ReshapeOperation Checks reshape validity upon its construction.
+  //    therefore we can construct without checks
+  dimensions_ = reshaped_tensor.getRef().dimension_;
+  chunk_size_ = reshaped_tensor.getRef().chunk_size_;
+  capacity_   = reshaped_tensor.getRef().capacity_;
 }
+// End of Psuedo-Specializations ------------------
 // End of Constructors ----------------------------------
 
 // Destructor -------------------------------------------
@@ -278,6 +269,7 @@ rTensor<T>& rTensor<T>::operator=(rTensor<T> other) noexcept {
 
 
 // Accessors --------------------------------------------
+//  dually acts as tensor-like behaviour
 template<typename T>
 inline const std::vector<int>& rTensor<T>::getShape() const noexcept {
   return dimensions_;
@@ -310,67 +302,17 @@ inline T& rTensor<T>::getElement(const std::vector<int>& indicies) {
 }
 template<typename T>
 inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
-  return (*elements_)[ConvertToAddress(indicies)];
+  return (*elements_)[IndicesToAddress(getShape(),
+                                       chunk_size_,
+                                       indicies)];
 }
 // End of Accessors -------------------------------------
 
 
 // Modifiers --------------------------------------------
-// TODO, make reshape for Tensor-Like
-template<typename T>
-rTensor<T>& rTensor<T>::Reshape(const std::vector<int>& new_dimensions) {
-  
-  
-  int old_capacity = capacity_;
-  
-  // Reset for new values
-  capacity_ = 1;
-  chunk_size_ = std::vector<int>(new_dimensions.size(), 1);
-  dimensions_ = new_dimensions;
-
-  ComputeCapacityAndChunkSizes();
-
-  if (getCapacity() != old_capacity) {
-    throw std::invalid_argument("TensorReshape- Capacity mismatch");
-  }
-  return *this;
-}
-
 // End of Modifiers -------------------------------------
 
 // Housekeeping -----------------------------------------
-template<typename T>
-size_t rTensor<T>::ConvertToAddress(const std::vector<int>& indices) const {
-  // TODO: consider making block_size which is block-size to be jumped
-  //          by associated with axis's index
-  //       Making it as external member will
-  //          - eliminate need to compute same multiplication each time
-  //        However
-  //          - extra memeber to move around on copy and move
-  //          - need to recompute each time tranpose/reshape is called
-  //          
-  if (indices.size() != getOrder()) {
-    throw std::invalid_argument("TensorIndex- Incorrect order");
-  }
-
-  size_t address = 0;
-  int curr_idx,
-      curr_dim;
-  // as dimension accepts int, we should keep axis as int as well
-  for (int axis = getOrder() - 1; axis >= 0; --axis) {
-    curr_idx = indices[axis];
-    curr_dim = getDimension(axis);
-
-    if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
-      address += SumIfNegative(curr_idx, curr_dim) * chunk_size_[axis];
-    } else {
-      throw std::invalid_argument("TensorIndex- Index out of bound");
-    }
-  }
-
-  return address;
-}
-
 template<typename T>
 inline void rTensor<T>::ComputeCapacityAndChunkSizes() {
   /*
@@ -379,7 +321,6 @@ inline void rTensor<T>::ComputeCapacityAndChunkSizes() {
   */
   cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, chunk_size_, capacity_);
 }
-
 // End of Housekeeping ----------------------------------
 // End of rTensor DEFINITION =====================================
 

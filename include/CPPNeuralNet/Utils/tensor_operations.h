@@ -45,6 +45,8 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   const int axis_1_;
   const int axis_2_;
 
+  // TODO implement multi-level tranposing at once.
+
   std::vector<int> dimension_;    // dimension post-tranposing
 // End of Members --------------------------------------
 
@@ -85,7 +87,7 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     return {*this, axis_1, axis_2};
   }
   inline const ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
-               ExternalReshape(const std::vector<int>& new_dimensions) const {
+               Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -140,7 +142,7 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
     return {*this, axis1, axis2};
   }
   inline const ReshapeOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-               ExternalReshape(const std::vector<int>& new_dimensions) const {
+               Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -151,31 +153,9 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> {
 // Members ---------------------------------------------
-  rTensor<T>* element_;
+  rTensor<T>*      product_tensor_;
   std::vector<int> product_shape_; 
 // End of Members --------------------------------------
-
-// Housekeeping Methods --------------------------------
-/** 
- *  increments given index to iterate through each matrix in tensor.
- *  Given index can be any length, only the frist order - 2 will be used. 
- *    This means last two axis are preserved, when full length index is given.
- * 
- *  Returns true when incrementation was successful, false when failed.
- *    Upon failure, the used indices are set to 0. 
- */
-  bool MatrixIncrementIndices(std::vector<int>& indices) {
-    for (int axis = product_shape_.size() - 2; axis >= 0; --axis) {
-      if (++indices[axis] >= product_shape_[axis]) {
-        indices[axis] = 0;
-      } else {
-        return true;
-      }
-    }
-    return false;
-  }
-  // TODO: Merge this into incrementIndices method
-// End of Housekeeping Methods -------------------------
 
  public:
 // Constructor -----------------------------------------
@@ -183,7 +163,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   // Product is handled upon constrcution
   MultiplicationOperation(const TensorLike<T, HeldOperation1>& A, 
                           const TensorLike<T, HeldOperation2>& B)
-      : element_(nullptr),
+      : product_tensor_(nullptr),
         product_shape_(A.getShape()) /* dummy for later*/ {
     // assert  [dim1,  r, k] [dim2, k, c] that dim == dim1
     if (A.getOrder() != B.getOrder()) {
@@ -207,7 +187,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     // product_shape is aleady set as being A
     product_shape_[getOrder() - 1] = cols;
 
-    element_ = new rTensor<T>(product_shape_);
+    product_tensor_ = new rTensor<T>(product_shape_);
     // indices for which matrix is to be chosen
     std::vector<int> indices(getOrder(), 0);
 
@@ -217,7 +197,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
           indices[getOrder() - 2] = r;
           indices[getOrder() - 1] = c;
 
-          T& element = element_->getElement(indices);
+          T& element = product_tensor_->getElement(indices);
           element = T();
 
           for (int k = 0; k < interm; ++k) {
@@ -234,13 +214,13 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
         }
       }
     } while (IncrementIndicesByShape(product_shape_.begin(), product_shape_.end() - 2,
-                                     indices.begin(),        indices.end() - 2));
+                                     indices.begin(),        indices.end()        - 2));
   }
 // End of Constructor ----------------------------------
 
 // Destructor ------------------------------------------
   ~MultiplicationOperation() {
-    delete element_;
+    delete product_tensor_;
   }
 // End of Destructor -----------------------------------
 
@@ -252,21 +232,20 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     return product_shape_[SumIfNegative(axis, getOrder())];
   }
   inline size_t getCapacity() const {
-    // either shapes must be equal
-    return element_->getCapacity();
+    return product_tensor_->getCapacity();
   }
   inline int getOrder() const noexcept {
     return product_shape_.size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
-    return element_->getElement(indices);
+    return product_tensor_->getElement(indices);
   }
   inline const TransposeOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
   inline const ReshapeOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-               ExternalReshape(const std::vector<int>& new_dimensions) const {
+               Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -303,67 +282,50 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
 
     // it may be faster to simply move everyhting? make a new tensor and access it through that?
   }
-
-  // Remove Nested Reshapes
+  /**
+   * Doubly Reshaping.
+   *  Reshaping immediately after another reshape will override the inner operation.
+   *  The newer reshaping will simply replace the old.
+   *    TODO: this means, however, that reshaping that is bound to be removed still computes capacity.
+   */
   ReshapeOperation(const ReshapeOperation<T, HeldOperation>& reshape_operation, 
                    const std::vector<int>& new_shape)
       : tensor_like_(reshape_operation.tensor_like_),
         dimension_(new_shape),
         chunk_size_(new_shape.size(), 1),
         capacity_(1) {
+    // Computes and checks validity upon construction.
+    //    This means tensor constructor need not check
     cpp_nn::util::ComputeCapacityAndChunkSizes(dimension_, chunk_size_, capacity_);
 
     if (capacity_ != tensor_like_.getCapacity()) {
       throw std::invalid_argument("TensorReshape- Capacity mismatch");
     }
-
-    // it may be faster to simply move everyhting? make a new tensor and access it through that?
   }
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    // Either shapes must be equal
     return dimension_;
   } 
   inline int getDimension(int axis) const {
-    // Either shapes must be equal
     return dimension_[SumIfNegative(axis, getOrder())];
   }
   inline size_t getCapacity() const {
-    // either shapes must be equal
     return capacity_;
   }
   inline int getOrder() const noexcept {
-    // Either shapes must be equal
     return dimension_.size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
-    // need to recompute index to new shape, ie shape of old
-
-    // TODO: Refactor this to reduce duplicate code
-    if (indices.size() != getOrder()) {
-      throw std::invalid_argument("Reshape getter- Incorrect order");
-    }
-
-    int address = 0;
-    int curr_idx,
-        curr_dim;
-    // as dimension accepts int, we should keep axis as int as well
-    for (int axis = getOrder() - 1; axis >= 0; --axis) {
-      curr_idx = indices[axis];
-      curr_dim = getDimension(axis);
-
-      if (curr_idx >= -curr_dim && curr_idx < curr_dim) {
-        address += SumIfNegative(curr_idx, curr_dim) * chunk_size_[axis];
-      } else {
-        throw std::invalid_argument("Reshape getter- Incorrect order");
-      }
-    } 
-
+    // Need to recompute indices to new dimensions.
+    //    NewIndices -> address -> OldIndices
+    // * This again does not check for input validity.
+    int address = IndicesToAddress(dimension_,
+                                   chunk_size_,
+                                   indices);
     // convert address to old index shape
     std::vector<int> old_indices = AddressToIndices(tensor_like_.getShape(), address);
-
     return tensor_like_.getElement(old_indices);
   }
   inline const TransposeOperation<T, ReshapeOperation<T, HeldOperation>> 
@@ -371,7 +333,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
     return {*this, axis1, axis2};
   }
   inline const ReshapeOperation<T, ReshapeOperation<T, HeldOperation>> 
-               ExternalReshape(const std::vector<int>& new_dimensions) const {
+               Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------

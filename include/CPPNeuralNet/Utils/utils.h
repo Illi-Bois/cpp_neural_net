@@ -39,20 +39,41 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
  *  adds the two values if first arguement if negative.
  *  Returns first value if it is non-negative.
  */
-inline size_t SumIfNegative(int index, int capacity) {
+inline size_t SumIfNegative(int index, int capacity) noexcept {
   return index < 0 ? index + capacity
                    : index;
 }
 
-// computes chunk size and capacity
-//  updates chunk_size and capacity in place
-// Will assume capacity and chunk_size is all set to one and correvt shape
+/**
+ *  computes and updates chunk_size and capacity from given shape. 
+ *  
+ *  Assumes: 
+ *    shape and chnnk_size are same order
+ *    chunk_size are all set to 1
+ *    capacity is set to 1
+ * 
+ *  Chunk Size and Capacity, therefore, are passed by reference 
+ */
 void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
-                                  std::vector<int>& chunk_size,
+                                  std::vector<int>& chunk_sizes,
                                   size_t& capacity);
 
+/**
+ *  computes the indices corresponding to the address on the given dimension shape.
+ * 
+ *  Skip bound-check for efficiency. 
+ */
+std::vector<int> AddressToIndices(const std::vector<int>& shape, size_t address) noexcept;
 
-std::vector<int> AddressToIndices(const std::vector<int>& shape, int address);
+/**
+ *  computes address from indices.
+ *  Requires both shape and chunk sizes pre-computed from the shape. 
+ *  
+ *  Skip bound-check for efficiency. 
+ */
+size_t IndicesToAddress(const std::vector<int>& shape,
+                        const std::vector<int>& chunk_sizes,
+                        const std::vector<int>& indices) noexcept;
 
 } // util
 } // cpp_nn
