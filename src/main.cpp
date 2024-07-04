@@ -273,11 +273,13 @@ int main() {
         cut at columns,
         Tranpose
       */
-                                                                          // 3 4 6
-      cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 6})        // 3 2 2 6
-                                            .Transpose()                  // 3 2 6 2
-                                            .Reshape({3, 2, 2, 3, 2})     // 3 2 2 3 2
-                                            .Transpose();                 // 3 2 2 2 3
+     /** Better to reshape {dim, R<-r C<-c} then switch r, C */
+      cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 2, 3})
+                                            .Transpose(-2, -3);
+      // cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 6})        // 3 2 2 6
+      //                                       .Transpose()                  // 3 2 6 2
+      //                                       .Reshape({3, 2, 2, 3, 2})     // 3 2 2 3 2
+      //                                       .Transpose();                 // 3 2 2 2 3
       cpp_nn::util::PrintTensor(small);
 
       // Recombiner
