@@ -336,6 +336,21 @@ void PrintTensor(const rTensor<T>& tensor) {
   PrintTensor(tensor, idx, 0);
 }
 
+template<typename T>
+TransposeOperation<T, ReshapeOperation<T, rTensor<T>>>
+Test(const rTensor<T>& tens, int R, int C) {
+  std::cout << "Test gotten addres " << &tens << std::endl;
+  int r = tens.getDimension(-2) / R;
+  int c = tens.getDimension(-1) / C;
+
+  std::vector<int> newShape(tens.getShape());
+  newShape[newShape.size() - 2] = r;
+  newShape[newShape.size() - 1] = R;
+  newShape.push_back(c);
+  newShape.push_back(C);
+  return tens.Reshape(newShape).Transpose(-2, -3);
+}
+
 // End of Extreneous -----------------------------------
 
 } // util
