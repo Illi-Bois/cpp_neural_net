@@ -145,19 +145,6 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
 // End of Swap -----------------------------------------
 
 // Housekeeping ----------------------------------------
-  /** 
-   *  with the assumption that 
-   *    capacity_ = 1
-   *    chunk_sizes = {1.... 1}
-   *  compute capacity and chunk_sizes from dimensions.
-   *  
-   *  This is intended to be used for both constructor and reshape.
-   *  
-   *  Throws 
-   * 
-   *  TODO, make this a static in util so it may be used later?
-   */
-  inline void ComputeCapacityAndChunkSizes();
 // End of Housekeeping ---------------------------------
 
  private:
@@ -181,7 +168,8 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
       chunk_size_(dimensions.size(), 1),
       capacity_(  1),
       elements_(  nullptr) {
-  ComputeCapacityAndChunkSizes();         // computes chunk_sizes and capacity,   may throw exception
+  // computes chunk_sizes and capacity,   may throw exception
+  cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, chunk_size_, capacity_);
   elements_ = new std::vector<T>(capacity_, init_val);
 }
 /** copy Constructor */
@@ -307,27 +295,7 @@ inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
                                        indicies)];
 }
 // End of Accessors -------------------------------------
-
-
-// Modifiers --------------------------------------------
-// End of Modifiers -------------------------------------
-
-// Housekeeping -----------------------------------------
-template<typename T>
-inline void rTensor<T>::ComputeCapacityAndChunkSizes() {
-  /*
-    assumes capacity_ = 1
-            chunk_size_ = std::vector<int>(getOrder(), 1);
-  */
-  cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, chunk_size_, capacity_);
-}
-// End of Housekeeping ----------------------------------
 // End of rTensor DEFINITION =====================================
-
-
-// Extreneous ---------------------------------------------
-// End of Extreneous --------------------------------------
-
 
 } // util
 } // cpp_nn
