@@ -252,6 +252,24 @@ int main() {
       }
       std::cout << std::endl;
     }
+
+    // some reshape exploration
+    {
+      cpp_nn::util::rTensor<int> big({3, 4, 6});
+      std::vector<int> idx(big.getOrder(), 0);
+      int i = 0;
+      do {
+        big.getElement(idx) = ++i;
+      } while (cpp_nn::util::IncrementIndicesByShape(big.getShape().begin(), big.getShape().end(),
+                                                      idx.begin(), idx.end()));
+      
+
+      cpp_nn::util::PrintTensor(big);
+
+      cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 6});
+      cpp_nn::util::PrintTensor(small);
+
+    }
   }
   
 }

@@ -150,6 +150,16 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  private:
 }; // End of Tensor ==========================================================================
 
+// Extreneous ------------------------------------------
+namespace {
+template<typename T>
+void PrintTensor(const rTensor<T>& tensor, std::vector<int>& idx, int axis);
+}
+
+template<typename T>
+void PrintTensor(const rTensor<T>& tensor);
+// End of Extreneous -----------------------------------
+
 } // util
 } // cpp_ nn
 
@@ -296,6 +306,36 @@ inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
 }
 // End of Accessors -------------------------------------
 // End of rTensor DEFINITION =====================================
+
+// Extreneous ------------------------------------------
+
+namespace {
+template<typename T>
+void PrintTensor(const rTensor<T>& tensor, std::vector<int>& idx, int axis) {
+  if (axis == tensor.getOrder() - 1) {
+    int dim = tensor.getDimension(-1);
+    for (int i = 0; i < dim; ++i) {
+      std::cout << tensor.getElement(idx) << ",\t";
+      IncrementIndicesByShape(tensor.getShape().begin(), tensor.getShape().end(), idx.begin(), idx.end());
+    }
+    std::cout << std::endl;
+  } else {
+    int dim = tensor.getDimension(axis);
+    for (int i = 0; i < dim; ++i) {
+      PrintTensor(tensor, idx, axis + 1);
+    }
+    std::cout << std::endl;
+  }
+}
+}
+
+template<typename T>
+void PrintTensor(const rTensor<T>& tensor) {
+  std::vector<int> idx(tensor.getOrder(), 0);
+  PrintTensor(tensor, idx, 0);
+}
+
+// End of Extreneous -----------------------------------
 
 } // util
 } // cpp_nn
