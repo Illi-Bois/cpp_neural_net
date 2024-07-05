@@ -59,7 +59,6 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
         axis_1_(SumIfNegative(axis_1, tensor_.getOrder())), 
         axis_2_(SumIfNegative(axis_2, tensor_.getOrder())), 
         dimension_(tensor_like.getShape()) {
-    std::cout << "Trs gotten addres " << &(tensor_) << std::endl;
     std::swap(dimension_[axis_1_], dimension_[axis_2_]);
   }
 // End of Constructor ----------------------------------
@@ -80,7 +79,6 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   // indices for tranpose is passed as value, not reference,
   //   so that tranposed axis may be swapped. 
   const T getElement(std::vector<int> indices) const {
-    std::cout << "Tp getter < " << &tensor_ << std::endl;
     std::swap(indices[axis_1_], indices[axis_2_]);
     return tensor_.getElement(indices);
   }
@@ -276,9 +274,6 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
         dimension_(new_shape),
         chunk_size_(new_shape.size(), 1),
         capacity_(1) {
-
-    std::cout << "Res gotten addres " << &(tensor_like_) << std::endl;
-
     cpp_nn::util::ComputeCapacityAndChunkSizes(dimension_, chunk_size_, capacity_);
 
     if (capacity_ != tensor_like_.getCapacity()) {
@@ -323,7 +318,6 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
     return dimension_.size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
-    std::cout << "Rp getter < " << &tensor_like_ << std::endl;
     // Need to recompute indices to new dimensions.
     //    NewIndices -> address -> OldIndices
     // * This again does not check for input validity.
@@ -343,10 +337,6 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
-
-  ~ReshapeOperation() {
-    std::cout << "Dest" << std::endl;
-  }
 
 // friend  ---------------------------------------------
   friend rTensor<T>;

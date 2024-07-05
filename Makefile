@@ -1,5 +1,5 @@
-# CXX := clang++
-CXX := g++
+CXX := clang++
+# CXX := g++
 
 ASSMBLE_FLAG = -c -std=c++17 -Wall -O0 -g 
 LINKER_FLAG 	=

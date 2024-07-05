@@ -315,6 +315,12 @@ int main() {
         std::cout << "Big Made" << std::endl;
         cpp_nn::util::PrintTensor(big);
         std::cout << "Big Printed" << std::endl;
+
+        cpp_nn::util::rTensor<int> cut(cpp_nn::util::CutMatrix(big, 2, 3));
+        cpp_nn::util::PrintTensor(cut);
+
+        cpp_nn::util::rTensor<int> merg(cpp_nn::util::MergeCutMatrix(cut));
+        cpp_nn::util::PrintTensor(merg);
       
         
 
@@ -333,97 +339,97 @@ int main() {
             which just holds the temporary internally so it can be passed down
         */
 
-        if (true) {
-          std::cout << "Doing all in place" << std::endl;
+      //   if (true) {
+      //     std::cout << "Doing all in place" << std::endl;
 
-          std::cout << "big addres < " << &big << std::endl;
+      //     std::cout << "big addres < " << &big << std::endl;
 
-          int R = 2;
-          int C = 3;
+      //     int R = 2;
+      //     int C = 3;
 
-          int r = big.getDimension(-2) / R;
-          int c = big.getDimension(-1) / C;
+      //     int r = big.getDimension(-2) / R;
+      //     int c = big.getDimension(-1) / C;
 
-          std::vector<int> newShape(big.getShape());
-          newShape[newShape.size() - 2] = r;
-          newShape[newShape.size() - 1] = R;
-          newShape.push_back(c);
-          newShape.push_back(C);
-          cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::rTensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
-          cpp_nn::util::rTensor<int> cut = temp;
+      //     std::vector<int> newShape(big.getShape());
+      //     newShape[newShape.size() - 2] = r;
+      //     newShape[newShape.size() - 1] = R;
+      //     newShape.push_back(c);
+      //     newShape.push_back(C);
+      //     cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::rTensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
+      //     cpp_nn::util::rTensor<int> cut = temp;
 
-          cpp_nn::util::PrintTensor(cut);
-          // This works, which further suggests this is all a scope issue?
-          //  With destructor it seems indeed that descrutor is called before tensor is set, and so failed?
-        }
+      //     cpp_nn::util::PrintTensor(cut);
+      //     // This works, which further suggests this is all a scope issue?
+      //     //  With destructor it seems indeed that descrutor is called before tensor is set, and so failed?
+      //   }
         
 
 
 
-        if (true) {
-          std::cout << "Doing all in place In one line" << std::endl;
+      //   if (true) {
+      //     std::cout << "Doing all in place In one line" << std::endl;
 
-          std::cout << "big addres < " << &big << std::endl;
+      //     std::cout << "big addres < " << &big << std::endl;
 
-          int R = 2;
-          int C = 3;
+      //     int R = 2;
+      //     int C = 3;
 
-          int r = big.getDimension(-2) / R;
-          int c = big.getDimension(-1) / C;
+      //     int r = big.getDimension(-2) / R;
+      //     int c = big.getDimension(-1) / C;
 
-          std::vector<int> newShape(big.getShape());
-          newShape[newShape.size() - 2] = r;
-          newShape[newShape.size() - 1] = R;
-          newShape.push_back(c);
-          newShape.push_back(C);
-          cpp_nn::util::rTensor<int> cut =  big.Reshape(newShape).Transpose(-2, -3);
+      //     std::vector<int> newShape(big.getShape());
+      //     newShape[newShape.size() - 2] = r;
+      //     newShape[newShape.size() - 1] = R;
+      //     newShape.push_back(c);
+      //     newShape.push_back(C);
+      //     cpp_nn::util::rTensor<int> cut =  big.Reshape(newShape).Transpose(-2, -3);
 
-          cpp_nn::util::PrintTensor(cut);
-          // Here dest for reshape only occurs after tensor is set.
-          // This further suggests that we should not let intermediates be exposed
+      //     cpp_nn::util::PrintTensor(cut);
+      //     // Here dest for reshape only occurs after tensor is set.
+      //     // This further suggests that we should not let intermediates be exposed
 
-        }
-      }
+      //   }
+      // }
 
-      if (true) {
-        std::cout << "Doing all in place but with a lot of intermedaite things happening" << std::endl;
+      // if (true) {
+      //   std::cout << "Doing all in place but with a lot of intermedaite things happening" << std::endl;
 
-        std::cout << "big addres < " << &big << std::endl;
+      //   std::cout << "big addres < " << &big << std::endl;
 
-        int R = 2;
-        int C = 3;
+      //   int R = 2;
+      //   int C = 3;
 
-        int r = big.getDimension(-2) / R;
-        int c = big.getDimension(-1) / C;
+      //   int r = big.getDimension(-2) / R;
+      //   int c = big.getDimension(-1) / C;
 
-        std::vector<int> newShape(big.getShape());
-        newShape[newShape.size() - 2] = r;
-        newShape[newShape.size() - 1] = R;
-        newShape.push_back(c);
-        newShape.push_back(C);
-        cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::rTensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
-        /** A lot oe interm */
-        cpp_nn::util::rTensor<int> useless = big.Transpose();
-        cpp_nn::util::rTensor<int> useless2 = useless.Transpose();
-        cpp_nn::util::rTensor<int> useless3 = useless + useless2;
-        cpp_nn::util::rTensor<int> useless4 = useless3.Reshape({2*3*4*5});
+      //   std::vector<int> newShape(big.getShape());
+      //   newShape[newShape.size() - 2] = r;
+      //   newShape[newShape.size() - 1] = R;
+      //   newShape.push_back(c);
+      //   newShape.push_back(C);
+      //   cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::rTensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
+      //   /** A lot oe interm */
+      //   cpp_nn::util::rTensor<int> useless = big.Transpose();
+      //   cpp_nn::util::rTensor<int> useless2 = useless.Transpose();
+      //   cpp_nn::util::rTensor<int> useless3 = useless + useless2;
+      //   cpp_nn::util::rTensor<int> useless4 = useless3.Reshape({2*3*4*5});
 
 
-        cpp_nn::util::rTensor<int> cut = temp;
+      //   cpp_nn::util::rTensor<int> cut = temp;
 
-        cpp_nn::util::PrintTensor(cut);
-        // AS EXPECTED FAILS AS THE RESHAPE WAS OVERWRITTEN
-      }
+      //   cpp_nn::util::PrintTensor(cut);
+      //   // AS EXPECTED FAILS AS THE RESHAPE WAS OVERWRITTEN
+      // }
 
-      if (true) {
-        std::cout << "When function called " << std::endl;
+      // if (true) {
+      //   std::cout << "When function called " << std::endl;
 
-        std::cout << "big addres < " << &big << std::endl;
+      //   std::cout << "big addres < " << &big << std::endl;
 
-        cpp_nn::util::rTensor<int> cut = cpp_nn::util::Test(big, 2, 3);
-        std::cout << "cut Made" << std::endl;
-        cpp_nn::util::PrintTensor(cut);
-        std::cout << "cut Printed" << std::endl;
+      //   cpp_nn::util::rTensor<int> cut = cpp_nn::util::Test(big, 2, 3);
+      //   std::cout << "cut Made" << std::endl;
+      //   cpp_nn::util::PrintTensor(cut);
+      //   std::cout << "cut Printed" << std::endl;
         
       }
     }

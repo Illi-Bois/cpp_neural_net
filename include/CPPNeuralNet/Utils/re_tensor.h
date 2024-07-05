@@ -159,6 +159,37 @@ void PrintTensor(const rTensor<T>& tensor, std::vector<int>& idx, int axis);
 
 template<typename T>
 void PrintTensor(const rTensor<T>& tensor);
+
+/**
+ *  cuts matrices into chunks of target_row x target_col.
+ *  given [dim... R, C] where each matrix is orignally R x C, cuts the tensor so that 
+ *    result is [dim... R/target_row, C/target_col, target_row, target_col]
+ *  The cuts are made so that elements that appeared in same block remain in resulting cut matrix.
+ *  ie
+ *      [4, 4]        
+ *      1  2  3  4    
+ *      5  6  7  8    
+ *      9  10 11 12
+ *      13 14 15 16
+ *      
+ *      cut by 2,2
+ *      ->
+ *      [2, 2, 2, 2]
+ *      1 2    3 4
+ *      5 6    7 8
+ *      
+ *      9 10   11 12
+ *      13 14  15 16
+ */
+template<typename T>
+rTensor<T> CutMatrix(const rTensor<T>& tens, int target_row, int target_col);
+
+/**
+ *  considering that matrix had been cut, merge it back to large matrices.
+ *  ie [dim... R, C, r, c] -> [dim... R*r, C*c]
+ */
+template<typename T>
+rTensor<T> MergeCutMatrix(const rTensor<T>& tens);
 // End of Extreneous -----------------------------------
 
 } // util
@@ -337,18 +368,44 @@ void PrintTensor(const rTensor<T>& tensor) {
 }
 
 template<typename T>
-TransposeOperation<T, ReshapeOperation<T, rTensor<T>>>
-Test(const rTensor<T>& tens, int R, int C) {
-  std::cout << "Test gotten addres " << &tens << std::endl;
-  int r = tens.getDimension(-2) / R;
-  int c = tens.getDimension(-1) / C;
+rTensor<T> CutMatrix(const rTensor<T>& tens, int target_row, int target_col) {
+  if (tens.getOrder() < 2) {
+    throw std::invalid_argument("Cut- Insufficient order");
+  }
+
+  int curr_row = tens.getDimension(-2);
+  int curr_col = tens.getDimension(-1);
+
+  if (curr_row % target_row || curr_col % target_col) {
+    throw std::invalid_argument("Cut- Indivisible cut size");
+  }
+
+  int chunk_row_count = curr_row / target_row;
+  int chunk_col_count = curr_col / target_col;
 
   std::vector<int> newShape(tens.getShape());
-  newShape[newShape.size() - 2] = r;
-  newShape[newShape.size() - 1] = R;
-  newShape.push_back(c);
-  newShape.push_back(C);
+  newShape[newShape.size() - 2] = chunk_row_count;
+  newShape[newShape.size() - 1] = target_row;
+  newShape.push_back(chunk_col_count);
+  newShape.push_back(target_col);
   return tens.Reshape(newShape).Transpose(-2, -3);
+}
+
+template<typename T>
+rTensor<T> MergeCutMatrix(const rTensor<T>& tens) {
+  if (tens.getOrder() < 4) {
+    throw std::invalid_argument("Cut- Insufficient order for merge");
+  }
+
+  int col = tens.getDimension(-1);
+  int row = tens.getDimension(-2);
+  int chunk_col_count = tens.getDimension(-3);
+  int chunk_row_count = tens.getDimension(-4);
+
+  std::vector<int> newShape(tens.getShape().begin(), tens.getShape().end() - 4);
+  newShape.push_back(row * chunk_row_count);
+  newShape.push_back(col * chunk_col_count);
+  return tens.Transpose(-2, -3).Reshape(newShape);
 }
 
 // End of Extreneous -----------------------------------
