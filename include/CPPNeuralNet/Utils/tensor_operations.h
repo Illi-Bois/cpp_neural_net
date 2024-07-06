@@ -20,6 +20,8 @@ template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation;
 template<typename T, typename HeldOperation>
 class ReshapeOperation;
+template<typename T, typename HeldOperation>
+class PaddingOperation;
 } // unnamed namespace
 
 template<typename T>
@@ -145,6 +147,10 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
+  inline const PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>>
+               Padding(const std::vector<int>& padded_dimensions) const {
+    return {*this, padded_dimensions};
+  }
 // End of Tensor-Behaviours ----------------------------
 }; // End of SummationOperation
 
@@ -248,6 +254,10 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
+  inline const PaddingOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
+               Padding(const std::vector<int>& padded_dimensions) const {
+    return {*this, padded_dimensions};
+  }
 // End of Tensor-Behaviours ----------------------------
 
 // friends ---------------------------------------------
@@ -334,7 +344,12 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   }
   inline const ReshapeOperation<T, ReshapeOperation<T, HeldOperation>> 
                Reshape(const std::vector<int>& new_dimensions) const {
+    // Reshape should override it TODO,
     return {*this, new_dimensions};
+  }
+  inline const PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
+               Padding(const std::vector<int>& padded_dimensions) const {
+    return {*this, padded_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
 
@@ -345,6 +360,78 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
  when moving, will move tensor_ to recieving tensor,
   then compute dimension again
 */
+};
+
+
+// given a new shape which is strictly larger than given, 
+//  allows accessor to access to this new shape, where previously outof bounds is now set with initial value  
+template<typename T, typename HeldOperation>
+class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>> {
+  const HeldOperation& tensor_like_;
+  std::vector<int> padded_shape_;
+  const T padded_value_;
+
+  size_t padded_capacity_;
+ public:
+  PaddingOperation(const TensorLike<T, HeldOperation>& tensor_like, 
+                   const std::vector<int>& padded_shape, 
+                   T padded_value = T()) 
+      : tensor_like_(tensor_like.getRef()),
+        padded_shape_(padded_shape),
+        padded_value_(padded_value),
+        padded_capacity_(std::accumulate(padded_shape_.begin(), padded_shape_.end(), 
+                                         1, std::multiplies<int>())) {
+    // check that each timendion is larger
+    if (padded_shape_.size() != tensor_like_.getOrder()) {
+      throw std::invalid_argument("Padding- Order mismatch");
+    }
+
+    // TODO: maybe we can let padding take away information?
+    for (int axis = 0; axis < tensor_like_.getOrder(); ++axis) {
+      if (padded_shape_[axis] < tensor_like_.getDimension(axis)) {
+        throw std::invalid_argument("Padding- Padding is negative");
+      }
+    }
+  }
+
+
+// Tensor-Behaviours -----------------------------------
+  inline const std::vector<int>& getShape() const noexcept {
+    return padded_shape_;
+  } 
+  inline int getDimension(int axis) const {
+    return padded_shape_[SumIfNegative(axis, getOrder())];
+  }
+  inline size_t getCapacity() const {
+    return padded_capacity_;
+  }
+  inline int getOrder() const noexcept {
+    return padded_shape_.size();
+  }
+  inline const T getElement(const std::vector<int>& indices) const {
+    // forward order would work too, but we would most likely padd the inner dimension
+    for (int axis = getOrder() - 1; axis >= 0; --axis) {
+      if (indices[axis] >= tensor_like_.getDimension(axis)) {
+        return padded_value_;
+      }
+    }
+
+    return tensor_like_.getElement(indices);
+  }
+  inline const TransposeOperation<T, PaddingOperation<T, HeldOperation>> 
+               Transpose(int axis1 = -2, int axis2 = -1) const {
+    return {*this, axis1, axis2};
+  }
+  inline const ReshapeOperation<T, PaddingOperation<T, HeldOperation>> 
+               Reshape(const std::vector<int>& new_dimensions) const {
+    return {*this, new_dimensions};
+  }
+  inline const PaddingOperation<T, PaddingOperation<T, HeldOperation>>
+               Padding(const std::vector<int>& padded_dimensions) const {
+    // similar to reshap,e should override it
+    return {*this, padded_dimensions};
+  }
+// End of Tensor-Behaviours ----------------------------
 };
 
 // BROADCASTING MIGHT BE DONE IN THIS MANNER AS WELL!

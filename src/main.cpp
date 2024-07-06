@@ -316,11 +316,21 @@ int main() {
         cpp_nn::util::PrintTensor(big);
         std::cout << "Big Printed" << std::endl;
 
+
         cpp_nn::util::rTensor<int> cut(cpp_nn::util::CutMatrix(big, 2, 3));
         cpp_nn::util::PrintTensor(cut);
+        std::cout << "cut Printed" << std::endl;
+
+
+
+        cpp_nn::util::rTensor<int> padded = cut.Padding({1, 4, 5, 3, 3});
+        cpp_nn::util::PrintTensor(padded);        
+        std::cout << "padded Printed" << std::endl;
+
 
         cpp_nn::util::rTensor<int> merg(cpp_nn::util::MergeCutMatrix(cut));
         cpp_nn::util::PrintTensor(merg);
+        std::cout << "merg Printed" << std::endl;
       
         
 

@@ -26,6 +26,8 @@ template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation;
 template<typename T, typename HeldOperation>
 class ReshapeOperation;
+template<typename T, typename HeldOperation>
+class PaddingOperation;
 }
 // End of Forward Declaration ===============================
 
@@ -118,8 +120,12 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  ReshapeOperation<T, rTensor<T>> Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, rTensor<T>> Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
+  }
+
+  inline PaddingOperation<T, rTensor<T>> Padding(const std::vector<int>& padded_dimensions) const {
+    return {*this, padded_dimensions};
   }
 // End of Modifiers ------------------------------------
 

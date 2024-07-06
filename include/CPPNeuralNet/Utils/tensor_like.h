@@ -13,6 +13,8 @@ template<typename T, typename HeldOperation>
 class TransposeOperation;
 template<typename T, typename HeldOperation>
 class ReshapeOperation;
+template<typename T, typename HeldOperation>
+class PaddingOperation;
 } // unnamed namespace
 
 // End of Forward Declaration ===============================
@@ -67,6 +69,10 @@ class TensorLike {
   inline const ReshapeOperation<T, Derived> 
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
+  }
+  inline const PaddingOperation<T, Derived>
+               Padding(const std::vector<int>& padded_dimensions) const {
+    return {*this, padded_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
 
