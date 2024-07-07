@@ -175,3 +175,163 @@ TEST(UtilTensor, Constant_Tensor_Element_Getter) {
   EXPECT_EQ(tensor_two.getElement({1, 2, 1}), 11);
   EXPECT_EQ(tensor_two.getElement({1, 2, 3}), 11);
 }
+
+//Test cases mostly focused on edge cases
+
+// Constructor cases
+TEST(UtilTensor, ConstructorEmptyDimensions) {
+  using namespace cpp_nn::util;
+  EXPECT_NO_THROW({
+      rTensor<int> t({});
+      EXPECT_EQ(t.getOrder(), 0);
+  });
+}
+
+TEST(UtilTensor, ConstructorZeroDimension) {
+  using namespace cpp_nn::util;
+  EXPECT_THROW({
+      rTensor<int> t({0, 2, 3});
+  }, std::invalid_argument);
+}
+
+TEST(UtilTensor, ConstructorNegativeDimension) {
+  using namespace cpp_nn::util;
+  EXPECT_THROW({
+      rTensor<int> t({2, -3, 4});
+  }, std::invalid_argument);
+}
+
+TEST(UtilTensor, ConstructorLargeDimensions) {
+  using namespace cpp_nn::util;
+  EXPECT_NO_THROW({
+      rTensor<int> t({1000000, 1000000}, 0);
+  });
+}
+
+//Copy Constructor
+TEST(UtilTensor, CopyConstructorEmptyTensor) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({});
+  rTensor<int> t2(t1);
+  EXPECT_EQ(t2.getOrder(), 0);
+}
+
+// Move constructor
+TEST(UtilTensor, MoveConstructorEmptyTensor) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({});
+  rTensor<int> t2(std::move(t1));
+  EXPECT_EQ(t2.getOrder(), 0);
+}
+
+
+//Element getter 
+TEST(UtilTensor, ElementGetterEmptyTensor) {
+  using namespace cpp_nn::util;
+  rTensor<int> t({});
+  EXPECT_THROW({
+      t.getElement({0});
+  }, std::invalid_argument);
+}
+
+TEST(UtilTensor, ElementGetterWrongNumberOfIndices) {
+  using namespace cpp_nn::util;
+  rTensor<int> t({2, 3, 4});
+  EXPECT_THROW({
+      t.getElement({1, 1});
+  }, std::invalid_argument);
+}
+
+TEST(UtilTensor, ElementGetterNegativeIndex) {
+  using namespace cpp_nn::util;
+  rTensor<int> t({2, 3, 4});
+  EXPECT_THROW({
+      t.getElement({1, -1, 2});
+  }, std::invalid_argument);
+}
+
+//Multiplication
+
+TEST(UtilTensor, MultiplicationEmptyTensors) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({});
+  rTensor<int> t2({});
+  EXPECT_THROW({
+      rTensor<int> result = t1 * t2;
+  }, std::invalid_argument);
+}
+
+TEST(UtilTensor, MultiplicationIncompatibleDimensions) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({2, 3});
+  rTensor<int> t2({4, 2});
+  EXPECT_THROW({
+      rTensor<int> result = t1 * t2;
+  }, std::invalid_argument);
+}
+
+TEST(UtilTensor, MultiplicationLargeTensors) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({1000, 1000}, 1);
+  rTensor<int> t2({1000, 1000}, 1);
+  EXPECT_NO_THROW({
+      rTensor<int> result = t1 * t2;
+  });
+}
+
+//Addition
+
+TEST(UtilTensor, AdditionEmptyTensors) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({});
+  rTensor<int> t2({});
+  EXPECT_NO_THROW({
+      rTensor<int> result = t1 + t2;
+      EXPECT_EQ(result.getOrder(), 0);
+  });
+}
+
+TEST(UtilTensor, AdditionIncompatibleDimensions) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({2, 3});
+  rTensor<int> t2({3, 2});
+  EXPECT_THROW({
+      rTensor<int> result = t1 + t2;
+  }, std::runtime_error);
+}
+
+
+// Broadcasting  cases
+TEST(UtilTensor, BroadcastingEmptyTensor) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({});
+  rTensor<int> t2({2, 3});
+  EXPECT_THROW({
+      rTensor<int> result = t1 + t2;
+  }, std::runtime_error);
+}
+
+TEST(UtilTensor, BroadcastingIncompatibleDimensions) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({2, 3});
+  rTensor<int> t2({3, 2});
+  EXPECT_THROW({
+      rTensor<int> result = t1 + t2;
+  }, std::runtime_error);
+}
+
+TEST(UtilTensor, BroadcastingWithScalar) {
+  using namespace cpp_nn::util;
+  rTensor<int> t1({2, 3}, 1);
+  rTensor<int> t2({1}, 2);
+  EXPECT_NO_THROW({
+      rTensor<int> result = t1 + t2;
+      EXPECT_EQ(result.getDimension(0), 2);
+      EXPECT_EQ(result.getDimension(1), 3);
+      for (int i = 0; i < 2; ++i) {
+          for (int j = 0; j < 3; ++j) {
+              EXPECT_EQ(result.getElement({i, j}), 3);
+          }
+      }
+  });
+}
