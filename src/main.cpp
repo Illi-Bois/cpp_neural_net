@@ -462,7 +462,7 @@ int main() {
           cpp_nn::util::PrintTensor(ori);
 
           std::cout << "Normally Tranposed" << std::endl;
-          cpp_nn::util::rTensor<int> norm = ori.Transpose(2, 0).Transpose(1, 3).Transpose(0, 1).Transpose(0, 3);
+          cpp_nn::util::rTensor<int> norm = ori.Transpose().Transpose().Transpose();
           cpp_nn::util::PrintTensor(norm);
           std::cout << " shape is  " << std::endl;
           for (int d : norm.getShape()) {
@@ -470,14 +470,14 @@ int main() {
           }
           std::cout << std::endl;
 
-          std::cout << "Multi Tranposed" << std::endl;
-          cpp_nn::util::rTensor<int> mult = ori.Transpose(2, 0).MultiTranpose(1, 3).Transpose(0, 1).Transpose(0, 3);
-          cpp_nn::util::PrintTensor(mult);
-          std::cout << " shape is  " << std::endl;
-          for (int d : mult.getShape()) {
-            std::cout << d << ", ";
-          }
-          std::cout << std::endl;
+          // std::cout << "Multi Tranposed" << std::endl;
+          // cpp_nn::util::rTensor<int> mult = ori.Transpose(2, 0).MultiTranpose(1, 3).Transpose(0, 1).Transpose(0, 3);
+          // cpp_nn::util::PrintTensor(mult);
+          // std::cout << " shape is  " << std::endl;
+          // for (int d : mult.getShape()) {
+          //   std::cout << d << ", ";
+          // }
+          // std::cout << std::endl;
 
         }
       }

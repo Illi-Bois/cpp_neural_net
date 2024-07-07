@@ -88,13 +88,10 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     std::swap(indices[axis_1_], indices[axis_2_]);
     return tensor_.getElement(indices);
   }
-  inline const TransposeOperation<T, TransposeOperation<T, HeldOperation>> 
-               Transpose(int axis_1, int axis_2) const {
-    return {*this, axis_1, axis_2};
-  }
+  // Tranpose on Tranpose will result in Multitranpose
   // return cannot be const, as must allow additional tranposition
   inline MultiTransposeOperation<T, HeldOperation>
-        MultiTranpose(int axis_1, int axis_2) const {
+        Transpose(int axis_1 = -1, int axis_2 = -2) const {
     return {*this, axis_1, axis_2};
   }
   inline const ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
@@ -163,9 +160,13 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
   }
   // Only this returns reference, as is inbody mutation
   inline MultiTransposeOperation<T, HeldOperation>& 
-               Transpose(int axis_1, int axis_2) {
-    int& effective_axis_1 = untranpose_map_[SumIfNegative(axis_1, getOrder())];
-    int& effective_axis_2 = untranpose_map_[SumIfNegative(axis_2, getOrder())];
+               Transpose(int axis_1 = -1, int axis_2 = -2) {
+    // normalized to positive
+    axis_1 = SumIfNegative(axis_1, getOrder());
+    axis_2 = SumIfNegative(axis_2, getOrder());
+
+    int& effective_axis_1 = untranpose_map_[axis_1];
+    int& effective_axis_2 = untranpose_map_[axis_2];
     std::swap(effective_axis_1, effective_axis_2);
     std::swap(tranpose_map_[effective_axis_1], tranpose_map_[effective_axis_2]);
 
