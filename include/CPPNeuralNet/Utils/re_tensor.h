@@ -20,6 +20,8 @@ class TensorLike;
 
 template<typename T, typename HeldOperation>
 class TransposeOperation;
+template<typename T, typename HeldOperation>
+class MultiTransposeOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>

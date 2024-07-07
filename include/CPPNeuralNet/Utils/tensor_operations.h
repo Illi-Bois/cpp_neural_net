@@ -4,6 +4,8 @@
 #include "CPPNeuralNet/Utils/utils.h"
 #include "CPPNeuralNet/Utils/tensor_like.h"
 
+#include <numeric> // to fill from 0 to n
+
 
 namespace cpp_nn {
 namespace util {
@@ -14,6 +16,8 @@ template<typename T, typename Derived>
 class TensorLike; 
 template<typename T, typename HeldOperation>
 class TransposeOperation;
+template<typename T, typename HeldOperation>
+class MultiTransposeOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation;
 template<typename T, typename HeldOperation1, typename HeldOperation2>
@@ -85,7 +89,12 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     return tensor_.getElement(indices);
   }
   inline const TransposeOperation<T, TransposeOperation<T, HeldOperation>> 
-               Tranpose(int axis_1, int axis_2) const {
+               Transpose(int axis_1, int axis_2) const {
+    return {*this, axis_1, axis_2};
+  }
+  // return cannot be const, as must allow additional tranposition
+  inline MultiTransposeOperation<T, HeldOperation>
+        MultiTranpose(int axis_1, int axis_2) const {
     return {*this, axis_1, axis_2};
   }
   inline const ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
@@ -93,7 +102,82 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     return {*this, new_dimensions};
   }
 // End of Tensor-Behaviours ----------------------------
+
+// friends ---------------------------------------------
+  friend class MultiTransposeOperation<T, HeldOperation>;
+// end of friends --------------------------------------
 }; // End of TransposeOperation
+
+// Similar to tranpose, but now handles multiple transpositions at once
+template<typename T, typename HeldOperation>
+class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, HeldOperation>> {
+// Members ---------------------------------------------
+  const HeldOperation& tensor_like_;
+
+  std::vector<int> dimension_;    // dimension post-tranposing
+  // tranposed_index -> untranpose_map_ -> heldOperation_index
+  std::vector<int> untranpose_map_;             // use to convert tranposed_indices to indices for tensor_like_
+  // heldOperation_index -> untranpose_map_ -> tranposed_index
+  std::vector<int> tranpose_map_;               // use to convert tensor_like_'s indicies to tranposed indices
+// End of Members --------------------------------------
+ 
+ public:
+  // Can only be generated from TranposeOperation
+  MultiTransposeOperation(const TransposeOperation<T, HeldOperation>& tranpose_operation, int axis_1, int axis_2)
+    : tensor_like_(tranpose_operation.tensor_),
+      dimension_(tensor_like_.getShape()), // note this is not yet tranposed first
+      untranpose_map_(tensor_like_.getOrder()),
+      tranpose_map_(tensor_like_.getOrder()) {
+    std::cout << "Multi called" << std::endl;
+    // fill from 0 to order
+    std::iota(untranpose_map_.begin(), untranpose_map_.end(), 0);
+    std::iota(tranpose_map_.begin(),  tranpose_map_.end(), 0);
+    // tranpose in order
+    this->Transpose(tranpose_operation.axis_1_, tranpose_operation.axis_2_);
+    this->Transpose(axis_1, axis_2);
+  }
+
+  
+
+  inline const std::vector<int>& getShape() const {
+    return dimension_;
+  }
+  inline int getDimension(int axis) const {
+    return dimension_[SumIfNegative(axis, getOrder())];
+  }
+  inline size_t getCapacity() const {
+    return tensor_like_.getCapacity();
+  }
+  inline int getOrder() const noexcept {
+    return dimension_.size();
+  }  
+  // indices for tranpose is passed as value, not reference,
+  //   so that tranposed axis may be swapped. 
+  const T getElement(std::vector<int> indices) const {
+    std::vector<int> untranposed_indices(getOrder());
+    for (int axis = 0; axis < getOrder(); ++axis) {
+      // untranposed_indices[axis] = indices[untranpose_map_[axis]];
+      untranposed_indices[untranpose_map_[axis]] = indices[axis];
+    }
+    return tensor_like_.getElement(untranposed_indices);
+  }
+  // Only this returns reference, as is inbody mutation
+  inline MultiTransposeOperation<T, HeldOperation>& 
+               Transpose(int axis_1, int axis_2) {
+    int& effective_axis_1 = untranpose_map_[SumIfNegative(axis_1, getOrder())];
+    int& effective_axis_2 = untranpose_map_[SumIfNegative(axis_2, getOrder())];
+    std::swap(effective_axis_1, effective_axis_2);
+    std::swap(tranpose_map_[effective_axis_1], tranpose_map_[effective_axis_2]);
+
+    std::swap(dimension_[axis_1], dimension_[axis_2]);
+    return *this;
+  }
+  inline const ReshapeOperation<T, MultiTransposeOperation<T, HeldOperation>> 
+               Reshape(const std::vector<int>& new_dimensions) const {
+    return {*this, new_dimensions};
+  }
+
+};
 
 
 // TODO: Currently only handles same-shape addition.
