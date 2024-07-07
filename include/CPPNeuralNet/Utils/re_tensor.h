@@ -115,19 +115,22 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  By default, transposes last two axes. 
  *    This conforms to Matrix tranpose.
  */
-  inline TransposeOperation<T, rTensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const {
+  inline const TransposeOperation<T, rTensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
 /**
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  inline ReshapeOperation<T, rTensor<T>> Reshape(const std::vector<int>& new_dimensions) const {
+  inline const ReshapeOperation<T, rTensor<T>> Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-
-  inline PaddingOperation<T, rTensor<T>> Padding(const std::vector<int>& padded_dimensions) const {
-    return {*this, padded_dimensions};
+/**
+ *  changes dimension and pads the margins with padded_Value.
+ *  The dimension can be smaller than current, in which case those elements beyond the new dimensions are lost. 
+ */
+  inline const PaddingOperation<T, rTensor<T>> Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
   }
 // End of Modifiers ------------------------------------
 

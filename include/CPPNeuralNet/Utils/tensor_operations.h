@@ -98,6 +98,10 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
+  inline const PaddingOperation<T, TransposeOperation<T, HeldOperation>> 
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
+  }
 // End of Tensor-Behaviours ----------------------------
 
 // friends ---------------------------------------------
@@ -177,6 +181,10 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
+  inline const PaddingOperation<T, MultiTransposeOperation<T, HeldOperation>> 
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
+  }
 
 };
 
@@ -232,9 +240,9 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>>
-               Padding(const std::vector<int>& padded_dimensions) const {
-    return {*this, padded_dimensions};
+  inline const PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 }; // End of SummationOperation
@@ -340,8 +348,8 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     return {*this, new_dimensions};
   }
   inline const PaddingOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-               Padding(const std::vector<int>& padded_dimensions) const {
-    return {*this, padded_dimensions};
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 
@@ -385,17 +393,8 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
    */
   ReshapeOperation(const ReshapeOperation<T, HeldOperation>& reshape_operation, 
                    const std::vector<int>& new_shape)
-      : tensor_like_(reshape_operation.tensor_like_),
-        dimension_(new_shape),
-        chunk_size_(new_shape.size(), 1),
-        capacity_(1) {
-    // Computes and checks validity upon construction.
-    //    This means tensor constructor need not check
-    cpp_nn::util::ComputeCapacityAndChunkSizes(dimension_, chunk_size_, capacity_);
-
-    if (capacity_ != tensor_like_.getCapacity()) {
-      throw std::invalid_argument("TensorReshape- Capacity mismatch");
-    }
+      : ReshapeOperation(reshape_operation.tensor_like_, new_shape) {
+    // let default constructor handle it
   }
 // End of Constructor ----------------------------------
 
@@ -427,14 +426,15 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
+  // OVERRIDE
   inline const ReshapeOperation<T, HeldOperation>
                Reshape(const std::vector<int>& new_dimensions) const {
     // Reshape should override it TODO,
     return {*this, new_dimensions};
   }
   inline const PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
-               Padding(const std::vector<int>& padded_dimensions) const {
-    return {*this, padded_dimensions};
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 
@@ -471,12 +471,29 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       throw std::invalid_argument("Padding- Order mismatch");
     }
 
-    // TODO: maybe we can let padding take away information?
+    // We have now allowed both doubly padding to collapse to single padding,
+    // and also allowed subtracted padding
+    // TODO: this howeber cam cause unexpected behaviour, in that
+    //    elements taken away from first padding is then returned by repadding. 
+    //    Either this is to be made a feature, or
+    //    Find a way out of this, ie) 
+    //      - DoNothing OperationHolder
+    //      - Manual check
     for (int axis = 0; axis < tensor_like_.getOrder(); ++axis) {
-      if (padded_shape_[axis] < tensor_like_.getDimension(axis)) {
-        throw std::invalid_argument("Padding- Padding is negative");
+      // if (padded_shape_[axis] < tensor_like_.getDimension(axis)) {
+      if (padded_shape_[axis] <= 0) {
+        throw std::invalid_argument("Padding- Non-positive dimension");
       }
     }
+  }
+
+  // doubly padding
+  PaddingOperation(const PaddingOperation<T, HeldOperation>& padded_operation, 
+                   const std::vector<int>& padded_shape, 
+                   T padded_value = T()) 
+      : PaddingOperation(padded_operation.tensor_like_, padded_shape, padded_value) {
+    // let default constructor handle it
+    std::cout << "Doubly" << std::endl;
   }
 
 
@@ -511,10 +528,11 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, PaddingOperation<T, HeldOperation>>
-               Padding(const std::vector<int>& padded_dimensions) const {
+  // OVERRIDE
+  inline const PaddingOperation<T, HeldOperation> 
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
     // similar to reshap,e should override it
-    return {*this, padded_dimensions};
+    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 };

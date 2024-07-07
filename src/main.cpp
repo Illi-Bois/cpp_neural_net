@@ -480,6 +480,28 @@ int main() {
           // std::cout << std::endl;
 
         }
+
+        if (true) {
+          std::cout << "Doubly test" << std::endl;
+          cpp_nn::util::rTensor<int> ori({1, 2, 3, 4});
+          std::vector<int> idx(ori.getOrder(), 0);
+          int i = 0;
+          do {
+            ori.getElement(idx) = ++i;
+          } while (cpp_nn::util::IncrementIndicesByShape(ori.getShape().begin(), ori.getShape().end(),
+                                                          idx.begin(), idx.end()));   
+          
+          std::cout << "Doubly Reshape calling" << std::endl;
+          cpp_nn::util::rTensor<int> re = ori.Reshape({1, 6, 4}).Reshape({2, 6, 2}).Reshape({2, 1, 6, 2}).Transpose().Reshape({1, 2, 3, 4});
+          cpp_nn::util::PrintTensor(re);
+
+
+          std::cout << "Doubly Pading calling" << std::endl;
+          cpp_nn::util::rTensor<int> pa = ori.Padding({2, 3, 4, 1}).Padding({1, 3, 4, 1}).Padding({2, 2, 2, 2}).Transpose().Padding({2, 2, 3, 2});
+          cpp_nn::util::PrintTensor(pa);
+
+
+        }
       }
     }
   }

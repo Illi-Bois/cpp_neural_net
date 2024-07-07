@@ -71,8 +71,8 @@ class TensorLike {
     return {*this, new_dimensions};
   }
   inline const PaddingOperation<T, Derived>
-               Padding(const std::vector<int>& padded_dimensions) const {
-    return {*this, padded_dimensions};
+               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 
