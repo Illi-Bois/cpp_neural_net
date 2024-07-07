@@ -332,6 +332,11 @@ int main() {
         cpp_nn::util::PrintTensor(merg);
         std::cout << "merg Printed" << std::endl;
       
+
+        cpp_nn::util::rTensor<int> res(merg.Reshape({1, 8, 15}).Reshape({1, 2, 3, 4, 5}));
+        cpp_nn::util::PrintTensor(res);
+        std::cout << "res Printed" << std::endl;
+      
         
 
         // The issue seems, as soon as

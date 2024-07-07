@@ -342,7 +342,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  inline const ReshapeOperation<T, ReshapeOperation<T, HeldOperation>> 
+  inline const ReshapeOperation<T, HeldOperation>
                Reshape(const std::vector<int>& new_dimensions) const {
     // Reshape should override it TODO,
     return {*this, new_dimensions};
