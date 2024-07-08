@@ -66,11 +66,14 @@ class TensorLike {
   inline const TransposeOperation<T, Derived> Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  inline const ReshapeOperation<T, Derived> 
+  /// Below Operations are better return as nonconstant as they may be modified further in-body. 
+  /// When not used for further modification, still are caught as const HeldOperations, 
+  ///   and so poses no issue
+  inline ReshapeOperation<T, Derived> 
                Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, Derived>
+  inline PaddingOperation<T, Derived>
                Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }

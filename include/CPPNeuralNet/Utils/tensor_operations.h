@@ -92,13 +92,13 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
          Transpose(int axis_1 = -1, int axis_2 = -2) const {
     return {*this, axis_1, axis_2};
   }
-  inline const ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
-               Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, TransposeOperation<T, HeldOperation>> 
-               Padding(const std::vector<int>& padded_dimensions, 
-                       T padded_value = T()) const {
+  inline PaddingOperation<T, TransposeOperation<T, HeldOperation>> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -183,12 +183,13 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
               tranpose_map_[effective_axis_2]);
     return *this;
   }
-  inline const ReshapeOperation<T, MultiTransposeOperation<T, HeldOperation>> 
-               Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, MultiTransposeOperation<T, HeldOperation>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, MultiTransposeOperation<T, HeldOperation>> 
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+  inline PaddingOperation<T, MultiTransposeOperation<T, HeldOperation>> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -242,13 +243,13 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  inline const ReshapeOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-               Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-               Padding(const std::vector<int>& padded_dimensions, 
-                       T padded_value = T()) const {
+  inline PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -350,13 +351,13 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  inline const ReshapeOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-               Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  inline const PaddingOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-               Padding(const std::vector<int>& padded_dimensions, 
-                       T padded_value = T()) const {
+  inline PaddingOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -435,14 +436,15 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
     return {*this, axis1, axis2};
   }
   // OVERRIDE
-  inline const ReshapeOperation<T, HeldOperation>
-               Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, HeldOperation>
+         Reshape(const std::vector<int>& new_dimensions) const {
     // Reshape should override it TODO,
     return {*this, new_dimensions};
   }
   // TODO: Make a modifier on self, same with padding.
-  inline const PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+  inline PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -537,14 +539,14 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  inline const ReshapeOperation<T, PaddingOperation<T, HeldOperation>> 
-               Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, PaddingOperation<T, HeldOperation>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
   // OVERRIDE
-  inline const PaddingOperation<T, HeldOperation> 
-               Padding(const std::vector<int>& padded_dimensions, 
-                       T padded_value = T()) const {
+  inline PaddingOperation<T, HeldOperation> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     // similar to reshap,e should override it
     return {*this, padded_dimensions, padded_value};
   }

@@ -122,14 +122,17 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  inline const ReshapeOperation<T, rTensor<T>> Reshape(const std::vector<int>& new_dimensions) const {
+  inline ReshapeOperation<T, rTensor<T>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
 /**
  *  changes dimension and pads the margins with padded_Value.
  *  The dimension can be smaller than current, in which case those elements beyond the new dimensions are lost. 
  */
-  inline const PaddingOperation<T, rTensor<T>> Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+  inline PaddingOperation<T, rTensor<T>> 
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Modifiers ------------------------------------
