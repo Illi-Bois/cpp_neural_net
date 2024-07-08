@@ -607,6 +607,64 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 // !!! TODO: On Padding and Reshape, because inbody is now an option, we dont need doubly constrrcutor?
 
 // BROADCASTING MIGHT BE DONE IN THIS MANNER AS WELL!
+/** A Simple wrapper that retrieves tensor element by broadcast shape only.
+ *  Intended to be used for Multiplcation and Summation
+ */
+template<typename T, typename HeldOperation>
+class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperation>> {
+  const HeldOperation& tensor_like_;
+  const std::vector<int> broadcast_shape_;
+
+  size_t broadcast_capacity_;
+
+ public:
+  BroadcastOperation(const TensorLike<T, HeldOperation>& tensor_like, const std::vector<int>& broadcast_shape) 
+      : tensor_like_(tensor_like),
+        // Will assume the passed broadcast shape is valid and correct
+        broadcast_shape_(broadcast_shape),
+        broadcast_capacity_(std::accumulate(broadcast_shape_.begin(), broadcast_shape_.end(),
+                            1, std::multiplies<int>()))  { 
+  }
+
+
+  inline const std::vector<int>& getShape() const noexcept {
+    return broadcast_shape_;
+  } 
+  inline int getDimension(int axis) const {
+    return broadcast_shape_[SumIfNegative(axis, getOrder())];
+  }
+  inline size_t getCapacity() const {
+    return broadcast_capacity_;
+  }
+  inline int getOrder() const noexcept {
+    return broadcast_shape_.size();
+  }
+  inline const T getElement(std::vector<int> indices) const {
+    // TODO make a better way to check if this specific axis needs broadcasting or not?
+    int axis = 0;
+    std::vector<int>::const_iterator original_dim  = tensor_like_.getShape().begin();
+    
+    // with the assumption that broadcast shape is correct, only need to check if original dim is not 1
+    while (axis < getOrder()) {
+      if (*original_dim == 1) {
+        indices[axis] = 0; 
+      }
+      ++axis;
+      original_dim++;
+    }
+    
+    return tensor_like_.getElement(indices);
+  }
+  inline const TransposeOperation<T, BroadcastOperation<T, HeldOperation>> 
+               Transpose(int axis1 = -2, int axis2 = -1) const {
+    return {*this, axis1, axis2};
+  }
+  inline ReshapeOperation<T, BroadcastOperation<T, HeldOperation>> 
+         Reshape(const std::vector<int>& new_dimensions) const {
+    return {*this, new_dimensions};
+  }
+
+};
 
 } // unnamed namespace 
 
