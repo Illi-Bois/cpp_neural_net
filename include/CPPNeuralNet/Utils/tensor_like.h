@@ -63,18 +63,20 @@ class TensorLike {
 
   // TODO, move these externally to tensor_operation 
   //    that is, make these call static inline function
-  inline const TransposeOperation<T, Derived> Transpose(int axis1 = -2, int axis2 = -1) const {
+  inline const TransposeOperation<T, Derived> 
+               Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
   /// Below Operations are better return as nonconstant as they may be modified further in-body. 
   /// When not used for further modification, still are caught as const HeldOperations, 
   ///   and so poses no issue
   inline ReshapeOperation<T, Derived> 
-               Reshape(const std::vector<int>& new_dimensions) const {
+         Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
   inline PaddingOperation<T, Derived>
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------

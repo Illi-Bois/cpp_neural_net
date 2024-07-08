@@ -35,6 +35,9 @@ template<typename T>
 class Tensor;
 // End of Forward Declaration ===============================
 
+/***
+ *  ALL OPERATION VALIDITY ARE CHECKED UPON CONSTRUCT TODO:
+ */
 
 namespace {
 /* Operation Facilitators ---------------------------------------------------------- */
@@ -698,28 +701,6 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
 
 } // unnamed namespace 
 
-
-
-// Operations =================================================
-/**
- *  returns summation holder.
- */
-template<typename T, typename HeldOperation1, 
-                     typename HeldOperation2> 
-SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike<T, HeldOperation1>& A, 
-                                                                const TensorLike<T, HeldOperation2>& B) {
-  return {A, B};
-}
-/**
- *  returns multiplication holder.
- */
-template<typename T, typename HeldOperation1, 
-                     typename HeldOperation2>
-MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const TensorLike<T, HeldOperation1>& A,
-                                                                     const TensorLike<T, HeldOperation2>& B) {
-  return{A, B};
-}
-// End of Operations ==========================================
 
 } // util
 } // cpp_nn
