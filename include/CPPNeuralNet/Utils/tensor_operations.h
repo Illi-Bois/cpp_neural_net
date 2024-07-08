@@ -378,6 +378,21 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   size_t capacity_;
 // End of Members --------------------------------------
 
+// Housekeeping ----------------------------------------
+/** given that dimensions is correctly selected and that capacity and chunk_sizes are reset to 1
+ *  updates the latter 2 according to dimension.
+ * 
+ *  Throws exception is capacity does not match
+ */
+  void UpdateAndCheck() {
+    cpp_nn::util::ComputeCapacityAndChunkSizes(dimension_, chunk_size_, capacity_);
+
+    if (capacity_ != tensor_like_.getCapacity()) {
+      throw std::invalid_argument("TensorReshape- Capacity mismatch");
+    }
+  }
+// End of Housekeeping ---------------------------------
+
  public:
 // Constructor -----------------------------------------
   ReshapeOperation(const TensorLike<T, HeldOperation>& tensor_like, 
@@ -386,12 +401,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
         dimension_(new_shape),
         chunk_size_(new_shape.size(), 1),
         capacity_(1) {
-    cpp_nn::util::ComputeCapacityAndChunkSizes(dimension_, chunk_size_, capacity_);
-
-    if (capacity_ != tensor_like_.getCapacity()) {
-      throw std::invalid_argument("TensorReshape- Capacity mismatch");
-    }
-
+    UpdateAndCheck();
     // it may be faster to simply move everyhting? make a new tensor and access it through that?
   }
   /**
@@ -435,11 +445,27 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  // OVERRIDE
-  inline ReshapeOperation<T, HeldOperation>
+  // Const Legacy Reshape for TensorLike to call(?)
+  inline ReshapeOperation<T, ReshapeOperation<T, HeldOperation>>
          Reshape(const std::vector<int>& new_dimensions) const {
     // Reshape should override it TODO,
     return {*this, new_dimensions};
+  } // Being Legacy backwards compatiblity, the below optimization is useless, and is depriciated by inplace method
+  // inline ReshapeOperation<T, HeldOperation>
+  //        Reshape(const std::vector<int>& new_dimensions) const {
+  //   // Reshape should override it TODO,
+  //   return {*this, new_dimensions};
+  // }
+  // Reshape on noconst
+  inline ReshapeOperation<T, HeldOperation>&
+         Reshape(const std::vector<int>& new_dimensions) {
+    // Reset
+    dimension_ = new_dimensions;
+    chunk_size_ = std::vector<int>(dimension_.size(), 1);
+    capacity_ = 1;
+    // Compute
+    UpdateAndCheck();
+    return *this;
   }
   // TODO: Make a modifier on self, same with padding.
   inline PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
@@ -466,7 +492,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   std::vector<int> padded_shape_;
-  const T padded_value_;
+  T padded_value_;
 
   size_t padded_capacity_;
 // End of Members --------------------------------------
@@ -543,15 +569,42 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
          Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  // OVERRIDE
-  inline PaddingOperation<T, HeldOperation> 
+  // Const Legacy Padding for TensorLike to Call(?)
+  inline PaddingOperation<T, PaddingOperation<T, HeldOperation>>
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
     // similar to reshap,e should override it
     return {*this, padded_dimensions, padded_value};
   }
+  // Padding on nonconst
+  inline PaddingOperation<T, HeldOperation>&
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) {
+    padded_shape_ = padded_dimensions;
+    padded_value_ = padded_value;
+    padded_capacity_ = std::accumulate(padded_shape_.begin(), padded_shape_.end(), 
+                                       1, std::multiplies<int>());
+
+    // check that each timendion is larger
+    if (padded_shape_.size() != tensor_like_.getOrder()) {
+      throw std::invalid_argument("Padding- Order mismatch");
+    }
+
+    for (int axis = 0; axis < tensor_like_.getOrder(); ++axis) {
+      // if (padded_shape_[axis] < tensor_like_.getDimension(axis)) {
+      if (padded_shape_[axis] <= 0) {
+        throw std::invalid_argument("Padding- Non-positive dimension");
+      }
+    }
+
+    // TODO remove duplicate code.
+
+    return *this;
+  }
 // End of Tensor-Behaviours ----------------------------
 };
+
+// !!! TODO: On Padding and Reshape, because inbody is now an option, we dont need doubly constrrcutor?
 
 // BROADCASTING MIGHT BE DONE IN THIS MANNER AS WELL!
 
