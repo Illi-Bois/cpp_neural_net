@@ -269,7 +269,7 @@ template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> {
 // Members ---------------------------------------------
   rTensor<T>*      product_tensor_;
-  std::vector<int> product_shape_; 
+  std::vector<int> broad_cast_shape; 
 // End of Members --------------------------------------
 
  public:
@@ -279,17 +279,13 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   MultiplicationOperation(const TensorLike<T, HeldOperation1>& A, 
                           const TensorLike<T, HeldOperation2>& B)
       : product_tensor_(nullptr),
-        product_shape_(A.getShape()) /* dummy for later*/ {
-    // assert  [dim1,  r, k] [dim2, k, c] that dim == dim1
-    if (A.getOrder() != B.getOrder()) {
-      throw std::invalid_argument("Multiplcation- Order Mismatch");
-    }
+        // set broadcasting shape first, add matrix dim later
+        broad_cast_shape(Broadcast(A.getShape().begin(), A.getShape().end() - 2,
+                                   B.getShape().begin(), B.getShape().end() - 2)) {
+    std::cout << "init succ" << std::endl;
+    // Broadcast issue is resolved upon broadcasting
     if (A.getOrder() < 2) {
       throw std::invalid_argument("Multiplication- Insufficient Dimension");
-    }
-    if (!std::equal(A.getShape().begin(), A.getShape().end() - 2, 
-                    B.getShape().begin())) {
-      throw std::invalid_argument("Multiplication- Dimension Mismatch");
     }
     if (A.getDimension(-1) != B.getDimension(-2)) {
       throw std::invalid_argument("Multiplication- Multiplcation Dimension Mismatch");
@@ -299,10 +295,24 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     const int cols = B.getDimension(-1);
     const int interm = A.getDimension(-1);
 
-    // product_shape is aleady set as being A
-    product_shape_[getOrder() - 1] = cols;
+    // For A
+    broad_cast_shape.push_back(rows);
+    broad_cast_shape.push_back(interm);
+    size_t capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
+                                      1, std::multiplies<int>());
+    BroadcastOperation<T, HeldOperation1> A_broadcast(A, broad_cast_shape, capacity);
+    // For B
+    broad_cast_shape[broad_cast_shape.size() - 2] = interm;
+    broad_cast_shape[broad_cast_shape.size() - 1] = cols;
+    capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
+                               1, std::multiplies<int>());
+    BroadcastOperation<T, HeldOperation1> B_broadcast(B, broad_cast_shape, capacity);
 
-    product_tensor_ = new rTensor<T>(product_shape_);
+    // product_shape is aleady set as being A
+    broad_cast_shape[broad_cast_shape.size() - 2] = rows;
+    // col is readily set 
+
+    product_tensor_ = new rTensor<T>(broad_cast_shape);
     // indices for which matrix is to be chosen
     std::vector<int> indices(getOrder(), 0);
 
@@ -318,18 +328,18 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
           for (int k = 0; k < interm; ++k) {
             indices[getOrder() - 2] = r;
             indices[getOrder() - 1] = k;
-            T a_element = A.getElement(indices);
+            T a_element = A_broadcast.getElement(indices);
 
             indices[getOrder() - 2] = k;
             indices[getOrder() - 1] = c;
-            T b_element = B.getElement(indices);
+            T b_element = B_broadcast.getElement(indices);
 
             element += a_element * b_element;
           }
         }
       }
-    } while (IncrementIndicesByShape(product_shape_.begin(), product_shape_.end() - 2,
-                                     indices.begin(),        indices.end()        - 2));
+    } while (IncrementIndicesByShape(broad_cast_shape.begin(), broad_cast_shape.end() - 2,
+                                     indices.begin(),          indices.end()          - 2));
   }
 // End of Constructor ----------------------------------
 
@@ -341,16 +351,16 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    return product_shape_;
+    return broad_cast_shape;
   } 
   inline int getDimension(int axis) const {
-    return product_shape_[SumIfNegative(axis, getOrder())];
+    return broad_cast_shape[SumIfNegative(axis, getOrder())];
   }
   inline size_t getCapacity() const {
     return product_tensor_->getCapacity();
   }
   inline int getOrder() const noexcept {
-    return product_shape_.size();
+    return broad_cast_shape.size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
     return product_tensor_->getElement(indices);
@@ -647,21 +657,24 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
   inline int getOrder() const noexcept {
     return broadcast_shape_.size();
   }
-  inline const T getElement(std::vector<int> indices) const {
+  inline const T getElement(const std::vector<int>& indices) const {
     // TODO make a better way to check if this specific axis needs broadcasting or not?
-    int axis = 0;
-    std::vector<int>::const_iterator original_dim  = tensor_like_.getShape().begin();
+
+    // indices are right aligned
+    std::vector<int> passing_indices(indices.end() - tensor_like_.getOrder(), indices.end());
+    int axis = passing_indices.size() - 1;
+    std::vector<int>::const_iterator original_dim  = tensor_like_.getShape().end() - 1;
     
     // with the assumption that broadcast shape is correct, only need to check if original dim is not 1
-    while (axis < getOrder()) {
+    while (axis >= 0) {
       if (*original_dim == 1) {
-        indices[axis] = 0; 
+        passing_indices[axis] = 0; 
       }
-      ++axis;
-      original_dim++;
+      --axis;
+      original_dim--;
     }
     
-    return tensor_like_.getElement(indices);
+    return tensor_like_.getElement(passing_indices);
   }
   inline const TransposeOperation<T, BroadcastOperation<T, HeldOperation>> 
                Transpose(int axis1 = -2, int axis2 = -1) const {

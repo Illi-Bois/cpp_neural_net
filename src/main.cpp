@@ -543,6 +543,51 @@ int main() {
     std::cout << "C" << std::endl;
     PrintTensor(C);
   }
+
+
+  if (true) {
+    std::cout << "Broadcast testground For multi" << std::endl;
+    
+    using namespace cpp_nn::util;
+
+    rTensor<int> A({2, 1, 2, 2});
+    rTensor<int> B({3, 2, 3});
+
+    for (int i = 0; i < 2; ++i) {
+      A.getElement({0, 0, i, i}) = 1;
+    }
+    for (int i = 0; i < 2; ++i) {
+      A.getElement({1, 0, i, i}) = 2*i + 2;
+    }
+    A.getElement({1, 0, 0, 1}) = 2;
+    
+    std::cout << "A " << std::endl;
+    PrintTensor(A);
+
+
+    for (int i = 0; i < 2; ++i) {
+      B.getElement({0, i, i}) = 1;
+    }
+    B.getElement({0, 0, 2}) = 1;
+    for (int i = 0; i < 2; ++i) {
+      B.getElement({1, i, i}) = 4 - i;
+    }
+    B.getElement({1, 0, 2}) = 1;
+    B.getElement({1, 1, 2}) = 3;
+
+    std::cout << "B " << std::endl;
+    PrintTensor(B);
+
+
+    rTensor<int> C = A*B;
+    std::cout << "C " << std::endl;
+    std::cout << "Shape is ";
+    for (int a : C.getShape()) {
+      std::cout << a << ", ";
+    }
+    std::cout << std::endl;
+    PrintTensor(C);
+  }
   
 }
 

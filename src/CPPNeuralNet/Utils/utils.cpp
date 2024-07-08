@@ -36,7 +36,7 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
 
   std::vector<int>::iterator curr = res.end();
 
-  while (first_shape_begin != first_shape_end &&
+  while (first_shape_begin  != first_shape_end &&
          second_shape_begin != second_shape_end) {
     first_shape_end--;
     second_shape_end--;
