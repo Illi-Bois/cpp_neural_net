@@ -13,30 +13,6 @@
 namespace cpp_nn {
 namespace util {
 
-// Forward Declaration ======================================
-namespace {
-template<typename T, typename Derived>
-class TensorLike; 
-
-template<typename T, typename HeldOperation>
-class TransposeOperation;
-template<typename T, typename HeldOperation>
-class MultiTransposeOperation;
-template<typename T, typename HeldOperation1, typename HeldOperation2>
-class SummationOperation;
-template<typename T, typename HeldOperation1, typename HeldOperation2>
-class MultiplicationOperation;
-template<typename T, typename HeldOperation>
-class ReshapeOperation;
-template<typename T, typename HeldOperation>
-class PaddingOperation;
-template<typename T, typename HeldOperation>
-class BroadcastOperation;
-// Not all may be needed, TODO: clean up
-}
-// End of Forward Declaration ===============================
-
-
 template<typename T>
 class Tensor : public TensorLike<T, Tensor<T>> { // ========================================
  public:
