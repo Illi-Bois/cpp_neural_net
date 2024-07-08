@@ -627,6 +627,12 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 /** A Simple wrapper that retrieves tensor element by broadcast shape only.
  *  Intended to be used for Multiplcation and Summation
  */
+/** TODO: as it stands now, broadcast has no necessary function except for rolling over indices back to 0,
+ * This seems to suggest that broacast might be a redundant operation as it is now?
+ * The functionarlity is all exported to those that call broadcast shape, know to use it. 
+ * 
+ * TODO: abstract the implementation, or make it clear how to use broadcast.
+ */
 template<typename T, typename HeldOperation>
 class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperation>> {
   const HeldOperation& tensor_like_;
