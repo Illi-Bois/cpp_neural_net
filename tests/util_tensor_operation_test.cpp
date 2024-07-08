@@ -43,7 +43,13 @@ TEST(UtilTensorOperation, Summing_To_Self) {
 TEST(UtilTensorOperation, Summing_To_Self_with_others_inbetween) {
   
 }
-TEST(UtilTensorOperation, Incorrect_Dimensions) {
+TEST(UtilTensorOperation, Summing_Incorrect_Dimensions) {
+  
+}
+TEST(UtilTensorOperation, Summing_broadcast) {
+  
+}
+TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
   
 }
 // End of SUMMATION ======================================
@@ -64,10 +70,16 @@ TEST(UtilTensorOperation, Multiplication_to_self) {
 TEST(UtilTensorOperation, Multiplication_of_many_involving_to_self) {
   
 }
-TEST(UtilTensorOperation, Incorrect_matrix_dim) {
+TEST(UtilTensorOperation, Mult_Incorrect_matrix_dim) {
   
 }
-TEST(UtilTensorOperation, Incorrect_tensor_dim) {
+TEST(UtilTensorOperation, Mult_Incorrect_tensor_dim) {
+  
+}
+TEST(UtilTensorOperation, Multiplying_broadcast) {
+  
+}
+TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
   
 }
 // END OF MULTIPLICATION =================================
