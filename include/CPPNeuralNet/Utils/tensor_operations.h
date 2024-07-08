@@ -26,6 +26,8 @@ template<typename T, typename HeldOperation>
 class ReshapeOperation;
 template<typename T, typename HeldOperation>
 class PaddingOperation;
+template<typename T, typename HeldOperation>
+class BroadcastOperation;
 } // unnamed namespace
 
 template<typename T>
@@ -200,41 +202,47 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperation1, HeldOperation2>> {
 // Members ---------------------------------------------
-    const HeldOperation1& first_;
-    const HeldOperation2& second_;
+    const std::vector<int> broadcast_shape_;
+    size_t broadcast_capacity_;
+
+    const BroadcastOperation<T, HeldOperation1> first_;
+    const BroadcastOperation<T, HeldOperation2> second_;
+
 // End of Members --------------------------------------
 
  public:
 // Constructor -----------------------------------------
   SummationOperation(const TensorLike<T, HeldOperation1>& first, 
                      const TensorLike<T, HeldOperation2>& second) 
-      : first_(first.getRef()), 
-        second_(second.getRef()) {
-    if (first_.getOrder() != second_.getOrder()) {
-      throw std::invalid_argument("Summation Error- Order Mismatch.");
-    }
-    if (first_.getShape() != second_.getShape()) {
-      throw std::invalid_argument("Summation Error- Dimension Mismatch.");
-    }
+      : broadcast_shape_(Broadcast(first.getShape().begin(),  first.getShape().end(),
+                                   second.getShape().begin(), second.getShape().end())),
+        broadcast_capacity_(std::accumulate(broadcast_shape_.begin(), broadcast_shape_.end(),
+                            1, std::multiplies<int>())),
+        first_(BroadcastOperation(first, broadcast_shape_, broadcast_capacity_)), 
+        second_(BroadcastOperation(second, broadcast_shape_, broadcast_capacity_)) {
+    // if (first_.getOrder() != second_.getOrder()) {
+    //   throw std::invalid_argument("Summation Error- Order Mismatch.");
+    // }
+    // if (first_.getShape() != second_.getShape()) {
+    //   throw std::invalid_argument("Summation Error- Dimension Mismatch.");
+    // }
+    /// ! The issues are expected to be caught i broadcast
   }
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    // Either shapes must be equal
-    return first_.getShape();
+    return broadcast_shape_;
   } 
   inline int getDimension(int axis) const {
-    // Either shapes must be equal
-    return first_.getDimension(axis);
+    return broadcast_shape_[SumIfNegative(axis, getOrder())];
   }
   inline size_t getCapacity() const {
-    // either shapes must be equal
-    return first_.getCapacity();
+    return broadcast_capacity_;
   }
   inline int getOrder() const noexcept {
     // Either shapes must be equal
-    return first_.getOrder();
+    return broadcast_shape_.size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
     return first_.getElement(indices) + second_.getElement(indices);
@@ -618,12 +626,13 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
   size_t broadcast_capacity_;
 
  public:
-  BroadcastOperation(const TensorLike<T, HeldOperation>& tensor_like, const std::vector<int>& broadcast_shape) 
-      : tensor_like_(tensor_like),
+  BroadcastOperation(const TensorLike<T, HeldOperation>& tensor_like, 
+                     const std::vector<int>& broadcast_shape,
+                     const size_t broadcast_capacity)  // will expect this to be computed on upper level as well
+      : tensor_like_(tensor_like.getRef()),
         // Will assume the passed broadcast shape is valid and correct
         broadcast_shape_(broadcast_shape),
-        broadcast_capacity_(std::accumulate(broadcast_shape_.begin(), broadcast_shape_.end(),
-                            1, std::multiplies<int>()))  { 
+        broadcast_capacity_(broadcast_capacity)  { 
   }
 
 

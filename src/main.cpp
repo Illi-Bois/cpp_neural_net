@@ -509,6 +509,40 @@ int main() {
       }
     }
   }
+
+
+
+
+  if (true) {
+    std::cout << "Broadcast testground" << std::endl;
+    
+    using namespace cpp_nn::util;
+
+    rTensor<int> A({2, 3, 1, 3});
+    rTensor<int> B({1, 3, 2, 3});
+    std::vector<int> idx(A.getOrder(), 0);
+    int i = 0;
+    do {
+      A.getElement(idx) = 2*(++i);
+    } while (cpp_nn::util::IncrementIndicesByShape(A.getShape().begin(), A.getShape().end(),
+                                                    idx.begin(), idx.end()));   
+
+    idx = std::vector<int>(B.getOrder(), 0);
+    i = 0;
+    do {
+      B.getElement(idx) = 2*(++i) + 1;
+    } while (cpp_nn::util::IncrementIndicesByShape(B.getShape().begin(), B.getShape().end(),
+                                                    idx.begin(), idx.end()));   
+    
+    std::cout << "A" << std::endl;
+    PrintTensor(A);
+    std::cout << "B" << std::endl;
+    PrintTensor(B);
+
+    rTensor<int> C = A + B;
+    std::cout << "C" << std::endl;
+    PrintTensor(C);
+  }
   
 }
 

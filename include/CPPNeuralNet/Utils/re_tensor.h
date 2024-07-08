@@ -30,6 +30,9 @@ template<typename T, typename HeldOperation>
 class ReshapeOperation;
 template<typename T, typename HeldOperation>
 class PaddingOperation;
+template<typename T, typename HeldOperation>
+class BroadcastOperation;
+// Not all may be needed, TODO: clean up
 }
 // End of Forward Declaration ===============================
 
