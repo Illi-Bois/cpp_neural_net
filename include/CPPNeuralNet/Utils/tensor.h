@@ -38,49 +38,49 @@ class BroadcastOperation;
 
 
 template<typename T>
-class rTensor : public TensorLike<T, rTensor<T>> { // ========================================
+class Tensor : public TensorLike<T, Tensor<T>> { // ========================================
  public:
 // Public Constructor-----------------------------------
 /**
  *  constucts from list of dimensions.
  *  Only positive dimensions are valid. 
  */
-  rTensor(const std::vector<int>& dimensions, 
+  Tensor(const std::vector<int>& dimensions, 
           T init_val = T()); 
 /**
  *  Copy Constructor
  */
-  rTensor(const rTensor& other) noexcept;
+  Tensor(const Tensor& other) noexcept;
 /**
  *  Move Constructor
  */
-  rTensor(rTensor&& other) noexcept;
+  Tensor(Tensor&& other) noexcept;
 
 /** 
  * TensorLike constructor
  * Operatuions are handled upon construction to minimize movement of data.
  */
   template<typename Derived>
-  rTensor(const TensorLike<T, Derived>& tensor_like);
+  Tensor(const TensorLike<T, Derived>& tensor_like);
 
 // Psuedo-Specializations -------------------------
 // Some Operations will be optimized from
 //    specialization. However, this requires explicit statements.
   template<typename HeldOperation1, typename HeldOperation2>
-  rTensor(const TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>>& product_tensor);
+  Tensor(const TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>>& product_tensor);
 
   template<typename HeldOperation>
-  rTensor(const TensorLike<T, ReshapeOperation<T, HeldOperation>>& reshaped_tensor);
+  Tensor(const TensorLike<T, ReshapeOperation<T, HeldOperation>>& reshaped_tensor);
 // End of Psuedo-Specializations ------------------
 // End of Public Constructor----------------------------
 
 // Destrcutor ------------------------------------------
-  ~rTensor() noexcept;
+  ~Tensor() noexcept;
 // End of Destrcutor -----------------------------------
 
 // Assignment Operators --------------------------------
 /** Copy operator */
-  rTensor& operator=(rTensor other) noexcept; 
+  Tensor& operator=(Tensor other) noexcept; 
 // End of Assignment Operators -------------------------
 
 // Accessors -------------------------------------------
@@ -118,14 +118,14 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  By default, transposes last two axes. 
  *    This conforms to Matrix tranpose.
  */
-  inline const TransposeOperation<T, rTensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const {
+  inline const TransposeOperation<T, Tensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
 /**
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  inline ReshapeOperation<T, rTensor<T>> 
+  inline ReshapeOperation<T, Tensor<T>> 
          Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
@@ -133,7 +133,7 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
  *  changes dimension and pads the margins with padded_Value.
  *  The dimension can be smaller than current, in which case those elements beyond the new dimensions are lost. 
  */
-  inline PaddingOperation<T, rTensor<T>> 
+  inline PaddingOperation<T, Tensor<T>> 
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
@@ -152,7 +152,7 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
 /** recommended for unifying copy constrcutor and operator from:
  *    https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
  */
-  friend void swap(rTensor& first, rTensor& second) noexcept {
+  friend void swap(Tensor& first, Tensor& second) noexcept {
     // The definition seems to necessarily be placed in here, else
     //    linker fails to recognize it.
     std::swap(first.dimensions_, second.dimensions_);
@@ -171,11 +171,11 @@ class rTensor : public TensorLike<T, rTensor<T>> { // ==========================
 // Extreneous ------------------------------------------
 namespace {
 template<typename T>
-void PrintTensor(const rTensor<T>& tensor, std::vector<int>& idx, int axis);
+void PrintTensor(const Tensor<T>& tensor, std::vector<int>& idx, int axis);
 }
 
 template<typename T>
-void PrintTensor(const rTensor<T>& tensor);
+void PrintTensor(const Tensor<T>& tensor);
 
 /**
  *  cuts matrices into chunks of target_row x target_col.
@@ -199,14 +199,14 @@ void PrintTensor(const rTensor<T>& tensor);
  *      13 14  15 16
  */
 template<typename T>
-rTensor<T> CutMatrix(const rTensor<T>& tens, int target_row, int target_col);
+Tensor<T> CutMatrix(const Tensor<T>& tens, int target_row, int target_col);
 
 /**
  *  considering that matrix had been cut, merge it back to large matrices.
  *  ie [dim... R, C, r, c] -> [dim... R*r, C*c]
  */
 template<typename T>
-rTensor<T> MergeCutMatrix(const rTensor<T>& tens);
+Tensor<T> MergeCutMatrix(const Tensor<T>& tens);
 // End of Extreneous -----------------------------------
 
 } // util
@@ -217,11 +217,11 @@ rTensor<T> MergeCutMatrix(const rTensor<T>& tens);
 namespace cpp_nn {
 namespace util {
 
-// rTensor DEFINITION ============================================
+// Tensor DEFINITION ============================================
 // Constructors -----------------------------------------
 /** Tensor Contructor with  */
 template<typename T>
-rTensor<T>::rTensor(const std::vector<int>& dimensions, 
+Tensor<T>::Tensor(const std::vector<int>& dimensions, 
                     T init_val)
     : dimensions_(dimensions),
       chunk_size_(dimensions.size(), 1),
@@ -233,7 +233,7 @@ rTensor<T>::rTensor(const std::vector<int>& dimensions,
 }
 /** copy Constructor */
 template<typename T>
-rTensor<T>::rTensor(const rTensor& other) noexcept
+Tensor<T>::Tensor(const Tensor& other) noexcept
     : dimensions_(other.dimensions_),
       chunk_size_(other.chunk_size_),
       capacity_(  other.capacity_),
@@ -242,7 +242,7 @@ rTensor<T>::rTensor(const rTensor& other) noexcept
 }
 /** Move Constrcutro */
 template<typename T>
-rTensor<T>::rTensor(rTensor&& other) noexcept
+Tensor<T>::Tensor(Tensor&& other) noexcept
     : dimensions_(std::move(other.dimensions_)),
       chunk_size_(std::move(other.chunk_size_)),
       capacity_(  std::move(other.capacity_)),
@@ -255,8 +255,8 @@ rTensor<T>::rTensor(rTensor&& other) noexcept
  */
 template<typename T>
 template<typename Derived>
-rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
-    : rTensor(tensor_like.getShape()) {
+Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like)
+    : Tensor(tensor_like.getShape()) {
   // For each index, assign associated data from operation.
   // TODO: implement a element-wise iterator, or global address system
   //                                          latter may now be possible with AddressToIndex
@@ -270,21 +270,21 @@ rTensor<T>::rTensor(const TensorLike<T, Derived>& tensor_like)
 /** Multiplication Specific Constructor */
 template<typename T>
 template<typename HeldOperation1, typename HeldOperation2>
-rTensor<T>::rTensor(const TensorLike<T, 
+Tensor<T>::Tensor(const TensorLike<T, 
                                      MultiplicationOperation<T, 
                                                              HeldOperation1, 
                                                              HeldOperation2>>& product_tensor)
       // Only utilize move constrcutor from pre-computed product                                                        
-    : rTensor(std::move( *(product_tensor.getRef().product_tensor_) )) {}
+    : Tensor(std::move( *(product_tensor.getRef().product_tensor_) )) {}
 
 /** Reshape Specific Constructor */
 template<typename T>
 template<typename HeldOperation>
-rTensor<T>::rTensor(const TensorLike<T, 
+Tensor<T>::Tensor(const TensorLike<T, 
                                      ReshapeOperation<T, 
                                                       HeldOperation>>& reshaped_tensor)
     // Initialize elements data from previous operation
-    : rTensor(std::move(reshaped_tensor.getRef().tensor_like_)) {
+    : Tensor(std::move(reshaped_tensor.getRef().tensor_like_)) {
   // ReshapeOperation Checks reshape validity upon its construction.
   //    therefore we can construct without checks
   dimensions_ = reshaped_tensor.getRef().dimension_;
@@ -296,7 +296,7 @@ rTensor<T>::rTensor(const TensorLike<T,
 
 // Destructor -------------------------------------------
 template<typename T>
-rTensor<T>::~rTensor() noexcept {
+Tensor<T>::~Tensor() noexcept {
   delete this->elements_;
 }
 // End of Destructor ------------------------------------
@@ -304,7 +304,7 @@ rTensor<T>::~rTensor() noexcept {
 // Assignment Operators ---------------------------------
 /** Copy Operator */
 template<typename T>
-rTensor<T>& rTensor<T>::operator=(rTensor<T> other) noexcept {
+Tensor<T>& Tensor<T>::operator=(Tensor<T> other) noexcept {
   // uses copy-swap idiom
   // As i undersatnd it, by relying on copy-constrcutor and swap
   //    we let paramater be initated with copy constrcutor, then 
@@ -318,12 +318,12 @@ rTensor<T>& rTensor<T>::operator=(rTensor<T> other) noexcept {
 // Accessors --------------------------------------------
 //  dually acts as tensor-like behaviour
 template<typename T>
-inline const std::vector<int>& rTensor<T>::getShape() const noexcept {
+inline const std::vector<int>& Tensor<T>::getShape() const noexcept {
   return dimensions_;
 }
 
 template<typename T>
-inline int rTensor<T>::getDimension(int axis) const {
+inline int Tensor<T>::getDimension(int axis) const {
   // this accomadates for wrap-around behaviours, but 
   //  for sake of optimization, we will bypass usual safety checks
   //  Invalid axis will simply yield UB  
@@ -331,36 +331,36 @@ inline int rTensor<T>::getDimension(int axis) const {
 }
 
 template<typename T>
-inline int rTensor<T>::getOrder() const noexcept {
+inline int Tensor<T>::getOrder() const noexcept {
   return dimensions_.size();
 }
 
 template<typename T>
-inline size_t rTensor<T>::getCapacity() const noexcept {
+inline size_t Tensor<T>::getCapacity() const noexcept {
   return capacity_;
 }
 
 template<typename T>
-inline T& rTensor<T>::getElement(const std::vector<int>& indicies) {
+inline T& Tensor<T>::getElement(const std::vector<int>& indicies) {
   // Some const cast magic gotten from 
   //  https://stackoverflow.com/questions/856542/elegant-solution-to-duplicate-const-and-non-const-getters
-  return const_cast<T&>(const_cast<const rTensor*>(this)->getElement(indicies));
+  return const_cast<T&>(const_cast<const Tensor*>(this)->getElement(indicies));
   // This in effect pushes all getter aspect to const getter
 }
 template<typename T>
-inline const T& rTensor<T>::getElement(const std::vector<int>& indicies) const {
+inline const T& Tensor<T>::getElement(const std::vector<int>& indicies) const {
   return (*elements_)[IndicesToAddress(getShape(),
                                        chunk_size_,
                                        indicies)];
 }
 // End of Accessors -------------------------------------
-// End of rTensor DEFINITION =====================================
+// End of Tensor DEFINITION =====================================
 
 // Extreneous ------------------------------------------
 
 namespace {
 template<typename T>
-void PrintTensor(const rTensor<T>& tensor, std::vector<int>& idx, int axis) {
+void PrintTensor(const Tensor<T>& tensor, std::vector<int>& idx, int axis) {
   if (axis == tensor.getOrder() - 1) {
     int dim = tensor.getDimension(-1);
     for (int i = 0; i < dim; ++i) {
@@ -379,13 +379,13 @@ void PrintTensor(const rTensor<T>& tensor, std::vector<int>& idx, int axis) {
 }
 
 template<typename T>
-void PrintTensor(const rTensor<T>& tensor) {
+void PrintTensor(const Tensor<T>& tensor) {
   std::vector<int> idx(tensor.getOrder(), 0);
   PrintTensor(tensor, idx, 0);
 }
 
 template<typename T>
-rTensor<T> CutMatrix(const rTensor<T>& tens, int target_row, int target_col) {
+Tensor<T> CutMatrix(const Tensor<T>& tens, int target_row, int target_col) {
   if (tens.getOrder() < 2) {
     throw std::invalid_argument("Cut- Insufficient order");
   }
@@ -409,7 +409,7 @@ rTensor<T> CutMatrix(const rTensor<T>& tens, int target_row, int target_col) {
 }
 
 template<typename T>
-rTensor<T> MergeCutMatrix(const rTensor<T>& tens) {
+Tensor<T> MergeCutMatrix(const Tensor<T>& tens) {
   if (tens.getOrder() < 4) {
     throw std::invalid_argument("Cut- Insufficient order for merge");
   }

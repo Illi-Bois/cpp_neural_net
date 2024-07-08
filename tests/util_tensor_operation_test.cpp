@@ -10,12 +10,12 @@ TEST(UtilTensorOperation, SanityCheck) {
 TEST(UtilTensorOperation, Transpose_Operation) {
   using namespace cpp_nn::util;
   //Large Dimensions
-  rTensor<int> a({1000,1005}, 1.0f);
-  rTensor<int> b = a.Transpose(0,1);
+  Tensor<int> a({1000,1005}, 1.0f);
+  Tensor<int> b = a.Transpose(0,1);
   EXPECT_EQ(b.getShape(), std::vector<int>({1005,1000}));
 
   //1D tensor
-  rTensor<float> c({5}, 1.0f); 
+  Tensor<float> c({5}, 1.0f); 
   auto d = c.Transpose(0, 0);
   EXPECT_EQ(d.getShape(), std::vector<int>({5}));
   for (int i = 0; i < 5; ++i) {
@@ -24,20 +24,20 @@ TEST(UtilTensorOperation, Transpose_Operation) {
 }
 TEST(UtilTensorOperation, Undoing_Transpose) {
   using namespace cpp_nn::util;
-  rTensor<float> a({3,4,5});
+  Tensor<float> a({3,4,5});
   auto b = a.Transpose(0,1).Transpose(0,1);
   EXPECT_EQ(a.getShape(), b.getShape());
 }
 TEST(UtilTensorOperation, Chained_Transpose) {
   using namespace cpp_nn::util;
-  rTensor<float> a({2,3,4,5});
+  Tensor<float> a({2,3,4,5});
   //{2,3,4,5} -> {3,2,4,5} -> {3,4,2,5} -> {3,4,5,2}
   auto b = a.Transpose(0,1).Transpose(1,2).Transpose(2,3);
   EXPECT_EQ(b.getShape(), std::vector<int>({3,4,5,2}));
 }
 TEST(UtilTensorOperation, Negative_Indexing) {
   using namespace cpp_nn::util;
-  rTensor<float> a({2, 3, 4});
+  Tensor<float> a({2, 3, 4});
   auto b = a.Transpose(-3, -1);
   EXPECT_EQ(b.getShape(), std::vector<int>({4, 3, 2}));
   auto c = a.Transpose(-3 ,1);
@@ -45,7 +45,7 @@ TEST(UtilTensorOperation, Negative_Indexing) {
 }
 TEST(UtilTensorOperation, Transpose_Self) {
   using namespace cpp_nn::util;
-  rTensor<float> a({2, 3, 2});
+  Tensor<float> a({2, 3, 2});
   std::vector<int> idx(a.getOrder(), 0);
   int val = 0;
   do {

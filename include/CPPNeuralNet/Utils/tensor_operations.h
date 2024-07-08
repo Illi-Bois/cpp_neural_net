@@ -32,7 +32,7 @@ class BroadcastOperation;
 } // unnamed namespace
 
 template<typename T>
-class rTensor;
+class Tensor;
 // End of Forward Declaration ===============================
 
 
@@ -269,13 +269,13 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> {
 // Members ---------------------------------------------
-  rTensor<T>*      product_tensor_;
+  Tensor<T>*      product_tensor_;
   std::vector<int> broad_cast_shape; 
 // End of Members --------------------------------------
 
  public:
 // Constructor -----------------------------------------
-  // TODO, with this design, a special construcor for rTensor may be prefered for Multiplcation Holder, where a simple move is prefered
+  // TODO, with this design, a special construcor for Tensor may be prefered for Multiplcation Holder, where a simple move is prefered
   // Product is handled upon constrcution
   MultiplicationOperation(const TensorLike<T, HeldOperation1>& A, 
                           const TensorLike<T, HeldOperation2>& B)
@@ -313,7 +313,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     broad_cast_shape[broad_cast_shape.size() - 2] = rows;
     // col is readily set 
 
-    product_tensor_ = new rTensor<T>(broad_cast_shape);
+    product_tensor_ = new Tensor<T>(broad_cast_shape);
     // indices for which matrix is to be chosen
     std::vector<int> indices(getOrder(), 0);
 
@@ -382,7 +382,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 // End of Tensor-Behaviours ----------------------------
 
 // friends ---------------------------------------------
-  friend rTensor<T>;  // required for constrctor
+  friend Tensor<T>;  // required for constrctor
 // end of friedns --------------------------------------
 }; // End of MultiplicationOperation
 
@@ -495,7 +495,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
 // End of Tensor-Behaviours ----------------------------
 
 // friend  ---------------------------------------------
-  friend rTensor<T>;
+  friend Tensor<T>;
 // end of friend  --------------------------------------
 /*
  when moving, will move tensor_ to recieving tensor,

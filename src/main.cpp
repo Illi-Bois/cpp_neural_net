@@ -91,10 +91,10 @@ void FirstDer<T>::test(Base<T, Der<T, Other...>> a) {
 
 
 int main() {
-  cpp_nn::util::rTensor one({2,3,4}, 1);
-  cpp_nn::util::rTensor two({2,3,4}, 2);
+  cpp_nn::util::Tensor one({2,3,4}, 1);
+  cpp_nn::util::Tensor two({2,3,4}, 2);
 
-  cpp_nn::util::rTensor three = one + two;
+  cpp_nn::util::Tensor three = one + two;
   std::cout << "Summed" << std::endl;
   for (int k = 0; k < 2; ++k) {
     for (int i = 0; i < 3; ++i) {
@@ -109,7 +109,7 @@ int main() {
 
   std::cout << "PRODT " << std::endl;
 
-  cpp_nn::util::rTensor first({2,3,3}, 0);
+  cpp_nn::util::Tensor first({2,3,3}, 0);
   first.getElement({0, 0, 0}) = 1;
   first.getElement({0, 1, 1}) = 1;
   first.getElement({0, 2, 2}) = 1;
@@ -117,9 +117,9 @@ int main() {
   first.getElement({1, 0, 0}) = 2;
   first.getElement({1, 1, 1}) = 2;
   first.getElement({1, 2, 2}) = 2;
-  cpp_nn::util::rTensor second({2,3,4}, 2);
+  cpp_nn::util::Tensor second({2,3,4}, 2);
 
-  cpp_nn::util::rTensor third = first * second;
+  cpp_nn::util::Tensor third = first * second;
 
   auto shape = third.getShape();
   for (auto i : shape) {
@@ -137,7 +137,7 @@ int main() {
   }
 
 
-  cpp_nn::util::rTensor<int> fin = three + third + third + three;
+  cpp_nn::util::Tensor<int> fin = three + third + third + three;
   std::cout << std::endl;
   for (int k = 0; k < fin.getDimension(0); ++k) {
     for (int i = 0; i < fin.getDimension(1); ++i) {
@@ -175,7 +175,7 @@ int main() {
   }
 
   if (true) {
-    cpp_nn::util::rTensor<int> aTen({3, 4}, 0);
+    cpp_nn::util::Tensor<int> aTen({3, 4}, 0);
     /*
         1 2 0 0
         0 1 0 0
@@ -188,7 +188,7 @@ int main() {
     
     aTen.getElement({2, 3}) = 1;
 
-    cpp_nn::util::rTensor<int> bTen({4, 4}, 0);
+    cpp_nn::util::Tensor<int> bTen({4, 4}, 0);
     /*
       2 1 0 1
       0 0 0 0
@@ -205,7 +205,7 @@ int main() {
     bTen.getElement({3, 1}) = 1;
     bTen.getElement({3, 3}) = 1;
 
-    cpp_nn::util::rTensor res = aTen * bTen;
+    cpp_nn::util::Tensor res = aTen * bTen;
     std::cout << "Product" << std::endl;
     for (int r = 0; r < res.getDimension(0); ++r) { 
       for (int c = 0; c < res.getDimension(1); ++c) {
@@ -229,7 +229,7 @@ int main() {
     }
 
     std::cout << "Reshape called" << std::endl;
-    cpp_nn::util::rTensor<int> exRes = res.Reshape({4, 3, 1});
+    cpp_nn::util::Tensor<int> exRes = res.Reshape({4, 3, 1});
     for (int r = 0; r < exRes.getDimension(0); ++r) { 
       for (int c = 0; c < exRes.getDimension(1); ++c) {
         for (int k = 0; k < exRes.getDimension(2); ++k) {
@@ -241,7 +241,7 @@ int main() {
     }
 
     std::cout << "Reshape Chained" << std::endl;
-    cpp_nn::util::rTensor<int> exRes2 = (res.Reshape({3, 2, 2}) + cpp_nn::util::rTensor<int>({3, 2, 2}, 2)).Reshape({4, 3, 1}).Reshape({2, 3, 2});
+    cpp_nn::util::Tensor<int> exRes2 = (res.Reshape({3, 2, 2}) + cpp_nn::util::Tensor<int>({3, 2, 2}, 2)).Reshape({4, 3, 1}).Reshape({2, 3, 2});
     for (int r = 0; r < exRes2.getDimension(0); ++r) { 
       for (int c = 0; c < exRes2.getDimension(1); ++c) {
         for (int k = 0; k < exRes2.getDimension(2); ++k) {
@@ -254,7 +254,7 @@ int main() {
 
     // some reshape exploration
     {
-      cpp_nn::util::rTensor<int> big({3, 4, 6});
+      cpp_nn::util::Tensor<int> big({3, 4, 6});
       std::vector<int> idx(big.getOrder(), 0);
       int i = 0;
       do {
@@ -273,9 +273,9 @@ int main() {
         Tranpose
       */
      /** Better to reshape {dim, R<-r C<-c} then switch r, C */
-      cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 2, 3})
+      cpp_nn::util::Tensor<int> small = big.Reshape({3, 2, 2, 2, 3})
                                             .Transpose(-2, -3);
-      // cpp_nn::util::rTensor<int> small = big.Reshape({3, 2, 2, 6})        // 3 2 2 6
+      // cpp_nn::util::Tensor<int> small = big.Reshape({3, 2, 2, 6})        // 3 2 2 6
       //                                       .Transpose()                  // 3 2 6 2
       //                                       .Reshape({3, 2, 2, 3, 2})     // 3 2 2 3 2
       //                                       .Transpose();                 // 3 2 2 2 3
@@ -288,7 +288,7 @@ int main() {
         Tranpose,
         Combin
        */
-      cpp_nn::util::rTensor<int> back = small                       // 3 2 2 2 3
+      cpp_nn::util::Tensor<int> back = small                       // 3 2 2 2 3
                                              .Transpose()           // 3 2 2 3 2
                                              .Reshape({3, 2, 6, 2}) // 3 2 6 2
                                              .Transpose()           // 3 2 2 6
@@ -303,7 +303,7 @@ int main() {
       // TestGround
       if (true) {
         std::cout << "Test Ground" << std::endl;
-        cpp_nn::util::rTensor<int> big({1, 2*4, 3*5});
+        cpp_nn::util::Tensor<int> big({1, 2*4, 3*5});
         std::vector<int> idx(big.getOrder(), 0);
         int i = 0;
         do {
@@ -316,23 +316,23 @@ int main() {
         std::cout << "Big Printed" << std::endl;
 
 
-        cpp_nn::util::rTensor<int> cut(cpp_nn::util::CutMatrix(big, 2, 3));
+        cpp_nn::util::Tensor<int> cut(cpp_nn::util::CutMatrix(big, 2, 3));
         cpp_nn::util::PrintTensor(cut);
         std::cout << "cut Printed" << std::endl;
 
 
 
-        cpp_nn::util::rTensor<int> padded = cut.Padding({1, 4, 5, 3, 3});
+        cpp_nn::util::Tensor<int> padded = cut.Padding({1, 4, 5, 3, 3});
         cpp_nn::util::PrintTensor(padded);        
         std::cout << "padded Printed" << std::endl;
 
 
-        cpp_nn::util::rTensor<int> merg(cpp_nn::util::MergeCutMatrix(cut));
+        cpp_nn::util::Tensor<int> merg(cpp_nn::util::MergeCutMatrix(cut));
         cpp_nn::util::PrintTensor(merg);
         std::cout << "merg Printed" << std::endl;
       
 
-        cpp_nn::util::rTensor<int> res(merg.Reshape({1, 8, 15}).Reshape({1, 2, 3, 4, 5}));
+        cpp_nn::util::Tensor<int> res(merg.Reshape({1, 8, 15}).Reshape({1, 2, 3, 4, 5}));
         cpp_nn::util::PrintTensor(res);
         std::cout << "res Printed" << std::endl;
       
@@ -369,8 +369,8 @@ int main() {
       //     newShape[newShape.size() - 1] = R;
       //     newShape.push_back(c);
       //     newShape.push_back(C);
-      //     cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::rTensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
-      //     cpp_nn::util::rTensor<int> cut = temp;
+      //     cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::Tensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
+      //     cpp_nn::util::Tensor<int> cut = temp;
 
       //     cpp_nn::util::PrintTensor(cut);
       //     // This works, which further suggests this is all a scope issue?
@@ -396,7 +396,7 @@ int main() {
       //     newShape[newShape.size() - 1] = R;
       //     newShape.push_back(c);
       //     newShape.push_back(C);
-      //     cpp_nn::util::rTensor<int> cut =  big.Reshape(newShape).Transpose(-2, -3);
+      //     cpp_nn::util::Tensor<int> cut =  big.Reshape(newShape).Transpose(-2, -3);
 
       //     cpp_nn::util::PrintTensor(cut);
       //     // Here dest for reshape only occurs after tensor is set.
@@ -421,15 +421,15 @@ int main() {
       //   newShape[newShape.size() - 1] = R;
       //   newShape.push_back(c);
       //   newShape.push_back(C);
-      //   cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::rTensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
+      //   cpp_nn::util::TransposeOperation<int, cpp_nn::util::ReshapeOperation<int, cpp_nn::util::Tensor<int>>> temp =  big.Reshape(newShape).Transpose(-2, -3);
       //   /** A lot oe interm */
-      //   cpp_nn::util::rTensor<int> useless = big.Transpose();
-      //   cpp_nn::util::rTensor<int> useless2 = useless.Transpose();
-      //   cpp_nn::util::rTensor<int> useless3 = useless + useless2;
-      //   cpp_nn::util::rTensor<int> useless4 = useless3.Reshape({2*3*4*5});
+      //   cpp_nn::util::Tensor<int> useless = big.Transpose();
+      //   cpp_nn::util::Tensor<int> useless2 = useless.Transpose();
+      //   cpp_nn::util::Tensor<int> useless3 = useless + useless2;
+      //   cpp_nn::util::Tensor<int> useless4 = useless3.Reshape({2*3*4*5});
 
 
-      //   cpp_nn::util::rTensor<int> cut = temp;
+      //   cpp_nn::util::Tensor<int> cut = temp;
 
       //   cpp_nn::util::PrintTensor(cut);
       //   // AS EXPECTED FAILS AS THE RESHAPE WAS OVERWRITTEN
@@ -440,7 +440,7 @@ int main() {
 
       //   std::cout << "big addres < " << &big << std::endl;
 
-      //   cpp_nn::util::rTensor<int> cut = cpp_nn::util::Test(big, 2, 3);
+      //   cpp_nn::util::Tensor<int> cut = cpp_nn::util::Test(big, 2, 3);
       //   std::cout << "cut Made" << std::endl;
       //   cpp_nn::util::PrintTensor(cut);
       //   std::cout << "cut Printed" << std::endl;
@@ -449,7 +449,7 @@ int main() {
         if(true) {
           // Tranpose and Multi Tranpose
           std::cout << "Test Ground" << std::endl;
-          cpp_nn::util::rTensor<int> ori({1, 2, 3, 4});
+          cpp_nn::util::Tensor<int> ori({1, 2, 3, 4});
           std::vector<int> idx(ori.getOrder(), 0);
           int i = 0;
           do {
@@ -461,7 +461,7 @@ int main() {
           cpp_nn::util::PrintTensor(ori);
 
           std::cout << "Normally Tranposed" << std::endl;
-          cpp_nn::util::rTensor<int> norm = ori.Transpose().Transpose().Transpose();
+          cpp_nn::util::Tensor<int> norm = ori.Transpose().Transpose().Transpose();
           cpp_nn::util::PrintTensor(norm);
           std::cout << " shape is  " << std::endl;
           for (int d : norm.getShape()) {
@@ -470,7 +470,7 @@ int main() {
           std::cout << std::endl;
 
           // std::cout << "Multi Tranposed" << std::endl;
-          // cpp_nn::util::rTensor<int> mult = ori.Transpose(2, 0).MultiTranpose(1, 3).Transpose(0, 1).Transpose(0, 3);
+          // cpp_nn::util::Tensor<int> mult = ori.Transpose(2, 0).MultiTranpose(1, 3).Transpose(0, 1).Transpose(0, 3);
           // cpp_nn::util::PrintTensor(mult);
           // std::cout << " shape is  " << std::endl;
           // for (int d : mult.getShape()) {
@@ -482,7 +482,7 @@ int main() {
 
         if (true) {
           std::cout << "Doubly test" << std::endl;
-          cpp_nn::util::rTensor<int> ori({1, 2, 3, 4});
+          cpp_nn::util::Tensor<int> ori({1, 2, 3, 4});
           std::vector<int> idx(ori.getOrder(), 0);
           int i = 0;
           do {
@@ -491,16 +491,16 @@ int main() {
                                                           idx.begin(), idx.end()));   
           
           std::cout << "Doubly Reshape calling" << std::endl;
-          cpp_nn::util::rTensor<int> re = ori.Reshape({1, 6, 4}).Reshape({2, 6, 2}).Reshape({2, 1, 6, 2}).Transpose().Reshape({1, 2, 3, 4});
+          cpp_nn::util::Tensor<int> re = ori.Reshape({1, 6, 4}).Reshape({2, 6, 2}).Reshape({2, 1, 6, 2}).Transpose().Reshape({1, 2, 3, 4});
           cpp_nn::util::PrintTensor(re);
 
           // std::cout << "Doubly Reshape calling on TensorLike" << std::endl;
-          // cpp_nn::util::rTensor<int> reTrad = ori.Reshape({1, 6, 4}).Reshape({2, 6, 2}).Reshape({2, 1, 6, 2}).Transpose().Reshape({1, 2, 3, 4});
+          // cpp_nn::util::Tensor<int> reTrad = ori.Reshape({1, 6, 4}).Reshape({2, 6, 2}).Reshape({2, 1, 6, 2}).Transpose().Reshape({1, 2, 3, 4});
           // cpp_nn::util::PrintTensor(re);
 
 
           std::cout << "Doubly Pading calling" << std::endl;
-          cpp_nn::util::rTensor<int> pa = ori.Padding({2, 3, 4, 1}).Padding({1, 3, 4, 1}).Padding({2, 2, 2, 2}).Transpose().Padding({2, 2, 3, 2});
+          cpp_nn::util::Tensor<int> pa = ori.Padding({2, 3, 4, 1}).Padding({1, 3, 4, 1}).Padding({2, 2, 2, 2}).Transpose().Padding({2, 2, 3, 2});
           cpp_nn::util::PrintTensor(pa);
 
 
@@ -517,8 +517,8 @@ int main() {
     
     using namespace cpp_nn::util;
 
-    rTensor<int> A({2, 3, 1, 3});
-    rTensor<int> B({3, 2, 3});
+    Tensor<int> A({2, 3, 1, 3});
+    Tensor<int> B({3, 2, 3});
     std::vector<int> idx(A.getOrder(), 0);
     int i = 0;
     do {
@@ -538,7 +538,7 @@ int main() {
     std::cout << "B" << std::endl;
     PrintTensor(B);
 
-    rTensor<int> C = A + B;
+    Tensor<int> C = A + B;
     std::cout << "C" << std::endl;
     PrintTensor(C);
   }
@@ -549,8 +549,8 @@ int main() {
     
     using namespace cpp_nn::util;
 
-    rTensor<int> A({2, 1, 2, 2});
-    rTensor<int> B({3, 2, 3}); 
+    Tensor<int> A({2, 1, 2, 2});
+    Tensor<int> B({3, 2, 3}); 
 
     for (int i = 0; i < 2; ++i) {
       A.getElement({0, 0, i, i}) = 1;
@@ -578,7 +578,7 @@ int main() {
     PrintTensor(B);
 
 
-    rTensor<int> C = A*B;
+    Tensor<int> C = A*B;
     std::cout << "C " << std::endl;
     std::cout << "Shape is ";
     for (int a : C.getShape()) {

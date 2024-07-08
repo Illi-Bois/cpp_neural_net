@@ -41,7 +41,7 @@ TEST(UtilTensor, Constructor_By_Dimension) {
                                             };
 
   for (auto& dim : test_dims) {
-    rTensor<int> tens(dim);
+    Tensor<int> tens(dim);
   
     int order = tens.getOrder();
 
@@ -70,7 +70,7 @@ TEST(UtilTensor, Constructor_By_Dimension_Negative_Dimension) {
     EXPECT_THROW({
       try
       {
-        rTensor<int> tens(dim);
+        Tensor<int> tens(dim);
       }
       catch( const std::invalid_argument& e )
       {
@@ -93,8 +93,8 @@ TEST(UtilTensor, Construct_With_InitVal) {
                                             };
   
   for (auto& dim : test_dims) {
-    rTensor<int> tens(dim);
-    rTensor<int> tensInit(dim, 11);
+    Tensor<int> tens(dim);
+    Tensor<int> tensInit(dim, 11);
 
     std::vector<int> idx (dim.size(), 0);
 
@@ -108,13 +108,13 @@ TEST(UtilTensor, Construct_With_InitVal) {
 TEST(UtilTensor, MoveConstsructor) {
   using namespace cpp_nn::util;
 
-  rTensor<int> tens({2, 2, 2});
+  Tensor<int> tens({2, 2, 2});
 
   tens.getElement({1, 0, 1}) = 5;
   tens.getElement({1, 1, 1}) = 7;
   tens.getElement({0, 0, 1}) = 1;
 
-  rTensor<int> copied(tens);
+  Tensor<int> copied(tens);
 
   EXPECT_EQ(copied.getElement({1, 0, 1}), 5);
   EXPECT_EQ(copied.getElement({1, 1, 1}), 7);
@@ -124,13 +124,13 @@ TEST(UtilTensor, MoveConstsructor) {
 TEST(UtilTensor, CopyConstsructor) {
   using namespace cpp_nn::util;
 
-  rTensor<int> tens({2, 2, 2});
+  Tensor<int> tens({2, 2, 2});
 
   tens.getElement({1, 0, 1}) = 5;
   tens.getElement({1, 1, 1}) = 7;
   tens.getElement({0, 0, 1}) = 1;
 
-  rTensor<int> copied(tens);
+  Tensor<int> copied(tens);
 
   EXPECT_EQ(copied.getElement({1, 0, 1}), 5);
   EXPECT_EQ(copied.getElement({1, 1, 1}), 7);
@@ -150,7 +150,7 @@ TEST(UtilTensor, CopyConstsructor) {
 TEST(UtilTensor, Dimension_Negative_Index_Getter) {
   using namespace cpp_nn::util;
 
-  rTensor<int> tensor_one({2, 3, 4});
+  Tensor<int> tensor_one({2, 3, 4});
 
   EXPECT_EQ(tensor_one.getDimension(-1), 4);
   EXPECT_EQ(tensor_one.getDimension(-2), 3);
@@ -162,14 +162,14 @@ TEST(UtilTensor, Dimension_Negative_Index_Getter) {
 TEST(UtilTensor, Constant_Tensor_Element_Getter) {
   using namespace cpp_nn::util;
 
-  rTensor<int> tensor_one({2, 3, 4}, 10);
+  Tensor<int> tensor_one({2, 3, 4}, 10);
 
   tensor_one.getElement({1, 1, 1}) = 11;
   tensor_one.getElement({1, 2, 1}) = 11;
   tensor_one.getElement({1, 2, 3}) = 11;
 
   // make constant copy
-  const rTensor<int> tensor_two = tensor_one;
+  const Tensor<int> tensor_two = tensor_one;
 
   EXPECT_EQ(tensor_two.getElement({1, 1, 1}), 11);
   EXPECT_EQ(tensor_two.getElement({1, 2, 1}), 11);
