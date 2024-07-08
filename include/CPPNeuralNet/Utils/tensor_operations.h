@@ -14,6 +14,7 @@ namespace util {
 namespace {
 template<typename T, typename Derived>
 class TensorLike; 
+
 template<typename T, typename HeldOperation>
 class TransposeOperation;
 template<typename T, typename HeldOperation>
@@ -505,6 +506,8 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
 
 // given a new shape which is strictly larger than given, 
 //  allows accessor to access to this new shape, where previously outof bounds is now set with initial value  
+// Essentially, allows cropping too
+// TODO: Make FRont Padding.
 template<typename T, typename HeldOperation>
 class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>> {
 // Members ---------------------------------------------

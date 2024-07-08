@@ -519,7 +519,7 @@ int main() {
     using namespace cpp_nn::util;
 
     rTensor<int> A({2, 3, 1, 3});
-    rTensor<int> B({1, 3, 2, 3});
+    rTensor<int> B({3, 2, 3});
     std::vector<int> idx(A.getOrder(), 0);
     int i = 0;
     do {
@@ -551,7 +551,7 @@ int main() {
     using namespace cpp_nn::util;
 
     rTensor<int> A({2, 1, 2, 2});
-    rTensor<int> B({3, 2, 3});
+    rTensor<int> B({3, 2, 3}); 
 
     for (int i = 0; i < 2; ++i) {
       A.getElement({0, 0, i, i}) = 1;
