@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "CPPNeuralNet/Utils/re_tensor.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 
 TEST(UtilTensorOperation, SanityCheck) {
   EXPECT_TRUE(true);

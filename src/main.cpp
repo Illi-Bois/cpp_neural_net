@@ -5,8 +5,7 @@
 #include <stdexcept>
 #include <numeric>
 
-#include "CPPNeuralNet/Utils/sanity_check.h"
-#include "CPPNeuralNet/Utils/re_tensor.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/Utils/utils.h"
 
 

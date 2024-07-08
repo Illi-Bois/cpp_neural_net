@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "CPPNeuralNet/Utils/re_tensor.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 
 #include <numeric>
 
