@@ -51,8 +51,6 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   const int axis_1_;
   const int axis_2_;
 
-  // TODO implement multi-level tranposing at once.
-
   std::vector<int> dimension_;    // dimension post-tranposing
 // End of Members --------------------------------------
 
@@ -88,10 +86,10 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     std::swap(indices[axis_1_], indices[axis_2_]);
     return tensor_.getElement(indices);
   }
-  // Tranpose on Tranpose will result in Multitranpose
-  // return cannot be const, as must allow additional tranposition
+  // Transpose on TranspeOperation becomes MultiTranspose. 
+  //    Further additional transposes are handled from that class.
   inline MultiTransposeOperation<T, HeldOperation>
-        Transpose(int axis_1 = -1, int axis_2 = -2) const {
+         Transpose(int axis_1 = -1, int axis_2 = -2) const {
     return {*this, axis_1, axis_2};
   }
   inline const ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
@@ -99,7 +97,8 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     return {*this, new_dimensions};
   }
   inline const PaddingOperation<T, TransposeOperation<T, HeldOperation>> 
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+               Padding(const std::vector<int>& padded_dimensions, 
+                       T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -109,7 +108,9 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 // end of friends --------------------------------------
 }; // End of TransposeOperation
 
-// Similar to tranpose, but now handles multiple transpositions at once
+/** Similar to Tranpose, btu allows multiple axes to be tranposed at once.
+ *  Only called when transposes are called consecutively. 
+ */
 template<typename T, typename HeldOperation>
 class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, HeldOperation>> {
 // Members ---------------------------------------------
@@ -123,23 +124,25 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
 // End of Members --------------------------------------
  
  public:
-  // Can only be generated from TranposeOperation
-  MultiTransposeOperation(const TransposeOperation<T, HeldOperation>& tranpose_operation, int axis_1, int axis_2)
-    : tensor_like_(tranpose_operation.tensor_),
-      dimension_(tensor_like_.getShape()), // note this is not yet tranposed first
+// Constructor -----------------------------------------
+  // MultiTranspose is contructed singularly from TransposeOperation
+  MultiTransposeOperation(const TransposeOperation<T, HeldOperation>& tranpose_operation, 
+                          int axis_1, 
+                          int axis_2)
+    : tensor_like_(   tranpose_operation.tensor_),
+      dimension_(     tensor_like_.getShape()),      // Get Untramnsposed dimension
       untranpose_map_(tensor_like_.getOrder()),
-      tranpose_map_(tensor_like_.getOrder()) {
-    std::cout << "Multi called" << std::endl;
+      tranpose_map_(  tensor_like_.getOrder()) {
     // fill from 0 to order
     std::iota(untranpose_map_.begin(), untranpose_map_.end(), 0);
     std::iota(tranpose_map_.begin(),  tranpose_map_.end(), 0);
-    // tranpose in order
+    // Transpose in set order. 
     this->Transpose(tranpose_operation.axis_1_, tranpose_operation.axis_2_);
     this->Transpose(axis_1, axis_2);
   }
-
+// End of Constructor ----------------------------------
   
-
+// Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const {
     return dimension_;
   }
@@ -152,29 +155,32 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
   inline int getOrder() const noexcept {
     return dimension_.size();
   }  
-  // indices for tranpose is passed as value, not reference,
-  //   so that tranposed axis may be swapped. 
-  const T getElement(std::vector<int> indices) const {
+  const T getElement(const std::vector<int>& indices) const {
+    // convert tranpose_indices to untransposed_indices by passing axis through map
     std::vector<int> untranposed_indices(getOrder());
     for (int axis = 0; axis < getOrder(); ++axis) {
-      // untranposed_indices[axis] = indices[untranpose_map_[axis]];
       untranposed_indices[untranpose_map_[axis]] = indices[axis];
     }
     return tensor_like_.getElement(untranposed_indices);
   }
-  // Only this returns reference, as is inbody mutation
+  /** For Multi-Transpose, Transposing is non-static method on member. 
+   *  Therefore return as reference to self. and is non-const
+  */
   inline MultiTransposeOperation<T, HeldOperation>& 
-               Transpose(int axis_1 = -1, int axis_2 = -2) {
+         Transpose(int axis_1 = -1, 
+                   int axis_2 = -2) {
     // normalized to positive
     axis_1 = SumIfNegative(axis_1, getOrder());
     axis_2 = SumIfNegative(axis_2, getOrder());
 
+    std::swap(dimension_[axis_1], dimension_[axis_2]);
+
     int& effective_axis_1 = untranpose_map_[axis_1];
     int& effective_axis_2 = untranpose_map_[axis_2];
-    std::swap(effective_axis_1, effective_axis_2);
-    std::swap(tranpose_map_[effective_axis_1], tranpose_map_[effective_axis_2]);
-
-    std::swap(dimension_[axis_1], dimension_[axis_2]);
+    std::swap(effective_axis_1, 
+              effective_axis_2);
+    std::swap(tranpose_map_[effective_axis_1], 
+              tranpose_map_[effective_axis_2]);
     return *this;
   }
   inline const ReshapeOperation<T, MultiTransposeOperation<T, HeldOperation>> 
@@ -185,7 +191,7 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
                Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
-
+// End of Tensor-Behaviours ----------------------------
 };
 
 
@@ -241,7 +247,8 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
     return {*this, new_dimensions};
   }
   inline const PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+               Padding(const std::vector<int>& padded_dimensions, 
+                       T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -348,7 +355,8 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     return {*this, new_dimensions};
   }
   inline const PaddingOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+               Padding(const std::vector<int>& padded_dimensions, 
+                       T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
@@ -432,6 +440,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
     // Reshape should override it TODO,
     return {*this, new_dimensions};
   }
+  // TODO: Make a modifier on self, same with padding.
   inline const PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
                Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
@@ -452,12 +461,16 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
 //  allows accessor to access to this new shape, where previously outof bounds is now set with initial value  
 template<typename T, typename HeldOperation>
 class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>> {
+// Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   std::vector<int> padded_shape_;
   const T padded_value_;
 
   size_t padded_capacity_;
+// End of Members --------------------------------------
+ 
  public:
+// Constructor -----------------------------------------
   PaddingOperation(const TensorLike<T, HeldOperation>& tensor_like, 
                    const std::vector<int>& padded_shape, 
                    T padded_value = T()) 
@@ -487,15 +500,16 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
     }
   }
 
-  // doubly padding
+  /** Doubly Padding results in first padding being overwritten */
   PaddingOperation(const PaddingOperation<T, HeldOperation>& padded_operation, 
                    const std::vector<int>& padded_shape, 
                    T padded_value = T()) 
-      : PaddingOperation(padded_operation.tensor_like_, padded_shape, padded_value) {
+      : PaddingOperation(padded_operation.tensor_like_, 
+                         padded_shape,
+                         padded_value) {
     // let default constructor handle it
-    std::cout << "Doubly" << std::endl;
   }
-
+// End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
@@ -517,7 +531,6 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         return padded_value_;
       }
     }
-
     return tensor_like_.getElement(indices);
   }
   inline const TransposeOperation<T, PaddingOperation<T, HeldOperation>> 
@@ -530,7 +543,8 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
   }
   // OVERRIDE
   inline const PaddingOperation<T, HeldOperation> 
-               Padding(const std::vector<int>& padded_dimensions, T padded_value = T()) const {
+               Padding(const std::vector<int>& padded_dimensions, 
+                       T padded_value = T()) const {
     // similar to reshap,e should override it
     return {*this, padded_dimensions, padded_value};
   }
