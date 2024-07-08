@@ -614,7 +614,6 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 
 // !!! TODO: On Padding and Reshape, because inbody is now an option, we dont need doubly constrrcutor?
 
-// BROADCASTING MIGHT BE DONE IN THIS MANNER AS WELL!
 /** A Simple wrapper that retrieves tensor element by broadcast shape only.
  *  Intended to be used for Multiplcation and Summation
  */

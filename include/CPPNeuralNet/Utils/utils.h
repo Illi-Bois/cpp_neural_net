@@ -29,6 +29,9 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
  *    returns shape of broadcasted tensor.
  *  
  *  throws "Broadcast- Incompatible Shapes" when two are not compatible by broadcasting
+ * 
+ *  Broadcast on empty will result in correct shapes too,
+ *    when both are empty result is empty as well
  */
 std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_begin, 
                            std::vector<int>::const_iterator       first_shape_end,

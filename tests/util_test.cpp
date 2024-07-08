@@ -162,4 +162,23 @@ TEST(Util, Broadcast_Diff_Incomp) {
     }
   }, std::invalid_argument);
 }
+
+
+TEST(Util, Broadcast_One_is_empty) {
+  std::vector<int> a = {};
+  std::vector<int> b = {2, 1};
+
+  std::vector<int> res = cpp_nn::util::Broadcast(a.begin(), a.end(), 
+                                                 b.begin(), b.end());
+  EXPECT_EQ(res, b);
+}
+
+TEST(Util, Broadcast_both_are_empty) {
+  std::vector<int> a = {};
+  std::vector<int> b = {};
+
+  std::vector<int> res = cpp_nn::util::Broadcast(a.begin(), a.end(), 
+                                                 b.begin(), b.end());
+  EXPECT_EQ(res, b);
+}
 // END OF BROADCAST TESTS ---------------------------------------------------------------------
