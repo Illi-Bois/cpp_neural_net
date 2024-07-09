@@ -91,9 +91,12 @@ void FirstDer<T>::test(Base<T, Der<T, Other...>> a) {
 
 
 int main() {
+  std::cout << "Started" << std::endl;
+
   cpp_nn::util::Tensor one({2,3,4}, 1);
   cpp_nn::util::Tensor two({2,3,4}, 2);
 
+  std::cout << "Summing" << std::endl;
   cpp_nn::util::Tensor three = one + two;
   std::cout << "Summed" << std::endl;
   for (int k = 0; k < 2; ++k) {
@@ -461,7 +464,7 @@ int main() {
           cpp_nn::util::PrintTensor(ori);
 
           std::cout << "Normally Tranposed" << std::endl;
-          cpp_nn::util::Tensor<int> norm = ori.Transpose().Transpose().Transpose();
+          cpp_nn::util::Tensor<int> norm = ori.Transpose().Transpose(0, 1).Transpose(0, 2);
           cpp_nn::util::PrintTensor(norm);
           std::cout << " shape is  " << std::endl;
           for (int d : norm.getShape()) {
@@ -588,6 +591,33 @@ int main() {
     PrintTensor(C);
   }
   
+
+  {
+    std::cout << "lambda test" << std::endl;
+    std::vector<int> skr{1, 2, 3, 4};
+    auto f = [&]()->std::vector<int>& {
+      std::vector<int> co = skr;
+      std::swap(co[0], co[2]);
+      return co;
+    };
+
+
+    std::vector<int> gr = f();
+
+    std::cout << "skr" << std::endl;
+    for (auto i : skr) {
+      std::cout << i << ", ";
+    }
+    std::cout << std::endl;
+
+
+
+    std::cout << "gr" << std::endl;
+    for (auto i : gr) {
+      std::cout << i << ", ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 

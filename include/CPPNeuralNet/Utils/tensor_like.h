@@ -50,7 +50,7 @@ class TensorLike {
   inline int getDimension(int axis) const {
     return getRef().getDimension(axis);
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return getRef().getCapacity();
   }
   inline int getOrder() const noexcept {

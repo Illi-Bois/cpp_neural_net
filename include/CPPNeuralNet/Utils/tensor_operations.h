@@ -12,9 +12,6 @@ namespace util {
 
 // Forward Declaration ======================================
 namespace {
-template<typename T, typename Derived>
-class TensorLike; 
-
 template<typename T, typename HeldOperation>
 class TransposeOperation;
 template<typename T, typename HeldOperation>
@@ -35,10 +32,6 @@ template<typename T>
 class Tensor;
 // End of Forward Declaration ===============================
 
-/***
- *  ALL OPERATION VALIDITY ARE CHECKED UPON CONSTRUCT TODO:
- */
-
 namespace {
 /* Operation Facilitators ---------------------------------------------------------- */
 /*    
@@ -48,8 +41,17 @@ namespace {
   There are exception to these rules, such as with multiplcation which 
     may benefit from operation itself allocating space for computation and storage,
     but it too will follow the design of the other operations.
+
+ *  ALL OPERATION VALIDITY ARE CHECKED UPON CONSTRUCT TODO:
  */
 
+/**
+ *  holds transpose operation.
+ *  Transposing again on TransposeOperation will return 
+ *    MultiTranspose which collapses each operation into single 
+ *    MultiTranspose.
+ *  Therefore in practice, transposing together is prefered.
+ */
 template<typename T, typename HeldOperation>
 class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperation>> {
 // Members ---------------------------------------------
@@ -74,13 +76,13 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
-  inline const std::vector<int>& getShape() const {
+  inline const std::vector<int>& getShape() const noexcept {
     return dimension_;
   }
-  inline int getDimension(int axis) const {
+  inline int getDimension(int axis) const noexcept {
     return dimension_[SumIfNegative(axis, getOrder())];
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return tensor_.getCapacity();
   }
   inline int getOrder() const noexcept {
@@ -114,8 +116,13 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 // end of friends --------------------------------------
 }; // End of TransposeOperation
 
-/** Similar to Tranpose, btu allows multiple axes to be tranposed at once.
- *  Only called when transposes are called consecutively. 
+/** 
+ *  handles multiple tranposes in single operation holder. 
+ *  Can be treated as identical to TransposeOperation in practice.
+ *    Only TransposeOperation can generate it.
+ * 
+ *  Must be non-const to take advantage of in-place modifier.
+ *  Else returns capsulation of TransposeOperation again.
  */
 template<typename T, typename HeldOperation>
 class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, HeldOperation>> {
@@ -141,7 +148,7 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
       tranpose_map_(  tensor_like_.getOrder()) {
     // fill from 0 to order
     std::iota(untranpose_map_.begin(), untranpose_map_.end(), 0);
-    std::iota(tranpose_map_.begin(),  tranpose_map_.end(), 0);
+    std::iota(tranpose_map_.begin(),   tranpose_map_.end(),   0);
     // Transpose in set order. 
     this->Transpose(tranpose_operation.axis_1_, tranpose_operation.axis_2_);
     this->Transpose(axis_1, axis_2);
@@ -149,13 +156,13 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
 // End of Constructor ----------------------------------
   
 // Tensor-Behaviours -----------------------------------
-  inline const std::vector<int>& getShape() const {
+  inline const std::vector<int>& getShape() const noexcept {
     return dimension_;
   }
   inline int getDimension(int axis) const {
     return dimension_[SumIfNegative(axis, getOrder())];
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return tensor_like_.getCapacity();
   }
   inline int getOrder() const noexcept {
@@ -165,14 +172,23 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
     // convert tranpose_indices to untransposed_indices by passing axis through map
     std::vector<int> untranposed_indices(getOrder());
     for (int axis = 0; axis < getOrder(); ++axis) {
-      untranposed_indices[untranpose_map_[axis]] = indices[axis];
+      // TODO: both statements below are equivalent. Keep them both for now
+      //    as either might be more beneficial for futher iterator implementation
+      untranposed_indices[axis] = indices[tranpose_map_[axis]];
+      // untranposed_indices[untranpose_map_[axis]] = indices[axis];
     }
     return tensor_like_.getElement(untranposed_indices);
   }
-  /** For Multi-Transpose, Transposing is non-static method on member. 
-   *  Therefore return as reference to self. and is non-const
-  */
-  inline MultiTransposeOperation<T, HeldOperation>& 
+  // Constant default transpose
+  inline const TransposeOperation<T, MultiTransposeOperation<T, HeldOperation>> 
+               Transpose(int axis1 = -2, 
+                         int axis2 = -1) const {
+    return {*this, axis1, axis2};
+  }
+  //  Tranpose on MultiTranspose is in-place operation, as
+  //    each transpose is to collapse onto this single Operation
+  //  Therefore returns reference to self
+  MultiTransposeOperation<T, HeldOperation>& 
          Transpose(int axis_1 = -1, 
                    int axis_2 = -2) {
     // normalized to positive
@@ -180,7 +196,7 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
     axis_2 = SumIfNegative(axis_2, getOrder());
 
     std::swap(dimension_[axis_1], dimension_[axis_2]);
-
+    // TODO: As mentioned in getElement, not both maps may be needed
     int& effective_axis_1 = untranpose_map_[axis_1];
     int& effective_axis_2 = untranpose_map_[axis_2];
     std::swap(effective_axis_1, 
@@ -201,37 +217,34 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
 // End of Tensor-Behaviours ----------------------------
 };
 
-
-// TODO: Currently only handles same-shape addition.
+/**
+ *  sums two tensors with broadcasting applied. 
+ */
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperation1, HeldOperation2>> {
 // Members ---------------------------------------------
     const std::vector<int> broadcast_shape_;
-    size_t broadcast_capacity_;
+    const size_t broadcast_capacity_;
 
     const BroadcastOperation<T, HeldOperation1> first_;
     const BroadcastOperation<T, HeldOperation2> second_;
-
 // End of Members --------------------------------------
 
  public:
 // Constructor -----------------------------------------
   SummationOperation(const TensorLike<T, HeldOperation1>& first, 
                      const TensorLike<T, HeldOperation2>& second) 
+      // Broadcasting also checks for compatiblity.
       : broadcast_shape_(Broadcast(first.getShape().begin(),  first.getShape().end(),
                                    second.getShape().begin(), second.getShape().end())),
         broadcast_capacity_(std::accumulate(broadcast_shape_.begin(), broadcast_shape_.end(),
                             1, std::multiplies<int>())),
-        first_(BroadcastOperation(first, broadcast_shape_, broadcast_capacity_)), 
-        second_(BroadcastOperation(second, broadcast_shape_, broadcast_capacity_)) {
-    // if (first_.getOrder() != second_.getOrder()) {
-    //   throw std::invalid_argument("Summation Error- Order Mismatch.");
-    // }
-    // if (first_.getShape() != second_.getShape()) {
-    //   throw std::invalid_argument("Summation Error- Dimension Mismatch.");
-    // }
-    /// ! The issues are expected to be caught i broadcast
-  }
+        first_( BroadcastOperation(first, 
+                                   broadcast_shape_, 
+                                   broadcast_capacity_)), 
+        second_(BroadcastOperation(second, 
+                                   broadcast_shape_, 
+                                   broadcast_capacity_)) {}
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
@@ -241,11 +254,10 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   inline int getDimension(int axis) const {
     return broadcast_shape_[SumIfNegative(axis, getOrder())];
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return broadcast_capacity_;
   }
   inline int getOrder() const noexcept {
-    // Either shapes must be equal
     return broadcast_shape_.size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
@@ -267,13 +279,17 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
 // End of Tensor-Behaviours ----------------------------
 }; // End of SummationOperation
 
-// TODO: Currently handles same-shape multiplication
-//    will scale up to allow broad-casting (not all combination product)
+/**
+ *  multiplies two tensors with broadcasting applied. 
+ *  That is, broadcasting is applied to first order-2 dimensions. 
+ *    Last two are treated as matrix.
+ */
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> {
 // Members ---------------------------------------------
-  Tensor<T>*      product_tensor_;
-  std::vector<int> broad_cast_shape; 
+  // product is resolved upon construct,
+  //  so that other multiplcation algorithms can be used.
+  Tensor<T>*       product_tensor_;
 // End of Members --------------------------------------
 
  public:
@@ -282,12 +298,11 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   // Product is handled upon constrcution
   MultiplicationOperation(const TensorLike<T, HeldOperation1>& A, 
                           const TensorLike<T, HeldOperation2>& B)
-      : product_tensor_(nullptr),
-        // set broadcasting shape first, add matrix dim later
-        broad_cast_shape(Broadcast(A.getShape().begin(), A.getShape().end() - 2,
-                                   B.getShape().begin(), B.getShape().end() - 2)) {
-    std::cout << "init succ" << std::endl;
-    // Broadcast issue is resolved upon broadcasting
+      // tensor is build after all checks
+      : product_tensor_(nullptr) {
+    // Broadcasting checks for compatiblity 
+    std::vector<int> broad_cast_shape(Broadcast(A.getShape().begin(), A.getShape().end() - 2,
+                                                B.getShape().begin(), B.getShape().end() - 2)); 
     if (A.getOrder() < 2) {
       throw std::invalid_argument("Multiplication- Insufficient Dimension");
     }
@@ -304,22 +319,24 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     broad_cast_shape.push_back(interm);
     size_t capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
                                       1, std::multiplies<int>());
-    BroadcastOperation<T, HeldOperation1> A_broadcast(A, broad_cast_shape, capacity);
+    BroadcastOperation<T, HeldOperation1> A_broadcast(A, 
+                                                      broad_cast_shape, 
+                                                      capacity);
     // For B
     broad_cast_shape[broad_cast_shape.size() - 2] = interm;
     broad_cast_shape[broad_cast_shape.size() - 1] = cols;
     capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
                                1, std::multiplies<int>());
-    BroadcastOperation<T, HeldOperation1> B_broadcast(B, broad_cast_shape, capacity);
-
-    // product_shape is aleady set as being A
+    BroadcastOperation<T, HeldOperation1> B_broadcast(B, 
+                                                      broad_cast_shape, 
+                                                      capacity);
+    // For product
     broad_cast_shape[broad_cast_shape.size() - 2] = rows;
     // col is readily set 
-
     product_tensor_ = new Tensor<T>(broad_cast_shape);
-    // indices for which matrix is to be chosen
-    std::vector<int> indices(getOrder(), 0);
 
+    // iterate through each matrix blocks
+    std::vector<int> indices(getOrder(), 0);
     do {
       for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
@@ -342,6 +359,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
           }
         }
       }
+    // increments for block-indices only, which are first order-2 axes
     } while (IncrementIndicesByShape(broad_cast_shape.begin(), broad_cast_shape.end() - 2,
                                      indices.begin(),          indices.end()          - 2));
   }
@@ -355,16 +373,16 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    return broad_cast_shape;
+    return product_tensor_->getShape();
   } 
   inline int getDimension(int axis) const {
-    return broad_cast_shape[SumIfNegative(axis, getOrder())];
+    return product_tensor_->getDimension(axis);
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return product_tensor_->getCapacity();
   }
   inline int getOrder() const noexcept {
-    return broad_cast_shape.size();
+    return product_tensor_->getOrder();
   }
   inline const T getElement(const std::vector<int>& indices) const {
     return product_tensor_->getElement(indices);
@@ -385,30 +403,36 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 // End of Tensor-Behaviours ----------------------------
 
 // friends ---------------------------------------------
-  friend Tensor<T>;  // required for constrctor
+  friend Tensor<T>;   // For specialized constructor
 // end of friedns --------------------------------------
 }; // End of MultiplicationOperation
 
-
+/**
+ *  changes shape of tensor without altering capacity or order of elements.
+ *  Chaning multiple Reshapes collapses to a single reshape.
+ *  When reshaped as const, results in another layer of reshape, thus little less efficient.
+ */
 template<typename T, typename HeldOperation>
 class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>> {
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
-  std::vector<int> dimension_;    // dimension post-tranposing
+  std::vector<int> reshaped_dimension_;
 
-  std::vector<int> chunk_size_; // to be computed
-  size_t capacity_;
+  // below are members to be used for index altering
+  std::vector<int> reshaped_chunk_size_; // to be computed
+  size_t capacity_;                      // must be equal to tensor_like
 // End of Members --------------------------------------
 
 // Housekeeping ----------------------------------------
-/** given that dimensions is correctly selected and that capacity and chunk_sizes are reset to 1
- *  updates the latter 2 according to dimension.
- * 
- *  Throws exception is capacity does not match
+/**
+ *  given that dimension is correctly set and that capacity and chunk_sizes are rest to 1
+ *    updates the latter two according to dimensions.
+ *  Checks and throws if newly set capacity does not match tensor_like_'s capacity
  */
-  void UpdateAndCheck() {
-    cpp_nn::util::ComputeCapacityAndChunkSizes(dimension_, chunk_size_, capacity_);
-
+  inline void UpdateAndCheck() {
+    cpp_nn::util::ComputeCapacityAndChunkSizes(reshaped_dimension_, 
+                                               reshaped_chunk_size_, 
+                                               capacity_);
     if (capacity_ != tensor_like_.getCapacity()) {
       throw std::invalid_argument("TensorReshape- Capacity mismatch");
     }
@@ -420,76 +444,56 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   ReshapeOperation(const TensorLike<T, HeldOperation>& tensor_like, 
                    const std::vector<int>& new_shape)
       : tensor_like_(tensor_like.getRef()),
-        dimension_(new_shape),
-        chunk_size_(new_shape.size(), 1),
+        reshaped_dimension_(new_shape),
+        reshaped_chunk_size_(new_shape.size(), 1),
         capacity_(1) {
     UpdateAndCheck();
-    // it may be faster to simply move everyhting? make a new tensor and access it through that?
-  }
-  /**
-   * Doubly Reshaping.
-   *  Reshaping immediately after another reshape will override the inner operation.
-   *  The newer reshaping will simply replace the old.
-   *    TODO: this means, however, that reshaping that is bound to be removed still computes capacity.
-   */
-  ReshapeOperation(const ReshapeOperation<T, HeldOperation>& reshape_operation, 
-                   const std::vector<int>& new_shape)
-      : ReshapeOperation(reshape_operation.tensor_like_, new_shape) {
-    // let default constructor handle it
   }
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    return dimension_;
+    return reshaped_dimension_;
   } 
   inline int getDimension(int axis) const {
-    return dimension_[SumIfNegative(axis, getOrder())];
+    return reshaped_dimension_[SumIfNegative(axis, getOrder())];
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return capacity_;
   }
   inline int getOrder() const noexcept {
-    return dimension_.size();
+    return reshaped_dimension_.size();
   }
-  inline const T getElement(const std::vector<int>& indices) const {
-    // Need to recompute indices to new dimensions.
-    //    NewIndices -> address -> OldIndices
-    // * This again does not check for input validity.
-    int address = IndicesToAddress(dimension_,
-                                   chunk_size_,
-                                   indices);
-    // convert address to old index shape
-    std::vector<int> old_indices = AddressToIndices(tensor_like_.getShape(), address);
+  const T getElement(const std::vector<int>& indices) const {
+    // reshape_indices -> address -> old_indices
+    // !This again does not check for input validity.
+    const size_t address = IndicesToAddress(reshaped_dimension_,
+                                            reshaped_chunk_size_,
+                                            indices);
+    const std::vector<int> old_indices = AddressToIndices(tensor_like_.getShape(), 
+                                                          address);
     return tensor_like_.getElement(old_indices);
   }
   inline const TransposeOperation<T, ReshapeOperation<T, HeldOperation>> 
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  // Const Legacy Reshape for TensorLike to call(?)
+  // Const-call reshape
   inline ReshapeOperation<T, ReshapeOperation<T, HeldOperation>>
          Reshape(const std::vector<int>& new_dimensions) const {
-    // Reshape should override it TODO,
     return {*this, new_dimensions};
-  } // Being Legacy backwards compatiblity, the below optimization is useless, and is depriciated by inplace method
-  // inline ReshapeOperation<T, HeldOperation>
-  //        Reshape(const std::vector<int>& new_dimensions) const {
-  //   // Reshape should override it TODO,
-  //   return {*this, new_dimensions};
-  // }
-  // Reshape on noconst
+  } 
+  // Non-const reshape
   inline ReshapeOperation<T, HeldOperation>&
          Reshape(const std::vector<int>& new_dimensions) {
-    // Reset
-    dimension_ = new_dimensions;
-    chunk_size_ = std::vector<int>(dimension_.size(), 1);
+    // Reset members
+    reshaped_dimension_ = new_dimensions;
+    reshaped_chunk_size_ = std::vector<int>(reshaped_dimension_.size(), 1);
     capacity_ = 1;
-    // Compute
+    // Compute members
     UpdateAndCheck();
     return *this;
   }
-  // TODO: Make a modifier on self, same with padding.
   inline PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
@@ -498,19 +502,17 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
 // End of Tensor-Behaviours ----------------------------
 
 // friend  ---------------------------------------------
-  friend Tensor<T>;
+  friend Tensor<T>;   // For specialized constructor
 // end of friend  --------------------------------------
-/*
- when moving, will move tensor_ to recieving tensor,
-  then compute dimension again
-*/
 };
 
-
-// given a new shape which is strictly larger than given, 
-//  allows accessor to access to this new shape, where previously outof bounds is now set with initial value  
-// Essentially, allows cropping too
 // TODO: Make FRont Padding.
+/** 
+ *  crops/pads the tensor to new shape. 
+ *  The order must be same, but capacity may be differrent. 
+ *  When pading is greater than old-shape, the values are padded to padded_val.
+ *  When is less, becomes cropped and elements are lost.
+ */
 template<typename T, typename HeldOperation>
 class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>> {
 // Members ---------------------------------------------
@@ -520,6 +522,27 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 
   size_t padded_capacity_;
 // End of Members --------------------------------------
+
+// Housekeeping ----------------------------------------
+/** 
+ *  given that members are validly set,
+ *    checks and throws shape is correctly set
+ */
+  void CheckValidPadding() {
+    if (padded_shape_.size() != tensor_like_.getOrder()) {
+      throw std::invalid_argument("Padding- Order mismatch");
+    }
+    // dimension only need define valid dimension
+    for (int axis = 0; axis < tensor_like_.getOrder(); ++axis) {
+      if (padded_shape_[axis] > 0) {
+        continue;
+      }
+      else {
+        throw std::invalid_argument("Padding- Non-positive dimension");
+      }
+    }
+  }
+// End of Housekeeping ---------------------------------
  
  public:
 // Constructor -----------------------------------------
@@ -531,35 +554,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         padded_value_(padded_value),
         padded_capacity_(std::accumulate(padded_shape_.begin(), padded_shape_.end(), 
                                          1, std::multiplies<int>())) {
-    // check that each timendion is larger
-    if (padded_shape_.size() != tensor_like_.getOrder()) {
-      throw std::invalid_argument("Padding- Order mismatch");
-    }
-
-    // We have now allowed both doubly padding to collapse to single padding,
-    // and also allowed subtracted padding
-    // TODO: this howeber cam cause unexpected behaviour, in that
-    //    elements taken away from first padding is then returned by repadding. 
-    //    Either this is to be made a feature, or
-    //    Find a way out of this, ie) 
-    //      - DoNothing OperationHolder
-    //      - Manual check
-    for (int axis = 0; axis < tensor_like_.getOrder(); ++axis) {
-      // if (padded_shape_[axis] < tensor_like_.getDimension(axis)) {
-      if (padded_shape_[axis] <= 0) {
-        throw std::invalid_argument("Padding- Non-positive dimension");
-      }
-    }
-  }
-
-  /** Doubly Padding results in first padding being overwritten */
-  PaddingOperation(const PaddingOperation<T, HeldOperation>& padded_operation, 
-                   const std::vector<int>& padded_shape, 
-                   T padded_value = T()) 
-      : PaddingOperation(padded_operation.tensor_like_, 
-                         padded_shape,
-                         padded_value) {
-    // let default constructor handle it
+    CheckValidPadding();
   }
 // End of Constructor ----------------------------------
 
@@ -570,18 +565,20 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
   inline int getDimension(int axis) const {
     return padded_shape_[SumIfNegative(axis, getOrder())];
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return padded_capacity_;
   }
   inline int getOrder() const noexcept {
     return padded_shape_.size();
   }
-  inline const T getElement(const std::vector<int>& indices) const {
+  const T getElement(const std::vector<int>& indices) const {
     // forward order would work too, but we would most likely padd the inner dimension
     for (int axis = getOrder() - 1; axis >= 0; --axis) {
       if (indices[axis] >= tensor_like_.getDimension(axis)) {
+        // if beyond old shape, return padded val
         return padded_value_;
       }
+      // TODO, consider making crop validity too?
     }
     return tensor_like_.getElement(indices);
   }
@@ -593,99 +590,88 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
          Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-  // Const Legacy Padding for TensorLike to Call(?)
+  // Const-call padding
   inline PaddingOperation<T, PaddingOperation<T, HeldOperation>>
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
-    // similar to reshap,e should override it
     return {*this, padded_dimensions, padded_value};
   }
-  // Padding on nonconst
-  inline PaddingOperation<T, HeldOperation>&
+  // Non-const padding
+  PaddingOperation<T, HeldOperation>&
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) {
     padded_shape_ = padded_dimensions;
     padded_value_ = padded_value;
     padded_capacity_ = std::accumulate(padded_shape_.begin(), padded_shape_.end(), 
                                        1, std::multiplies<int>());
-
-    // check that each timendion is larger
-    if (padded_shape_.size() != tensor_like_.getOrder()) {
-      throw std::invalid_argument("Padding- Order mismatch");
-    }
-
-    for (int axis = 0; axis < tensor_like_.getOrder(); ++axis) {
-      // if (padded_shape_[axis] < tensor_like_.getDimension(axis)) {
-      if (padded_shape_[axis] <= 0) {
-        throw std::invalid_argument("Padding- Non-positive dimension");
-      }
-    }
-
-    // TODO remove duplicate code.
-
+    CheckValidPadding();
     return *this;
   }
 // End of Tensor-Behaviours ----------------------------
 };
 
-// !!! TODO: On Padding and Reshape, because inbody is now an option, we dont need doubly constrrcutor?
-
-/** A Simple wrapper that retrieves tensor element by broadcast shape only.
- *  Intended to be used for Multiplcation and Summation
- */
-/** TODO: as it stands now, broadcast has no necessary function except for rolling over indices back to 0,
- * This seems to suggest that broacast might be a redundant operation as it is now?
- * The functionarlity is all exported to those that call broadcast shape, know to use it. 
+/** 
+ *  broadcasts tensor to desired shape. 
+ *  Allows for indices to be called to broadcast shape, which 
+ *    will repeat index when valid
  * 
- * TODO: abstract the implementation, or make it clear how to use broadcast.
+ *  TODO: as it is implemented now, broadcasting is prepared and only passed
+ *    onto this operation holder.
+ *    That is, this class does little of actual broadcasting and just holds 
+ *    the membvers.
+ *    We may want top change the implementation so that broadcasting is done in here,
+ *    or change the name to refelct what this is actually doing. 
  */
 template<typename T, typename HeldOperation>
 class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperation>> {
+// Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   const std::vector<int> broadcast_shape_;
 
   size_t broadcast_capacity_;
+// End of Members --------------------------------------
 
  public:
+// Constructor -----------------------------------------
+  // passed broadcast shape is assumed to be validly formed, and so does no checks in construction
   BroadcastOperation(const TensorLike<T, HeldOperation>& tensor_like, 
                      const std::vector<int>& broadcast_shape,
-                     const size_t broadcast_capacity)  // will expect this to be computed on upper level as well
+                     const size_t broadcast_capacity) noexcept
       : tensor_like_(tensor_like.getRef()),
-        // Will assume the passed broadcast shape is valid and correct
         broadcast_shape_(broadcast_shape),
-        broadcast_capacity_(broadcast_capacity)  { 
-  }
+        broadcast_capacity_(broadcast_capacity)  {}
+// End of Constructor ----------------------------------
 
-
+// Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
     return broadcast_shape_;
   } 
   inline int getDimension(int axis) const {
     return broadcast_shape_[SumIfNegative(axis, getOrder())];
   }
-  inline size_t getCapacity() const {
+  inline size_t getCapacity() const noexcept {
     return broadcast_capacity_;
   }
   inline int getOrder() const noexcept {
     return broadcast_shape_.size();
   }
-  inline const T getElement(const std::vector<int>& indices) const {
-    // TODO make a better way to check if this specific axis needs broadcasting or not?
+  const T getElement(const std::vector<int>& indices) const {
+    // TODO: Broadcast shape is not used here... should we have all axis check?
 
-    // indices are right aligned
+    // get last tensor_like.order indices and set all that is beyond dim as 0
     std::vector<int> passing_indices(indices.end() - tensor_like_.getOrder(), indices.end());
     int axis = passing_indices.size() - 1;
-    std::vector<int>::const_iterator original_dim  = tensor_like_.getShape().end() - 1;
-    
+    std::vector<int>::const_iterator original_dim  = tensor_like_.getShape().end() - 1;    
     // with the assumption that broadcast shape is correct, only need to check if original dim is not 1
     while (axis >= 0) {
-      if (*original_dim == 1) {
+      if (*original_dim != 1) {
+        // do noting
+      } else {
         passing_indices[axis] = 0; 
       }
       --axis;
       original_dim--;
     }
-    
     return tensor_like_.getElement(passing_indices);
   }
   inline const TransposeOperation<T, BroadcastOperation<T, HeldOperation>> 
@@ -696,11 +682,15 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
          Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
-
+  inline PaddingOperation<T, BroadcastOperation<T, HeldOperation>>
+         Padding(const std::vector<int>& padded_dimensions, 
+                 T padded_value = T()) const {
+    return {*this, padded_dimensions, padded_value};
+  }
+// End of Tensor-Behaviours ----------------------------
 };
 
 } // unnamed namespace 
-
 
 } // util
 } // cpp_nn

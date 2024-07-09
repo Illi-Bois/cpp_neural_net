@@ -328,8 +328,8 @@ Tensor<T>::Tensor(const TensorLike<T,
     //    then alter only the shape
     : Tensor(std::move(reshaped_tensor.getRef().tensor_like_)) {
   // Assumes dimensions and chunk_sizes are validly checked upon ReshapeOperation construction
-  dimensions_ = reshaped_tensor.getRef().dimension_;
-  chunk_size_ = reshaped_tensor.getRef().chunk_size_;
+  dimensions_ = reshaped_tensor.getRef().reshaped_dimension_;
+  chunk_size_ = reshaped_tensor.getRef().reshaped_chunk_size_;
   capacity_   = reshaped_tensor.getRef().capacity_;
 }
 // End of Psuedo-Specializations ------------------
