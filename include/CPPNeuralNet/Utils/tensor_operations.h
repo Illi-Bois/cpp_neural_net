@@ -100,15 +100,6 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
          Transpose(int axis_1 = -1, int axis_2 = -2) const {
     return {*this, axis_1, axis_2};
   }
-  inline ReshapeOperation<T, TransposeOperation<T, HeldOperation>> 
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  }
-  inline PaddingOperation<T, TransposeOperation<T, HeldOperation>> 
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
-  }
 // End of Tensor-Behaviours ----------------------------
 
 // friends ---------------------------------------------
@@ -205,15 +196,6 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
               tranpose_map_[effective_axis_2]);
     return *this;
   }
-  inline ReshapeOperation<T, MultiTransposeOperation<T, HeldOperation>> 
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  }
-  inline PaddingOperation<T, MultiTransposeOperation<T, HeldOperation>> 
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
-  }
 // End of Tensor-Behaviours ----------------------------
 };
 
@@ -262,19 +244,6 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   }
   inline const T getElement(const std::vector<int>& indices) const {
     return first_.getElement(indices) + second_.getElement(indices);
-  }
-  inline const TransposeOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-               Transpose(int axis1 = -2, int axis2 = -1) const {
-    return {*this, axis1, axis2};
-  }
-  inline ReshapeOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  }
-  inline PaddingOperation<T, SummationOperation<T, HeldOperation1, HeldOperation2>> 
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 }; // End of SummationOperation
@@ -387,19 +356,6 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   inline const T getElement(const std::vector<int>& indices) const {
     return product_tensor_->getElement(indices);
   }
-  inline const TransposeOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-               Transpose(int axis1 = -2, int axis2 = -1) const {
-    return {*this, axis1, axis2};
-  }
-  inline ReshapeOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  }
-  inline PaddingOperation<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> 
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
-  }
 // End of Tensor-Behaviours ----------------------------
 
 // friends ---------------------------------------------
@@ -478,11 +434,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
-  // Const-call reshape
-  inline ReshapeOperation<T, ReshapeOperation<T, HeldOperation>>
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  } 
+
   // Non-const reshape
   inline ReshapeOperation<T, HeldOperation>&
          Reshape(const std::vector<int>& new_dimensions) {
@@ -493,11 +445,6 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
     // Compute members
     UpdateAndCheck();
     return *this;
-  }
-  inline PaddingOperation<T, ReshapeOperation<T, HeldOperation>> 
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 
@@ -582,20 +529,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
     }
     return tensor_like_.getElement(indices);
   }
-  inline const TransposeOperation<T, PaddingOperation<T, HeldOperation>> 
-               Transpose(int axis1 = -2, int axis2 = -1) const {
-    return {*this, axis1, axis2};
-  }
-  inline ReshapeOperation<T, PaddingOperation<T, HeldOperation>> 
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  }
-  // Const-call padding
-  inline PaddingOperation<T, PaddingOperation<T, HeldOperation>>
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
-  }
+
   // Non-const padding
   PaddingOperation<T, HeldOperation>&
          Padding(const std::vector<int>& padded_dimensions, 
@@ -673,19 +607,6 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
       original_dim--;
     }
     return tensor_like_.getElement(passing_indices);
-  }
-  inline const TransposeOperation<T, BroadcastOperation<T, HeldOperation>> 
-               Transpose(int axis1 = -2, int axis2 = -1) const {
-    return {*this, axis1, axis2};
-  }
-  inline ReshapeOperation<T, BroadcastOperation<T, HeldOperation>> 
-         Reshape(const std::vector<int>& new_dimensions) const {
-    return {*this, new_dimensions};
-  }
-  inline PaddingOperation<T, BroadcastOperation<T, HeldOperation>>
-         Padding(const std::vector<int>& padded_dimensions, 
-                 T padded_value = T()) const {
-    return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
 };

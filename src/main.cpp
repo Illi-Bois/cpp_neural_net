@@ -593,30 +593,22 @@ int main() {
   
 
   {
-    std::cout << "lambda test" << std::endl;
-    std::vector<int> skr{1, 2, 3, 4};
-    auto f = [&]()->std::vector<int>& {
-      std::vector<int> co = skr;
-      std::swap(co[0], co[2]);
-      return co;
-    };
+    std::cout << "Not having Tranpose and stuff in it test testground For multi" << std::endl;
+    
+    using namespace cpp_nn::util;
 
+    Tensor<int> A({2, 1, 2, 2});
+    std::vector<int> idx(A.getOrder(), 0);
+    int i = 0;
+    do {
+      A.getElement(idx) = 2*(++i);
+    } while (cpp_nn::util::IncrementIndicesByShape(A.getShape().begin(), A.getShape().end(),
+                                                    idx.begin(), idx.end()));   
+    
+    PrintTensor(A);
+    Tensor<int> B = A.Transpose().Transpose().Reshape({1, 8}).Transpose().Padding({10, 2}).Padding({10, 1});
+    PrintTensor(B);
 
-    std::vector<int> gr = f();
-
-    std::cout << "skr" << std::endl;
-    for (auto i : skr) {
-      std::cout << i << ", ";
-    }
-    std::cout << std::endl;
-
-
-
-    std::cout << "gr" << std::endl;
-    for (auto i : gr) {
-      std::cout << i << ", ";
-    }
-    std::cout << std::endl;
   }
 }
 
