@@ -284,3 +284,18 @@ On Tensor, we can easily do with address
 - current address
 
 Iterator needs to handle +int, -int
+
+
+
+
+
+Iterators divide into two cases
+- Iterator
+- ConstIterator
+
+Each TensorLike will have ...::Iterator and ...::ConstIterator as inner class
+Each TensorLike will have beign and end to return these
+== Therefore TensorLike needs to have these as inner class
+  = maybe each insatnces have separate inner which inherit from this TensorLike::Iterator,
+  = which has virtual?
+

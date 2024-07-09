@@ -82,10 +82,11 @@ size_t IndicesToAddress(const std::vector<int>& shape,
 // TODO: move somewhere else more appropriate?
 template<typename T, typename Derived>
 struct IteratorInterface {
-  virtual const T& operator*() const = 0;
-  virtual T& operator*() {
-    return const_cast<T&>(const_cast<const IteratorInterface*>(this)->operator*());
+ public:
+  virtual const T& operator*() const {
+    return const_cast<const T&>(const_cast<IteratorInterface<T, Derived>&>(*this).operator*());
   }
+  virtual T& operator*() = 0;
 
   virtual Derived& operator+=(int increment) = 0;
   virtual Derived& operator-=(int decrement) = 0;

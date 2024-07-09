@@ -15,6 +15,8 @@ namespace util {
 
 template<typename T>
 class Tensor : public TensorLike<T, Tensor<T>> { // ========================================
+  typedef TensorLike<T, Tensor<T>> Parent;
+
  public:
 // Public Constructor-----------------------------------
 /**
@@ -146,7 +148,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
 // End of Modifiers ------------------------------------
 
 // Iterator --------------------------------------------
-  class Iterator : public IteratorInterface<T, Iterator> {
+  class Iterator : public Parent::Iterator {
    private:
     Tensor<T>* const tensor_;
     size_t curr_address_;
@@ -154,8 +156,8 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
    public:
     Iterator(Tensor<T>* const tensor, size_t address)
         : tensor_(tensor), curr_address_(address) {}
-
-    const T& operator*() const override {
+    
+    T& operator*() override {
       return (*tensor_->elements_)[curr_address_];
     }
 
@@ -174,13 +176,12 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
       }
       return *this;
     }
-
     bool operator==(const Iterator& other) const override {
       return tensor_       == other.tensor_ && 
              curr_address_ == other.curr_address_;
     }
   };
-  class ConstIterator : public IteratorInterface<T, ConstIterator> {
+  class ConstIterator : public Parent::ConstIterator {
    private:
     const Tensor<T>* const tensor_;
     size_t curr_address_;
@@ -188,9 +189,8 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
    public:
     ConstIterator(const Tensor<T>* const tensor, size_t address)
         : tensor_(tensor), curr_address_(address) {}
-
-    T& operator*() override = delete;
-    const T& operator*() const override {
+    
+    const T& operator*() const {
       return (*tensor_->elements_)[curr_address_];
     }
 
@@ -209,7 +209,6 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
       }
       return *this;
     }
-
     bool operator==(const ConstIterator& other) const override {
       return tensor_       == other.tensor_ && 
              curr_address_ == other.curr_address_;

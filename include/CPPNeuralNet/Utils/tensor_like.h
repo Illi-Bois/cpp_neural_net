@@ -80,6 +80,62 @@ class TensorLike {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
+ 
+ public:
+  class Iterator {
+    typedef typename Derived::Iterator Derived_Iterator;
+   public:
+    virtual T& operator*() = 0;
+
+    virtual Derived_Iterator& operator+=(int increment) = 0;
+    virtual Derived_Iterator& operator-=(int decrement) = 0;
+
+    Derived_Iterator& operator++() {
+      return (*this) += 1;
+    }
+    Derived_Iterator& operator--() {
+      return (*this) -= 1;
+    }
+
+    virtual bool operator==(const Derived_Iterator& other) const = 0;
+    bool operator!=(const Derived_Iterator& other) const {
+      return !(*this == other);
+    }
+  };
+
+  class ConstIterator {
+    typedef typename Derived::ConstIterator Derived_Iterator;
+   public:
+    virtual const T& operator*() const = 0;
+
+    virtual Derived_Iterator& operator+=(int increment) = 0;
+    virtual Derived_Iterator& operator-=(int decrement) = 0;
+
+    Derived_Iterator& operator++() {
+      return (*this) += 1;
+    }
+    Derived_Iterator& operator--() {
+      return (*this) -= 1;
+    }
+
+    virtual bool operator==(const Derived_Iterator& other) const = 0;
+    bool operator!=(const Derived_Iterator& other) const {
+      return !(*this == other);
+    }
+  };
+  // TODO: Ideally want to CRTP to remove virtual, but right now
+  //      because of nesting inside template that is CRTP, seems impossible...
+  // TODO: many of the motions are duplicate, maybe consider making this interface as we had tried
+  //      but adding more interface seems to increase runtime
+
+ public:
+  // CRTP virtual
+  Iterator begin() {
+    return getRef().begin();
+  }
+  ConstIterator begin() const {
+    return getRef().begin();
+  }
 
 // TODO: Element-wise iterator for fast and lightweight iteration of each element.
 //  if each tensor-like has a lightweight iteration, each can call the previous's iterator to
