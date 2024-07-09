@@ -268,3 +268,19 @@ And not to mention, the correct and fast implementation of move operator may ele
 Only tranpose, which, with our current design of each tensor being a complete object (meaning no in-place tranposing), only tranpose require data moving. This may suggest above OperationHolder may only be needed for TranposeHolder. 
 
 The above will require discussion with my partner to lay down the final decision. 
+
+
+
+
+
+
+
+
+
+--- Iterator ---
+
+On Tensor, we can easily do with address
+- pointer to Tensor,
+- current address
+
+Iterator needs to handle +int, -int

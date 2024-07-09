@@ -78,6 +78,31 @@ size_t IndicesToAddress(const std::vector<int>& shape,
                         const std::vector<int>& chunk_sizes,
                         const std::vector<int>& indices) noexcept;
 
+
+// TODO: move somewhere else more appropriate?
+template<typename T, typename Derived>
+struct IteratorInterface {
+  virtual const T& operator*() const = 0;
+  virtual T& operator*() {
+    return const_cast<T&>(const_cast<const IteratorInterface*>(this)->operator*());
+  }
+
+  virtual Derived& operator+=(int increment) = 0;
+  virtual Derived& operator-=(int decrement) = 0;
+
+  Derived& operator++() {
+    return (*this) += 1;
+  }
+  Derived& operator--() {
+    return (*this) -= 1;
+  }
+
+  virtual bool operator==(const Derived& other) const = 0;
+  bool operator!=(const Derived& other) const {
+    return !(*this == other);
+  }
+};
+
 } // util
 } // cpp_nn
 

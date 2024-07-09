@@ -593,28 +593,23 @@ int main() {
   
 
   {
-    std::cout << "lambda test" << std::endl;
-    std::vector<int> skr{1, 2, 3, 4};
-    auto f = [&]()->std::vector<int>& {
-      std::vector<int> co = skr;
-      std::swap(co[0], co[2]);
-      return co;
-    };
+    std::cout << "Iterator" << std::endl;
 
+    using namespace cpp_nn::util;
+    Tensor<int> A({2, 3, 1, 3});
+    std::vector<int> idx(A.getOrder(), 0);
+    int i = 0;
+    do {
+      A.getElement(idx) = (++i);
+    } while (cpp_nn::util::IncrementIndicesByShape(A.getShape().begin(), A.getShape().end(),
+                                                    idx.begin(), idx.end()));   
+    
+    PrintTensor(A);
+    Tensor<int>::Iterator it = A.begin();
 
-    std::vector<int> gr = f();
-
-    std::cout << "skr" << std::endl;
-    for (auto i : skr) {
-      std::cout << i << ", ";
-    }
-    std::cout << std::endl;
-
-
-
-    std::cout << "gr" << std::endl;
-    for (auto i : gr) {
-      std::cout << i << ", ";
+    while (it != A.end()) {
+      std::cout << *it << ", ";
+      it += 1;
     }
     std::cout << std::endl;
   }

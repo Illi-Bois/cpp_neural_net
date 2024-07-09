@@ -145,6 +145,92 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
   }
 // End of Modifiers ------------------------------------
 
+// Iterator --------------------------------------------
+  class Iterator : public IteratorInterface<T, Iterator> {
+   private:
+    Tensor<T>* const tensor_;
+    size_t curr_address_;
+
+   public:
+    Iterator(Tensor<T>* const tensor, size_t address)
+        : tensor_(tensor), curr_address_(address) {}
+
+    const T& operator*() const override {
+      return (*tensor_->elements_)[curr_address_];
+    }
+
+    Iterator& operator+=(int increment) override {
+      curr_address_ += increment;
+      if (curr_address_ >= tensor_->getCapacity()) {
+        curr_address_ = tensor_->getCapacity();
+      }
+      return *this;
+    }
+    Iterator& operator-=(int decrement) override {
+      if (decrement >= curr_address_) {
+        curr_address_ = 0;
+      } else {
+        curr_address_ -= decrement;
+      }
+      return *this;
+    }
+
+    bool operator==(const Iterator& other) const override {
+      return tensor_       == other.tensor_ && 
+             curr_address_ == other.curr_address_;
+    }
+  };
+  class ConstIterator : public IteratorInterface<T, ConstIterator> {
+   private:
+    const Tensor<T>* const tensor_;
+    size_t curr_address_;
+
+   public:
+    ConstIterator(const Tensor<T>* const tensor, size_t address)
+        : tensor_(tensor), curr_address_(address) {}
+
+    T& operator*() override = delete;
+    const T& operator*() const override {
+      return (*tensor_->elements_)[curr_address_];
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      curr_address_ += increment;
+      if (curr_address_ >= tensor_->getCapacity()) {
+        curr_address_ = tensor_->getCapacity();
+      }
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      if (decrement >= curr_address_) {
+        curr_address_ = 0;
+      } else {
+        curr_address_ -= decrement;
+      }
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const override {
+      return tensor_       == other.tensor_ && 
+             curr_address_ == other.curr_address_;
+    }
+  };
+// Iterator Getters -------------------------------
+  Iterator begin() {
+    return {this, 0};
+  }
+  Iterator end() {
+    return {this, getCapacity()};
+  }
+  ConstIterator begin() const {
+    return {this, 0};
+  }
+  ConstIterator end() const {
+    return {this, getCapacity()};
+  }
+// End of Iterator Getters ------------------------
+// End of Iterator -------------------------------------
+
  protected:
 // Member Fields ---------------------------------------
   std::vector<int> dimensions_;
