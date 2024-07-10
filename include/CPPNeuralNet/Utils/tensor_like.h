@@ -133,8 +133,14 @@ class TensorLike {
   Iterator begin() {
     return getRef().begin();
   }
+  Iterator end() {
+    return getRef().end();
+  }
   ConstIterator begin() const {
     return getRef().begin();
+  }
+  ConstIterator end() const {
+    return getRef().end();
   }
 
 // TODO: Element-wise iterator for fast and lightweight iteration of each element.

@@ -20,8 +20,8 @@ int main() {
     ++it;
   }
 
-  Tensor<int>::ConstIterator nit = const_cast<const Tensor<int>&>(A).begin();
-  Tensor<int>::ConstIterator nend = const_cast<const Tensor<int>&>(A).end();
+  auto nit = const_cast<const Tensor<int>&>(A).begin();
+  auto nend = const_cast<const Tensor<int>&>(A).end();
   while (nit != nend) {
     std::cout << *nit << ", ";
     ++nit;
