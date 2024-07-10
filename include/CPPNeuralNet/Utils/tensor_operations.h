@@ -296,7 +296,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     broad_cast_shape[broad_cast_shape.size() - 1] = cols;
     capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
                                1, std::multiplies<int>());
-    BroadcastOperation<T, HeldOperation1> B_broadcast(B, 
+    BroadcastOperation<T, HeldOperation2> B_broadcast(B, 
                                                       broad_cast_shape, 
                                                       capacity);
     // For product

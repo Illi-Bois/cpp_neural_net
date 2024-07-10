@@ -190,7 +190,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
     ConstIterator(const Tensor<T>* const tensor, size_t address)
         : tensor_(tensor), curr_address_(address) {}
     
-    const T& operator*() const {
+    const T& operator*() const override {
       return (*tensor_->elements_)[curr_address_];
     }
 
