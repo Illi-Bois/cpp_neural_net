@@ -149,10 +149,6 @@ class TensorLike {
           at_end_(is_end) {}
 
     T operator*() const override {
-      for (auto i : current_indices_) {
-        std::cout << i << ", ";
-      }
-      std::cout << std::endl;
       return tensor_like_->getElement(current_indices_);
     }
 
