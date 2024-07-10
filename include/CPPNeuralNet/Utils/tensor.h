@@ -381,13 +381,26 @@ template<typename Derived>
 Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like) noexcept
     // pre-allocate and construct by shape of tensor_like
     : Tensor(tensor_like.getShape()) {
+  /*
+      Quick Comment on why this works when operation are done and assigned to self.
+      When you something like A = A.T,
+        when operation is being resolved at assignment,
+        constructors are always called to generated new tensor of A.T
+        without desrupting any members used in the equation.
+        Assignment then moves or copies data to A from this contructed
+      Therefore no data is messed with while equation is being resolved.
+  */
+
   // TODO: implement a element-wise iterator, or global address system
   //                                          latter may now be possible with AddressToIndex
-
+  Iterator it = begin();
+  Iterator fin = end();
   // Assign each element with associated element from tensor_like
   std::vector<int> indices(getOrder(), 0);
   do {
-    getElement(indices) = tensor_like.getElement(indices);
+    // getElement(indices) = tensor_like.getElement(indices);
+    *it = tensor_like.getElement(indices);
+    ++it;
   } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
                                    indices.begin(),    indices.end()));
 }

@@ -29,6 +29,9 @@ int main() {
   std::cout << std::endl;
 
   PrintTensor(A);
+
+  A = A.Transpose();
+  PrintTensor(A);
 }
 
 
