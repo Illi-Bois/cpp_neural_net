@@ -31,7 +31,7 @@ bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
     shape_end--;
     idx_end--;
     if (*idx_end <= 0) {
-      *idx_end = *shape_end;
+      *idx_end = (*shape_end) - 1;
     } else {
       --*idx_end;
       return true;
