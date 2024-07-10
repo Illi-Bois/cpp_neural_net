@@ -185,7 +185,12 @@ TEST(UtilTensorOperation, Summing_To_Self) {
   }
 }
 TEST(UtilTensorOperation, Summing_To_Self_with_others_inbetween) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 2}, 1);
+  Tensor<float> b({2, 2}, -2);
+  a = a + b + a;
+  EXPECT_EQ(a.getElement({0, 0}), 0);
+  EXPECT_EQ(a.getElement({1, 1}), 0);
 }
 TEST(UtilTensorOperation, Summing_Incorrect_Dimensions) {
   using namespace cpp_nn::util;
@@ -194,10 +199,42 @@ TEST(UtilTensorOperation, Summing_Incorrect_Dimensions) {
   EXPECT_THROW(A + B, std::invalid_argument);
 }
 TEST(UtilTensorOperation, Summing_broadcast) {
-  
+//| 1  2  3  4  5 |   -broadcast-> | 1  2  3  4  5 |
+//                                 | 1  2  3  4  5 |
+//                                 | 1  2  3  4  5 | ...
+  using namespace cpp_nn::util;
+  Tensor<float> a({1, 5});
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> b({6,5},3);
+  Tensor<float> c = a + b;
+  val = 0;
+  for (int i = 0; i < 6; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      EXPECT_EQ(c.getElement({i, j}), (j + 1) + 3);
+    }
+  }
 }
 TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({1, 2, 3});
+  Tensor<float> b({4, 1, 3}, 2);
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> c = a + b; //resulting dimension would be {4, 2, 3}
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 2; ++j) {
+      for (int k = 0; k < 3; ++k) {
+        // a{0,j,k} as a's 0 position has been broadcastest, same for b
+        EXPECT_EQ(c.getElement({i, j, k}), a.getElement({0, j, k}) + b.getElement({i, 0, k}));
+      }
+    }
+  }
+
 }
 // End of SUMMATION ======================================
 
@@ -232,10 +269,10 @@ TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
 // END OF MULTIPLICATION =================================
 
 // RESHAPE ===============================================
-TEST(UtilTensorOperation, Rehsaping) {
+TEST(UtilTensorOperation, Reshaping) {
   
 }
-TEST(UtilTensorOperation, Rehsaping_to_self) {
+TEST(UtilTensorOperation, Reshaping_to_self) {
   
 }
 TEST(UtilTensorOperation, Reshaping_chained) {
