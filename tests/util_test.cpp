@@ -113,6 +113,52 @@ TEST(Util, Increment_Idx_Subvector_Change) {
 // END OF INCREMENT TESTS ---------------------------------------------------------------------
 
 
+// DECREMENT TEST -----------------------------------------------------------------------------
+TEST(Util, Decrement_Test) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,4};
+  std::vector<int> idx{0, 2, 0, 3};
+
+  EXPECT_TRUE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end()));
+                      
+  EXPECT_EQ(idx, std::vector<int>({0, 2, 0, 2}));
+}
+
+TEST(Util, Decrement_Test_Carry_under) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 2, 0, 2};
+
+  for (int i = 0; i < 3; ++i) {
+    EXPECT_TRUE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                        idx.begin(), idx.end()));
+  }
+                      
+  EXPECT_EQ(idx, std::vector<int>({0, 1, 1, 3}));
+}
+
+TEST(Util, Decrement_Fail) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+
+  for (int i = 0; i < 6; ++i) {
+    EXPECT_TRUE(DecrementIndicesByShape(shape.begin() + 2, shape.end(),
+                                        idx.begin() + 2, idx.end()));
+  }
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 0, 0}));
+
+  EXPECT_FALSE(DecrementIndicesByShape(shape.begin() + 2, shape.end(),
+                                      idx.begin() + 2, idx.end()));
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 1, 3}));
+}
+// END OF DECREMENT TEST ----------------------------------------------------------------------
+
+
 // BROADCAST TESTS ----------------------------------------------------------------------------
 TEST(Util, Broadcast) {
   //                             |           |   
