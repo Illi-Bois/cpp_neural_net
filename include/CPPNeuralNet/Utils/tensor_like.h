@@ -80,8 +80,10 @@ class TensorLike {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Tensor-Behaviours ----------------------------
- 
- public:
+
+// Iterators -------------------------------------------
+/*  Each TensorLike is to implement their version of Iterator. 
+    The typename must be present as ConstIterator. */
   class Iterator {
    public:
     typedef typename Derived::Iterator Derived_Iterator;
@@ -102,12 +104,11 @@ class TensorLike {
     bool operator!=(const Derived_Iterator& other) const {
       return !(*this == other);
     }
-  };
+  }; // End of Iterator
   class ConstIterator {
    public:
     typedef typename Derived::ConstIterator Derived_Iterator;
-
-    // ConstIter need only return by value, especailly as most Operation does not hold reference anyway
+    // as operation return non-reference, accessor for iterator also returns by value
     virtual T operator*() const = 0;
 
     virtual Derived_Iterator& operator+=(int increment) = 0;
@@ -124,21 +125,42 @@ class TensorLike {
     bool operator!=(const Derived_Iterator& other) const {
       return !(*this == other);
     }
-  };
+  }; // end of ConstIterator
+// Iterator Callers --------------------------------
+  // TensorLike objects only need implement ConstIter
+  ConstIterator begin() const {
+    return getRef().begin();
+  }
+  ConstIterator end() const {
+    return getRef().end();
+  }
+// End of Iterator Callers -------------------------
+// End of Iterators ------------------------------------
 
  protected:
-  // Default Iterator to be used as placeholder for specific Iterator
-  /** Unoptimized iterator using solvely the vector indices */
+// Default Iterators -----------------------------------
+/*  Default iterator iterates the TensorLike using vector-indices.
+    Therefore it is unoptimized, but serves as intinial functioning placeholder
+    until a better iterator design can be implemented. 
+    
+    The TensorLike using DefaultConstIterator is to include the line
+      typedef TensorLike<T, DERVIED>::DefaultConstIterator ConstIterator 
+    with DERIVED changed to its class name, so that typename becomes visible and accessable. */
   class DefaultConstIterator : public ConstIterator {
     typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
+  // Members ---------------------------------------------
     const Derived* const tensor_like_;
     std::vector<int> current_indices_;
 
     bool at_end_;  // both begin and end will be indicated by indices at all 0
                     // must be distinguished by at_end_ flag. 
+  // End of Members --------------------------------------
+
    public:
-    DefaultConstIterator(const Derived* self, const std::vector<int>& idx, bool is_end)
-        : tensor_like_(self),
+    DefaultConstIterator(const Derived* tensor_like, 
+                         const std::vector<int>& idx, 
+                         bool is_end)
+        : tensor_like_(tensor_like),
           current_indices_(idx),
           at_end_(is_end) {}
 
@@ -147,36 +169,46 @@ class TensorLike {
     }
 
     Derived_Iterator& operator+=(int increment) override {
-      // TODO Right now no robust guards against overrolling exists
-      if (at_end_) {
-        // do not increment simply return
+      if (increment < 0) return operator-=(-increment);
+
+      if (at_end_ || increment == 0) {
+        // if already at end, or increment = 0 do nothing
         return static_cast<Derived_Iterator&>(*this);
       }
-
       while (increment) {
-        if (IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end())) {
+        if (IncrementIndicesByShape(tensor_like_->getShape().begin(), 
+                                    tensor_like_->getShape().end(),
+                                    current_indices_.begin(), 
+                                    current_indices_.end())) {
           --increment;
         } else {
-          // incrementation failed, meaning we are at end
+          // Incrementation fails when at end.
+          // indices are set to 0
           at_end_ = true;
-          break;
+          break; 
         }
       }
       return static_cast<Derived_Iterator&>(*this);
+      // TODO either make it idx -> address -> idx
+      // or even any other thing to speed this up
     }
-    // TODO implement
     Derived_Iterator& operator-=(int decrement) override {
+      if (decrement < 0) return operator+=(-decrement);
+
       if (decrement == 0) {
         // do nothing
         return static_cast<Derived_Iterator&>(*this);
       }
 
       if (at_end_) {
-        DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end());
-        at_end_ = false;
+        // if at end, as idx is set to 0, manually decrement once
+        DecrementIndicesByShape(tensor_like_->getShape().begin(), 
+                                tensor_like_->getShape().end(),
+                                current_indices_.begin(), 
+                                current_indices_.end());
         --decrement;
+        // reset end
+        at_end_ = false;
       }
 
       // TODO Right now no robust guards against overrolling exists
@@ -200,27 +232,13 @@ class TensorLike {
       return tensor_like_ == other.tensor_like_ && 
               current_indices_ == other.current_indices_;
     }
-  };
-  // TODO: Operations may only need ConstIterator, because they will never need Modifying iterator
-  //  Iterator only needded for Tensor which actually moves data around
+  }; // End of DefaultConstIterator
+// End of Default Iterators ----------------------------
 
   // TODO: Ideally want to CRTP to remove virtual, but right now
   //      because of nesting inside template that is CRTP, seems impossible...
   // TODO: many of the motions are duplicate, maybe consider making this interface as we had tried
   //      but adding more interface seems to increase runtime
-
- public:
-  // TensorLike objects only need implement ConstIter
-  ConstIterator begin() const {
-    return getRef().begin();
-  }
-  ConstIterator end() const {
-    return getRef().end();
-  }
-
-// TODO: Element-wise iterator for fast and lightweight iteration of each element.
-//  if each tensor-like has a lightweight iteration, each can call the previous's iterator to
-//   quickly access element
 };
 
 /* End of Operation Facilitators --------------------------------------------------- */

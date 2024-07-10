@@ -223,7 +223,7 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
   ConstIterator end() const {
     return {this, std::vector<int>(getOrder(), 0), true};
   }
-};
+}; // End of MultiTransposeOperation
 
 /**
  *  sums two tensors with broadcasting applied. 
@@ -276,14 +276,43 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
-  // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  class ConstIterator : public Parent::ConstIterator {
+    typedef typename BroadcastOperation<T, HeldOperation1>::ConstIterator BroadcastIterator1;
+    typedef typename BroadcastOperation<T, HeldOperation2>::ConstIterator BroadcastIterator2;
+    BroadcastIterator1 first_it_;
+    BroadcastIterator2 second_it_;
+   public:
+    ConstIterator(BroadcastIterator1 first_it, 
+                  BroadcastIterator2 second_it)
+        : first_it_(first_it),
+          second_it_(second_it) {}
+
+    T operator*() const override {
+      return *first_it_ + *second_it_;
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      first_it_ += increment;
+      second_it_ += increment;
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      first_it_ -= decrement;
+      second_it_ -= decrement;
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const override {
+      return first_it_ == other.first_it_ && 
+             second_it_ == other.second_it_;
+    }
+  };
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false};
+    return {first_.begin(), second_.begin()};
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true};
+    return {first_.end(), second_.end()};
   }
 }; // End of SummationOperation
 
@@ -498,19 +527,41 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   }
 // End of Tensor-Behaviours ----------------------------
 
-  // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  class ConstIterator : public Parent::ConstIterator {
+    typedef typename HeldOperation::ConstIterator InnerIterator;
+    InnerIterator it_;
+   public:
+    ConstIterator(InnerIterator iter)
+        : it_(iter) {}
+
+    T operator*() const override {
+      return *it_;
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      it_ += increment;
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      it_ += decrement;
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const override {
+      return it_ == other.it_;
+    }
+  };
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false};
+    return {tensor_like_.begin()};
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true};
+    return {tensor_like_.end()};
   }
 // friend  ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
 // end of friend  --------------------------------------
-};
+}; // End of ReshapeOperation
 
 // TODO: Make FRont Padding.
 /** 
@@ -614,7 +665,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
   ConstIterator end() const {
     return {this, std::vector<int>(getOrder(), 0), true};
   }
-};
+}; // End of PaddingOperation
 
 /** 
  *  broadcasts tensor to desired shape. 
@@ -694,7 +745,7 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
   ConstIterator end() const {
     return {this, std::vector<int>(getOrder(), 0), true};
   }
-};
+}; // End of BroadcastOperation
 
 } // unnamed namespace 
 

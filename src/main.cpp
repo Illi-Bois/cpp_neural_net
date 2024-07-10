@@ -34,6 +34,11 @@ int main() {
   // A = A.Transpose();
 
   A = (A.Transpose() * A).Padding({1, 3, 3});
+
+  PrintTensor(A);
+  Tensor<int> B(A.getShape(), -100);
+
+  A = A + A.Reshape({3, 1, 3});
   PrintTensor(A);
 
   auto rev_it = A.end();
