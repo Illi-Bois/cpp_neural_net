@@ -105,17 +105,9 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
-  class Iterator : public Parent::DefaultIterator {
-   public:
-    Iterator(Self* self, std::vector<int> idx)
-        : Parent::DefaultIterator(self, idx) {}
-  };
-  class ConstIterator : public Parent::DefaultConstIterator {
-   public:
-    ConstIterator(const Self* self, std::vector<int> idx)
-        : Parent::DefaultConstIterator(self, idx) {}
-  };
-
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
 
   Iterator begin() {
     return {this, std::vector<int>(getOrder(), 0)};
@@ -228,6 +220,23 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
     return *this;
   }
 // End of Tensor-Behaviours ----------------------------
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
 };
 
 /**
@@ -280,6 +289,24 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
     return first_.getElement(indices) + second_.getElement(indices);
   }
 // End of Tensor-Behaviours ----------------------------
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
 }; // End of SummationOperation
 
 /**
@@ -395,6 +422,22 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   }
 // End of Tensor-Behaviours ----------------------------
 
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
 // friends ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
 // end of friedns --------------------------------------
@@ -484,6 +527,23 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   }
 // End of Tensor-Behaviours ----------------------------
 
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
 // friend  ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
 // end of friend  --------------------------------------
@@ -581,6 +641,23 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
     return *this;
   }
 // End of Tensor-Behaviours ----------------------------
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
 };
 
 /** 
@@ -651,6 +728,24 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
     return tensor_like_.getElement(passing_indices);
   }
 // End of Tensor-Behaviours ----------------------------
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultIterator Iterator;
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
 };
 
 } // unnamed namespace 

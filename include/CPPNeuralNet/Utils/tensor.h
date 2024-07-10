@@ -53,12 +53,6 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
 // Psuedo-Specializations -------------------------
 /*  Some Operations will be optimized from specialization. 
       However, this requires explicit statements. */
-
-/******* TEST GROUND */
-  template<typename HeldOperation>
-  Tensor(const TensorLike<T, TransposeOperation<T, HeldOperation>>& tens) noexcept;
-/******* End of TEST GROUND */
-
 /**
  *  Multiplication Resolution Constructor
  * 
@@ -196,7 +190,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
     ConstIterator(const Tensor<T>* const tensor, size_t address)
         : tensor_(tensor), curr_address_(address) {}
     
-    const T& operator*() const override {
+    T operator*() const override {
       return (*tensor_->elements_)[curr_address_];
     }
 
@@ -396,44 +390,18 @@ Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like) noexcept
         Assignment then moves or copies data to A from this contructed
       Therefore no data is messed with while equation is being resolved.
   */
+  typedef typename Derived::ConstIterator Derived_ConstIterator;
+  Iterator iter = begin();
+  const Iterator end_iter = end();
+  Derived_ConstIterator other_iter = tensor_like.getRef().begin();
 
-  // TODO: implement a element-wise iterator, or global address system
-  //                                          latter may now be possible with AddressToIndex
-  Iterator it = begin();
-  Iterator fin = end();
-  // Assign each element with associated element from tensor_like
-  std::vector<int> indices(getOrder(), 0);
-  do {
-    // getElement(indices) = tensor_like.getElement(indices);
-    *it = tensor_like.getElement(indices);
-    ++it;
-  } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
-                                   indices.begin(),    indices.end()));
-}
+  while (iter != end_iter) {
+    *iter = *other_iter;
 
-/***** TEST GROUND */
-template<typename T>
-template<typename HeldOperation>
-Tensor<T>::Tensor(const TensorLike<T, TransposeOperation<T, HeldOperation>>& tens) noexcept 
-    : Tensor(tens.getShape()) {
-  typedef TransposeOperation<T, HeldOperation> TensorLikeDerived; 
-
-  std::cout << "This called " << std::endl;
-  Iterator it = begin();
-  Iterator fin = end();
-
-
-  typename TensorLikeDerived::ConstIterator oit = tens.getRef().begin();
-  // TransposeOperation<T, HeldOperation>::ConstIterator ofin = tens.getRef().end();
-
-  while (it != fin) {
-    *it = *oit;
-
-    ++it;
-    ++oit;
+    ++iter;
+    ++other_iter;
   }
 }
-/***** TEST GROUND */
 
 // Psuedo-Specializations -------------------------
 /** Multiplication Resolution Constructor */

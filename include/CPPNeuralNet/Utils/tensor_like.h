@@ -107,7 +107,8 @@ class TensorLike {
    public:
     typedef typename Derived::ConstIterator Derived_Iterator;
 
-    virtual const T& operator*() const = 0;
+    // ConstIter need only return by value, especailly as most Operation does not hold reference anyway
+    virtual T operator*() const = 0;
 
     virtual Derived_Iterator& operator+=(int increment) = 0;
     virtual Derived_Iterator& operator-=(int decrement) = 0;
@@ -144,17 +145,31 @@ class TensorLike {
     }
 
     Derived_Iterator& operator+=(int increment) override {
+      // TODO Right now no robust guards against overrolling exists
       while (increment) {
-        IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end());
-        --increment;
+        if (IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end())) {
+          --increment;
+        } else {
+          // incrementation failed
+          break;
+        }
       }
       return static_cast<Derived_Iterator&>(*this);
     }
     // TODO implement
     Derived_Iterator& operator-=(int decrement) override {
-      // umm just += then, since we cant delete
-      operator+=(decrement);
+      // TODO Right now no robust guards against overrolling exists
+      while (decrement) {
+        if (DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end())) {
+          --decrement;
+        } else {
+          // incrementation failed
+          break;
+        }
+      }
+      return static_cast<Derived_Iterator&>(*this);
     }
 
     bool operator==(const Derived_Iterator& other) const override {
@@ -172,22 +187,36 @@ class TensorLike {
         : tensor_like_(self),
           current_indices_(idx) {}
 
-    const T& operator*() const override {
+    T operator*() const override {
       return tensor_like_->getElement(current_indices_);
     }
 
     Derived_Iterator& operator+=(int increment) override {
+      // TODO Right now no robust guards against overrolling exists
       while (increment) {
-        IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end());
-        --increment;
+        if (IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end())) {
+          --increment;
+        } else {
+          // incrementation failed
+          break;
+        }
       }
       return static_cast<Derived_Iterator&>(*this);
     }
     // TODO implement
     Derived_Iterator& operator-=(int decrement) override {
-      // umm just += then, since we cant delete
-      return operator+=(decrement);
+      // TODO Right now no robust guards against overrolling exists
+      while (decrement) {
+        if (DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end())) {
+          --decrement;
+        } else {
+          // incrementation failed
+          break;
+        }
+      }
+      return static_cast<Derived_Iterator&>(*this);
     }
 
     bool operator==(const Derived_Iterator& other) const override {
@@ -195,6 +224,8 @@ class TensorLike {
               current_indices_ == other.current_indices_;
     }
   };
+  // TODO: Operations may only need ConstIterator, because they will never need Modifying iterator
+  //  Iterator only needded for Tensor which actually moves data around
 
   // TODO: Ideally want to CRTP to remove virtual, but right now
   //      because of nesting inside template that is CRTP, seems impossible...
@@ -209,6 +240,7 @@ class TensorLike {
   Iterator end() {
     return getRef().end();
   }
+  // TensorLike objects only need implement ConstIter
   ConstIterator begin() const {
     return getRef().begin();
   }

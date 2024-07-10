@@ -30,9 +30,22 @@ int main() {
 
   PrintTensor(A);
 
-  // A = A.Transpose().Transpose() + (A.Transpose() * A);
+  A = (A.Transpose().Transpose().Padding({2, 4, 4}) + (A.Transpose() * A)).Padding({2, 2, 2}).Reshape({2, 2, 2}).Padding({2, 3, 3});
+  // A = A.Transpose();
+
   A = A.Transpose();
   PrintTensor(A);
+
+  auto rev_it = A.end();
+  auto rev_fin = A.begin();
+
+  while (rev_it != rev_fin) {
+    --rev_it;
+
+    std::cout << *rev_it << " ";
+  }
+  std::cout << std::endl;
+  
 }
 
 
