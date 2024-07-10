@@ -129,54 +129,6 @@ class TensorLike {
  protected:
   // Default Iterator to be used as placeholder for specific Iterator
   /** Unoptimized iterator using solvely the vector indices */
-  class DefaultIterator : public Iterator {
-    typedef typename Iterator::Derived_Iterator Derived_Iterator;
-
-    Derived* const tensor_like_;
-    std::vector<int> current_indices_;
-   public:
-
-    DefaultIterator(Derived* self, const std::vector<int>& idx)
-        : tensor_like_(self),
-          current_indices_(idx) {}
-          
-    T& operator*() override {
-      return tensor_like_->getElement(current_indices_);
-    }
-
-    Derived_Iterator& operator+=(int increment) override {
-      // TODO Right now no robust guards against overrolling exists
-      while (increment) {
-        if (IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end())) {
-          --increment;
-        } else {
-          // incrementation failed
-          break;
-        }
-      }
-      return static_cast<Derived_Iterator&>(*this);
-    }
-    // TODO implement
-    Derived_Iterator& operator-=(int decrement) override {
-      // TODO Right now no robust guards against overrolling exists
-      while (decrement) {
-        if (DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end())) {
-          --decrement;
-        } else {
-          // incrementation failed
-          break;
-        }
-      }
-      return static_cast<Derived_Iterator&>(*this);
-    }
-
-    bool operator==(const Derived_Iterator& other) const override {
-      return tensor_like_ == other.tensor_like_ && 
-              current_indices_ == other.current_indices_;
-    }
-  };
   class DefaultConstIterator : public ConstIterator {
     typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
 
@@ -238,13 +190,6 @@ class TensorLike {
   //      but adding more interface seems to increase runtime
 
  public:
-  // CRTP virtual
-  Iterator begin() {
-    return getRef().begin();
-  }
-  Iterator end() {
-    return getRef().end();
-  }
   // TensorLike objects only need implement ConstIter
   ConstIterator begin() const {
     return getRef().begin();
