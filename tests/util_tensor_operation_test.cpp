@@ -122,22 +122,38 @@ TEST(UtilTensorOperation, Transpose_Self) {
 TEST(UtilTensorOperation, Summation_Of_Two) {
   using namespace cpp_nn::util;
   Tensor<float> a({2, 3});
+  Tensor<float> b({2, 3}, 3);
   int val = 0;
   std::vector<int> idx(a.getOrder(), 0);
   do {
     a.getElement(idx) = ++val;
   } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
                                                  idx.begin(), idx.end()));
-  Tensor<float> b({2, 3}, 3);
   Tensor<float> c = a + b;
   for(int i = 0; i < 2; ++i) {
     for(int j = 0; j < 3; ++j) {
       EXPECT_EQ(c.getElement({i, j}), a.getElement({i, j}) + b.getElement({i, j}));
     }
   }
+  EXPECT_EQ(a.getShape(), c.getShape());
 }
 TEST(UtilTensorOperation, Summation_Of_Three) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({3, 4});
+  int val = 0;
+  std::vector<int> idx(a.getOrder(), 0);
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b({3, 4}, 3);
+  Tensor<float> c({3, 4}, 5);
+  Tensor<float> d = a + b + c;
+  for(int i = 0; i < 3; ++i) {
+    for(int j = 0; j < 4; ++j) {
+      EXPECT_EQ(d.getElement({i, j}), a.getElement({i, j}) + b.getElement({i, j}) + c.getElement({i, j}));
+    }
+  }
 }
 TEST(UtilTensorOperation, Summation_Of_many_with_parenthesis) {
   
