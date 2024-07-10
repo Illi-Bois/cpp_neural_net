@@ -180,6 +180,11 @@ class TensorLike {
   class DefaultConstIterator : public ConstIterator {
     typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
 
+    // TODO: Iterator Decrementing is not working,
+    //  Need to implement locator flag
+    //  which indicates if the iterator is at end, or at beginning or in the middle
+    //  ideally should be passed as constructor
+
     const Derived* const tensor_like_;
     std::vector<int> current_indices_;
    public:
@@ -247,6 +252,8 @@ class TensorLike {
   ConstIterator end() const {
     return getRef().end();
   }
+
+  // TODO: END should be reconsidered
 
 // TODO: Element-wise iterator for fast and lightweight iteration of each element.
 //  if each tensor-like has a lightweight iteration, each can call the previous's iterator to
