@@ -7,44 +7,63 @@
 
 namespace cpp_nn {
 namespace util {
-/** 
- *  increments given vector defining shape of a tensor and vector defining 
- *    indicies to be traversed, increments the indicies vector to the next 
- *    within the defined shape. 
- *  If next index does not exist, meaning iteration is terminated,
- *    returns false. Otherwise returns true.
- * 
- *  Iterators are given defining begin and end of vector. 
- *    Incrementation is only performed within given order.
- *    If either vector is shroter than the other,
- *      they are right-aligned and only considered until smaller
- *      terminates.
+
+// Increment/Decrement =========================================
+// Increments Once ----------------------------------------
+/**
+ *  increments indices vector by one according to the shape vector.
+ *  If overflow, returns False and sets idx to 0s.
  */
 bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end) noexcept;
+/**
+ *  dencrements indices vector by one according to the shape vector.
+ *  If underflow, returns False and sets idx to maximum index, which is dimension-1.
+ */
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end) noexcept;
+// End of Increments Once ---------------------------------
 
-// Increments it count number of times
-// returns false if it overflows and sets all to 0
+// Multiple Incrementatins --------------------------------
+/** 
+ *  increments count number of times. 
+ *  If overflows before count, returns False and sets idx to 0.
+ */
 bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end,
                              int count) noexcept;
-
-bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
-                             std::vector<int>::const_iterator       shape_end,
-                             const std::vector<int>::const_iterator idx_begin,
-                             std::vector<int>::iterator             idx_end) noexcept;
-
-// Decrements it count number of times
-// returns false if it overflows and sets all to dimension-1
+/** 
+ *  decrements count number of times. 
+ *  If underflows before count, 
+ *    returns False and sets idx to maximum index, which is dimension-1.
+ */
 bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end,
                              int count) noexcept;
+// End of Multiple Incrementatins -------------------------
+
+
+// Recursive Increment Helpers ----------------------------
+bool MultipleIncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                                     std::vector<int>::const_iterator       shape_end,
+                                     const std::vector<int>::const_iterator idx_begin,
+                                     std::vector<int>::iterator             idx_end,
+                                     int count) noexcept;
+bool MultipleDecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                                     std::vector<int>::const_iterator       shape_end,
+                                     const std::vector<int>::const_iterator idx_begin,
+                                     std::vector<int>::iterator             idx_end,
+                                     int count) noexcept;
+// End of Recursive Increment Helpers ---------------------
+// End of Increment/Decrement ==================================
 
 /**
  *  given sub-vectors defining shapes two tensors to be broadcasted,
