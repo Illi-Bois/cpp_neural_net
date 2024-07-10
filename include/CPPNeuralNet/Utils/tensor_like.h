@@ -124,7 +124,9 @@ class TensorLike {
       return !(*this == other);
     }
   };
-  
+
+ protected:
+  // Default Iterator to be used as placeholder for specific Iterator
   /** Unoptimized iterator using solvely the vector indices */
   class DefaultIterator : public Iterator {
     typedef typename Iterator::Derived_Iterator Derived_Iterator;

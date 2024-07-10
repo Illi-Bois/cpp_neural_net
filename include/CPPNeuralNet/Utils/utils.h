@@ -24,6 +24,11 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end) noexcept;
+
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end) noexcept;
 /**
  *  given sub-vectors defining shapes two tensors to be broadcasted,
  *    returns shape of broadcasted tensor.
