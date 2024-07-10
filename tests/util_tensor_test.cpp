@@ -175,3 +175,25 @@ TEST(UtilTensor, Constant_Tensor_Element_Getter) {
   EXPECT_EQ(tensor_two.getElement({1, 2, 1}), 11);
   EXPECT_EQ(tensor_two.getElement({1, 2, 3}), 11);
 }
+
+
+
+//GET ELEMENT
+TEST(UtilTensorOperation, GetElement_Operation) {
+  //try 1d tensor and high dim tensor 
+}
+TEST(UtilTensorOperation, GetElement_NegativeIndicies) {
+
+}
+TEST(UtilTensorOperation, GetElement_WrongNumberIndicies) {
+
+}
+TEST(UtilTensorOperation, GetElement_Outofbounds) {
+  //try for both positive and negative
+}
+TEST(UtilTensorOperation, GetElement_EmptyTensor) {
+
+}
+TEST(UtilTensorOperation, GetElement_ConstTensor) {
+
+}
