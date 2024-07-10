@@ -15,6 +15,9 @@ namespace util {
 
 template<typename T>
 class Tensor : public TensorLike<T, Tensor<T>> { // ========================================
+  typedef Tensor<T>           Self;
+  typedef TensorLike<T, Self> Parent;
+
  public:
 // Public Constructor-----------------------------------
 /**
@@ -122,14 +125,14 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
  *  tranposes given axes. Axes can be negative for python style.
  *  By default, transposes last two axes for matrix transpose.
  */
-  inline const TransposeOperation<T, Tensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const {
+  inline const TransposeOperation<T, Self> Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
 /**
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  inline ReshapeOperation<T, Tensor<T>> 
+  inline ReshapeOperation<T, Self> 
          Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
@@ -138,12 +141,95 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
  *  The dimension can be padded or cropped.
  *    When dimension is smaller, the elements beyond the dimension are lost.
  */
-  inline PaddingOperation<T, Tensor<T>> 
+  inline PaddingOperation<T, Self> 
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
 // End of Modifiers ------------------------------------
+
+// Iterator --------------------------------------------
+  class Iterator : public Parent::Iterator {
+   private:
+    Tensor<T>* const tensor_;
+    size_t curr_address_;
+
+   public:
+    Iterator(Tensor<T>* const tensor, size_t address)
+        : tensor_(tensor), curr_address_(address) {}
+    
+    T& operator*() override {
+      return (*tensor_->elements_)[curr_address_];
+    }
+
+    Iterator& operator+=(int increment) override {
+      curr_address_ += increment;
+      if (curr_address_ >= tensor_->getCapacity()) {
+        curr_address_ = tensor_->getCapacity();
+      }
+      return *this;
+    }
+    Iterator& operator-=(int decrement) override {
+      if (decrement >= curr_address_) {
+        curr_address_ = 0;
+      } else {
+        curr_address_ -= decrement;
+      }
+      return *this;
+    }
+    bool operator==(const Iterator& other) const override {
+      return tensor_       == other.tensor_ && 
+             curr_address_ == other.curr_address_;
+    }
+  };
+  class ConstIterator : public Parent::ConstIterator {
+   private:
+    const Tensor<T>* const tensor_;
+    size_t curr_address_;
+
+   public:
+    ConstIterator(const Tensor<T>* const tensor, size_t address)
+        : tensor_(tensor), curr_address_(address) {}
+    
+    T operator*() const override {
+      return (*tensor_->elements_)[curr_address_];
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      curr_address_ += increment;
+      if (curr_address_ >= tensor_->getCapacity()) {
+        curr_address_ = tensor_->getCapacity();
+      }
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      if (decrement >= curr_address_) {
+        curr_address_ = 0;
+      } else {
+        curr_address_ -= decrement;
+      }
+      return *this;
+    }
+    bool operator==(const ConstIterator& other) const override {
+      return tensor_       == other.tensor_ && 
+             curr_address_ == other.curr_address_;
+    }
+  };
+// Iterator Getters -------------------------------
+  Iterator begin() {
+    return {this, 0};
+  }
+  Iterator end() {
+    return {this, getCapacity()};
+  }
+  ConstIterator begin() const {
+    return {this, 0};
+  }
+  ConstIterator end() const {
+    return {this, getCapacity()};
+  }
+// End of Iterator Getters ------------------------
+// End of Iterator -------------------------------------
 
  protected:
 // Member Fields ---------------------------------------
@@ -296,15 +382,37 @@ template<typename Derived>
 Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like) noexcept
     // pre-allocate and construct by shape of tensor_like
     : Tensor(tensor_like.getShape()) {
-  // TODO: implement a element-wise iterator, or global address system
-  //                                          latter may now be possible with AddressToIndex
+  /*
+      Quick Comment on why this works when operation are done and assigned to self.
+      When you something like A = A.T,
+        when operation is being resolved at assignment,
+        constructors are always called to generated new tensor of A.T
+        without desrupting any members used in the equation.
+        Assignment then moves or copies data to A from this contructed
+      Therefore no data is messed with while equation is being resolved.
+  */
+  typedef typename Derived::ConstIterator Derived_ConstIterator;
+  // Iterator iter = begin();
+  // const Iterator end_iter = end();
+  // Derived_ConstIterator other_iter = tensor_like.getRef().begin();
 
-  // Assign each element with associated element from tensor_like
-  std::vector<int> indices(getOrder(), 0);
-  do {
-    getElement(indices) = tensor_like.getElement(indices);
-  } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
-                                   indices.begin(),    indices.end()));
+  // while (iter != end_iter) {
+  //   *iter = *other_iter;
+
+  //   ++iter;
+  //   ++other_iter;
+  // }
+
+  const Iterator front_iter = begin();
+  Iterator iter = end();
+  Derived_ConstIterator other_iter = tensor_like.getRef().end();
+
+  while (iter != front_iter) {
+    --iter;
+    --other_iter;
+    
+    *iter = *other_iter;
+  }
 }
 
 // Psuedo-Specializations -------------------------

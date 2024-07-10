@@ -7,23 +7,64 @@
 
 namespace cpp_nn {
 namespace util {
-/** 
- *  increments given vector defining shape of a tensor and vector defining 
- *    indicies to be traversed, increments the indicies vector to the next 
- *    within the defined shape. 
- *  If next index does not exist, meaning iteration is terminated,
- *    returns false. Otherwise returns true.
- * 
- *  Iterators are given defining begin and end of vector. 
- *    Incrementation is only performed within given order.
- *    If either vector is shroter than the other,
- *      they are right-aligned and only considered until smaller
- *      terminates.
+
+// Increment/Decrement =========================================
+// Increments Once ----------------------------------------
+/**
+ *  increments indices vector by one according to the shape vector.
+ *  If overflow, returns False and sets idx to 0s.
  */
 bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end) noexcept;
+/**
+ *  dencrements indices vector by one according to the shape vector.
+ *  If underflow, returns False and sets idx to maximum index, which is dimension-1.
+ */
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end) noexcept;
+// End of Increments Once ---------------------------------
+
+// Multiple Incrementatins --------------------------------
+/** 
+ *  increments count number of times. 
+ *  If overflows before count, returns False and sets idx to 0.
+ */
+bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end,
+                             int count) noexcept;
+/** 
+ *  decrements count number of times. 
+ *  If underflows before count, 
+ *    returns False and sets idx to maximum index, which is dimension-1.
+ */
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end,
+                             int count) noexcept;
+// End of Multiple Incrementatins -------------------------
+
+
+// Recursive Increment Helpers ----------------------------
+bool MultipleIncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                                     std::vector<int>::const_iterator       shape_end,
+                                     const std::vector<int>::const_iterator idx_begin,
+                                     std::vector<int>::iterator             idx_end,
+                                     int count) noexcept;
+bool MultipleDecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                                     std::vector<int>::const_iterator       shape_end,
+                                     const std::vector<int>::const_iterator idx_begin,
+                                     std::vector<int>::iterator             idx_end,
+                                     int count) noexcept;
+// End of Recursive Increment Helpers ---------------------
+// End of Increment/Decrement ==================================
+
 /**
  *  given sub-vectors defining shapes two tensors to be broadcasted,
  *    returns shape of broadcasted tensor.
@@ -77,6 +118,32 @@ std::vector<int> AddressToIndices(const std::vector<int>& shape, size_t address)
 size_t IndicesToAddress(const std::vector<int>& shape,
                         const std::vector<int>& chunk_sizes,
                         const std::vector<int>& indices) noexcept;
+
+
+// TODO: move somewhere else more appropriate?
+template<typename T, typename Derived>
+struct IteratorInterface {
+ public:
+  virtual const T& operator*() const {
+    return const_cast<const T&>(const_cast<IteratorInterface<T, Derived>&>(*this).operator*());
+  }
+  virtual T& operator*() = 0;
+
+  virtual Derived& operator+=(int increment) = 0;
+  virtual Derived& operator-=(int decrement) = 0;
+
+  Derived& operator++() {
+    return (*this) += 1;
+  }
+  Derived& operator--() {
+    return (*this) -= 1;
+  }
+
+  virtual bool operator==(const Derived& other) const = 0;
+  bool operator!=(const Derived& other) const {
+    return !(*this == other);
+  }
+};
 
 } // util
 } // cpp_nn

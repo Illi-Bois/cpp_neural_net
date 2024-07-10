@@ -5,12 +5,15 @@
 namespace cpp_nn {
 namespace util {
 
+
+// Increment/Decrement =========================================
+// Increments Once ----------------------------------------
 bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
-                             std::vector<int>::const_iterator shape_end,
+                             std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
-                             std::vector<int>::iterator idx_end) noexcept {
+                             std::vector<int>::iterator             idx_end) noexcept {
   while (shape_end != shape_begin &&
-         idx_end != idx_begin) {
+         idx_end   != idx_begin) {
     shape_end--;
     idx_end--;
     if (++(*idx_end) >= *shape_end) {
@@ -21,6 +24,182 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
   };
   return false;
 }
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end) noexcept {
+  while (shape_end != shape_begin &&
+         idx_end   != idx_begin) {
+    shape_end--;
+    idx_end--;
+    if (*idx_end <= 0) {
+      *idx_end = (*shape_end) - 1;
+    } else {
+      --*idx_end;
+      return true;
+    }
+  };
+  return false;
+}
+// End of Increments Once ---------------------------------
+
+// Multiple Incrementatins --------------------------------
+bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end,
+                             int count) noexcept {
+  if (count == 0) {
+    return true;
+  } else if (count == 1) {
+    return IncrementIndicesByShape(shape_begin, 
+                                   shape_end,
+                                   idx_begin,
+                                   idx_end);
+  } else if (count == -1) {
+    return DecrementIndicesByShape(shape_begin, 
+                                   shape_end,
+                                   idx_begin,
+                                   idx_end);
+  } else if (count < 0) {
+    return MultipleDecrementIndicesByShape(shape_begin, 
+                                           shape_end,
+                                           idx_begin,
+                                           idx_end,
+                                           -count);
+  }
+  return MultipleIncrementIndicesByShape(shape_begin, 
+                                         shape_end,
+                                         idx_begin,
+                                         idx_end,
+                                         count);
+}
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end,
+                             int count) noexcept {
+  if (count == 0) {
+    return true;
+  } else if (count == 1) {
+    return DecrementIndicesByShape(shape_begin, 
+                                   shape_end,
+                                   idx_begin,
+                                   idx_end);
+  } else if (count == -1) {
+    return IncrementIndicesByShape(shape_begin, 
+                                   shape_end,
+                                   idx_begin,
+                                   idx_end);
+  } else if (count < 0) {
+    return MultipleIncrementIndicesByShape(shape_begin, 
+                                           shape_end,
+                                           idx_begin,
+                                           idx_end,
+                                           -count);
+  }
+  return MultipleDecrementIndicesByShape(shape_begin, 
+                                         shape_end,
+                                         idx_begin,
+                                         idx_end,
+                                         count);
+}
+// End of Multiple Incrementatins -------------------------
+
+// Recursive Increment Helpers ----------------------------
+bool MultipleIncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                                     std::vector<int>::const_iterator       shape_end,
+                                     const std::vector<int>::const_iterator idx_begin,
+                                     std::vector<int>::iterator             idx_end,
+                                     int count) noexcept {
+  // count is never given as negative or 0
+  //   can assume count > 0
+
+  if (shape_end == shape_begin ||
+      idx_end   == idx_begin) {
+    // BASE CASE
+    return false; // End is reached and so is overflow
+
+  } else { // ITERATING CASE
+    --idx_end;
+    --shape_end;
+
+    *idx_end += count; // Try adding everything to current
+    if (*idx_end >= *shape_end) { // If overflows in box
+      // Need to carry over remaining
+      count = *idx_end / *shape_end;  // count > 0 necessarily
+      // Recurvively increment
+      if (IncrementIndicesByShape(shape_begin, shape_end,
+                                  idx_begin, idx_end,
+                                  count)) {
+        // If carry was sucessful
+        // set current to the left-over
+        *idx_end %= *shape_end;  
+        return true;
+      } else {  // If carry failed
+        // set current to 0
+        *idx_end = 0;
+        return false;
+      }
+
+    } else { // If count fit in current, 
+      return true; // incrementation was succ
+    }
+  }
+}
+bool MultipleDecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                                     std::vector<int>::const_iterator       shape_end,
+                                     const std::vector<int>::const_iterator idx_begin,
+                                     std::vector<int>::iterator             idx_end,
+                                     int count) noexcept {
+  // count is never given as negative or 0
+  //   can assume count > 0                               
+
+  if (shape_end == shape_begin ||
+      idx_end   == idx_begin) {
+    // BASE CASE
+    return false;  // End if reached meaning underflow
+
+  } else { // ITERATING CASE
+    --idx_end;
+    --shape_end;
+
+    // take away what can be taken away at current dimension
+    *idx_end -= count % *shape_end;
+    // remaining take-away to be carried
+    count /= *shape_end;
+
+    if (*idx_end < 0) {
+      // IF current-take away is negative, means we will have to 
+      //  carry down from next axis down
+      // This is equivalent to incrementing count by 1
+      *idx_end += *shape_end;
+      ++count; 
+    }
+
+    if (count == 0) {
+      // Takeaway at current dimension was successful, 
+      // no need to carry
+      return true;
+    } else {
+      // recursive call
+      if (DecrementIndicesByShape(shape_begin, shape_end,
+                                  idx_begin, idx_end,
+                                  count)) {
+        // If carry was successful, return true
+        return true;
+      } else {
+        // Carry failed and thus underflowed
+        // Set current to underflow-roll-over
+        *idx_end = *shape_end - 1;
+        return false;
+      }
+    }
+  }
+}
+// End of Recursive Increment Helpers ---------------------
+// End of Increment/Decrement ==================================
+
 
 
 std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_begin, 

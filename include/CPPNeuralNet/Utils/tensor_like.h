@@ -81,9 +81,162 @@ class TensorLike {
   }
 // End of Tensor-Behaviours ----------------------------
 
-// TODO: Element-wise iterator for fast and lightweight iteration of each element.
-//  if each tensor-like has a lightweight iteration, each can call the previous's iterator to
-//   quickly access element
+// Iterators -------------------------------------------
+/*  Each TensorLike is to implement their version of Iterator. 
+    The typename must be present as ConstIterator. */
+  class Iterator {
+   public:
+    typedef typename Derived::Iterator Derived_Iterator;
+
+    virtual T& operator*() = 0;
+
+    virtual Derived_Iterator& operator+=(int increment) = 0;
+    virtual Derived_Iterator& operator-=(int decrement) = 0;
+
+    Derived_Iterator& operator++() {
+      return (*this) += 1;
+    }
+    Derived_Iterator& operator--() {
+      return (*this) -= 1;
+    }
+
+    virtual bool operator==(const Derived_Iterator& other) const = 0;
+    bool operator!=(const Derived_Iterator& other) const {
+      return !(*this == other);
+    }
+  }; // End of Iterator
+  class ConstIterator {
+   public:
+    typedef typename Derived::ConstIterator Derived_Iterator;
+    // as operation return non-reference, accessor for iterator also returns by value
+    virtual T operator*() const = 0;
+
+    virtual Derived_Iterator& operator+=(int increment) = 0;
+    virtual Derived_Iterator& operator-=(int decrement) = 0;
+
+    Derived_Iterator& operator++() {
+      return (*this) += 1;
+    }
+    Derived_Iterator& operator--() {
+      return (*this) -= 1;
+    }
+
+    virtual bool operator==(const Derived_Iterator& other) const = 0;
+    bool operator!=(const Derived_Iterator& other) const {
+      return !(*this == other);
+    }
+  }; // end of ConstIterator
+// Iterator Callers --------------------------------
+  // TensorLike objects only need implement ConstIter
+  ConstIterator begin() const {
+    return getRef().begin();
+  }
+  ConstIterator end() const {
+    return getRef().end();
+  }
+// End of Iterator Callers -------------------------
+// End of Iterators ------------------------------------
+
+ protected:
+// Default Iterators -----------------------------------
+/*  Default iterator iterates the TensorLike using vector-indices.
+    Therefore it is unoptimized, but serves as intinial functioning placeholder
+    until a better iterator design can be implemented. 
+    
+    The TensorLike using DefaultConstIterator is to include the line
+      typedef TensorLike<T, DERVIED>::DefaultConstIterator ConstIterator 
+    with DERIVED changed to its class name, so that typename becomes visible and accessable. */
+  class DefaultConstIterator : public ConstIterator {
+    typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
+  // Members ---------------------------------------------
+    const Derived* const tensor_like_;
+    std::vector<int> current_indices_;
+
+    bool at_end_;  // both begin and end will be indicated by indices at all 0
+                    // must be distinguished by at_end_ flag. 
+  // End of Members --------------------------------------
+
+   public:
+    DefaultConstIterator(const Derived* tensor_like, 
+                         const std::vector<int>& idx, 
+                         bool is_end)
+        : tensor_like_(tensor_like),
+          current_indices_(idx),
+          at_end_(is_end) {}
+
+    T operator*() const override {
+      return tensor_like_->getElement(current_indices_);
+    }
+
+    Derived_Iterator& operator+=(int increment) override {
+      if (at_end_) {
+        // cannot increment from end, quick exit
+        return static_cast<Derived_Iterator&>(*this);
+      }
+      if (IncrementIndicesByShape(tensor_like_->getShape().begin(), 
+                                  tensor_like_->getShape().end(),
+                                  current_indices_.begin(), 
+                                  current_indices_.end(),
+                                  increment)) {
+        return static_cast<Derived_Iterator&>(*this);
+      } else {
+        // overflowed
+        at_end_ = true;
+      }
+      return static_cast<Derived_Iterator&>(*this);
+    }
+    Derived_Iterator& operator-=(int decrement) override {
+      // Some initial checks so that end can be handled little more smoothly
+      if (decrement < 0) {
+        return operator+=(-decrement);
+      }
+      if (decrement == 0) {
+        // do nothing
+        return static_cast<Derived_Iterator&>(*this);
+      }
+      
+      // If at end, idx are all set to 0
+      if (at_end_) {
+        // Manually set to correct maximum size
+        for (int axis = 0; axis < tensor_like_->getOrder(); ++axis) {
+          current_indices_[axis] = tensor_like_->getDimension(axis) - 1;
+        }
+        // alternative was to use Derement, but this might be faster
+        --decrement;    // this uses up one decrement
+        at_end_ = false;
+
+        if (decrement == 0) {
+          // quick exit
+          return static_cast<Derived_Iterator&>(*this); 
+        }
+      }
+
+      // decrement is now guaranteed > 0
+      if (DecrementIndicesByShape(tensor_like_->getShape().begin(), 
+                                  tensor_like_->getShape().end(),
+                                  current_indices_.begin(), 
+                                  current_indices_.end(),
+                                  decrement)) {
+        // No underflow, therefore successful
+        return static_cast<Derived_Iterator&>(*this);
+      } else {
+        // underflow set all to 0
+        std::fill(current_indices_.begin(), current_indices_.end(), 0);
+      }
+      return static_cast<Derived_Iterator&>(*this);
+    }
+
+    bool operator==(const Derived_Iterator& other) const override {
+      return tensor_like_ == other.tensor_like_ && 
+              current_indices_ == other.current_indices_;
+    }
+  }; // End of DefaultConstIterator
+// End of Default Iterators ----------------------------
+
+  // TODO: Ideally want to CRTP to remove virtual, but right now
+  //      because of nesting inside template that is CRTP, seems impossible...
+  // TODO: many of the motions are duplicate, maybe consider making this interface as we had tried
+  //      but adding more interface seems to increase runtime
 };
 
 /* End of Operation Facilitators --------------------------------------------------- */

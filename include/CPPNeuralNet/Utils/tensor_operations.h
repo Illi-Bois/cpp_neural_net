@@ -54,6 +54,9 @@ namespace {
  */
 template<typename T, typename HeldOperation>
 class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperation>> {
+  typedef TransposeOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_;
   const int axis_1_;
@@ -102,6 +105,16 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0), false};
+  }
+  ConstIterator end() const {
+    return {this, std::vector<int>(getOrder(), 0), true};
+  }
+
 // friends ---------------------------------------------
   friend class MultiTransposeOperation<T, HeldOperation>;
 // end of friends --------------------------------------
@@ -117,6 +130,9 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
  */
 template<typename T, typename HeldOperation>
 class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, HeldOperation>> {
+  typedef MultiTransposeOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
 
@@ -197,13 +213,26 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
     return *this;
   }
 // End of Tensor-Behaviours ----------------------------
-};
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0), false};
+  }
+  ConstIterator end() const {
+    return {this, std::vector<int>(getOrder(), 0), true};
+  }
+}; // End of MultiTransposeOperation
 
 /**
  *  sums two tensors with broadcasting applied. 
  */
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperation1, HeldOperation2>> {
+  typedef SummationOperation<T, HeldOperation1, HeldOperation2> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
     const std::vector<int> broadcast_shape_;
     const size_t broadcast_capacity_;
@@ -246,6 +275,45 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
     return first_.getElement(indices) + second_.getElement(indices);
   }
 // End of Tensor-Behaviours ----------------------------
+
+  class ConstIterator : public Parent::ConstIterator {
+    typedef typename BroadcastOperation<T, HeldOperation1>::ConstIterator BroadcastIterator1;
+    typedef typename BroadcastOperation<T, HeldOperation2>::ConstIterator BroadcastIterator2;
+    BroadcastIterator1 first_it_;
+    BroadcastIterator2 second_it_;
+   public:
+    ConstIterator(BroadcastIterator1 first_it, 
+                  BroadcastIterator2 second_it)
+        : first_it_(first_it),
+          second_it_(second_it) {}
+
+    T operator*() const override {
+      return *first_it_ + *second_it_;
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      first_it_ += increment;
+      second_it_ += increment;
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      first_it_ -= decrement;
+      second_it_ -= decrement;
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const override {
+      return first_it_ == other.first_it_ && 
+             second_it_ == other.second_it_;
+    }
+  };
+
+  ConstIterator begin() const {
+    return {first_.begin(), second_.begin()};
+  }
+  ConstIterator end() const {
+    return {first_.end(), second_.end()};
+  }
 }; // End of SummationOperation
 
 /**
@@ -255,10 +323,13 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
  */
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> {
+  typedef MultiplicationOperation<T, HeldOperation1, HeldOperation2> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   // product is resolved upon construct,
   //  so that other multiplcation algorithms can be used.
-  Tensor<T>*       product_tensor_;
+  Tensor<T>* product_tensor_;
 // End of Members --------------------------------------
 
  public:
@@ -296,7 +367,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     broad_cast_shape[broad_cast_shape.size() - 1] = cols;
     capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
                                1, std::multiplies<int>());
-    BroadcastOperation<T, HeldOperation1> B_broadcast(B, 
+    BroadcastOperation<T, HeldOperation2> B_broadcast(B, 
                                                       broad_cast_shape, 
                                                       capacity);
     // For product
@@ -358,6 +429,15 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   }
 // End of Tensor-Behaviours ----------------------------
 
+// ! ConstTerator of Tensor moved to represent ConstIterator of this
+  typedef typename Tensor<T>::ConstIterator ConstIterator;
+
+  ConstIterator begin() const {
+    return product_tensor_->begin();
+  }
+  ConstIterator end() const {
+    return product_tensor_->end();
+  }
 // friends ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
 // end of friedns --------------------------------------
@@ -370,6 +450,9 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
  */
 template<typename T, typename HeldOperation>
 class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>> {
+  typedef ReshapeOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   std::vector<int> reshaped_dimension_;
@@ -430,10 +513,6 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                                                           address);
     return tensor_like_.getElement(old_indices);
   }
-  inline const TransposeOperation<T, ReshapeOperation<T, HeldOperation>> 
-               Transpose(int axis1 = -2, int axis2 = -1) const {
-    return {*this, axis1, axis2};
-  }
 
   // Non-const reshape
   inline ReshapeOperation<T, HeldOperation>&
@@ -448,10 +527,41 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   }
 // End of Tensor-Behaviours ----------------------------
 
+  class ConstIterator : public Parent::ConstIterator {
+    typedef typename HeldOperation::ConstIterator InnerIterator;
+    InnerIterator it_;
+   public:
+    ConstIterator(InnerIterator iter)
+        : it_(iter) {}
+
+    T operator*() const override {
+      return *it_;
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      it_ += increment;
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      it_ += decrement;
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const override {
+      return it_ == other.it_;
+    }
+  };
+
+  ConstIterator begin() const {
+    return {tensor_like_.begin()};
+  }
+  ConstIterator end() const {
+    return {tensor_like_.end()};
+  }
 // friend  ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
 // end of friend  --------------------------------------
-};
+}; // End of ReshapeOperation
 
 // TODO: Make FRont Padding.
 /** 
@@ -462,6 +572,9 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
  */
 template<typename T, typename HeldOperation>
 class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>> {
+  typedef PaddingOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   std::vector<int> padded_shape_;
@@ -542,7 +655,17 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
     return *this;
   }
 // End of Tensor-Behaviours ----------------------------
-};
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0), false};
+  }
+  ConstIterator end() const {
+    return {this, std::vector<int>(getOrder(), 0), true};
+  }
+}; // End of PaddingOperation
 
 /** 
  *  broadcasts tensor to desired shape. 
@@ -558,6 +681,9 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
  */
 template<typename T, typename HeldOperation>
 class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperation>> {
+  typedef BroadcastOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   const std::vector<int> broadcast_shape_;
@@ -609,7 +735,17 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
     return tensor_like_.getElement(passing_indices);
   }
 // End of Tensor-Behaviours ----------------------------
-};
+
+  // type def instead of making another inner class
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0), false};
+  }
+  ConstIterator end() const {
+    return {this, std::vector<int>(getOrder(), 0), true};
+  }
+}; // End of BroadcastOperation
 
 } // unnamed namespace 
 

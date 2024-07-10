@@ -268,3 +268,34 @@ And not to mention, the correct and fast implementation of move operator may ele
 Only tranpose, which, with our current design of each tensor being a complete object (meaning no in-place tranposing), only tranpose require data moving. This may suggest above OperationHolder may only be needed for TranposeHolder. 
 
 The above will require discussion with my partner to lay down the final decision. 
+
+
+
+
+
+
+
+
+
+--- Iterator ---
+
+On Tensor, we can easily do with address
+- pointer to Tensor,
+- current address
+
+Iterator needs to handle +int, -int
+
+
+
+
+
+Iterators divide into two cases
+- Iterator
+- ConstIterator
+
+Each TensorLike will have ...::Iterator and ...::ConstIterator as inner class
+Each TensorLike will have beign and end to return these
+== Therefore TensorLike needs to have these as inner class
+  = maybe each insatnces have separate inner which inherit from this TensorLike::Iterator,
+  = which has virtual?
+
