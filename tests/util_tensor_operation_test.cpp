@@ -172,7 +172,7 @@ TEST(UtilTensorOperation, SelfSumming) {
 }
 TEST(UtilTensorOperation, Summing_To_Self) {
   using namespace cpp_nn::util;
-  Tensor<float> a({4, 3});
+  Tensor<float> a({4, 3, 1, 2});
   std::vector<int> idx(a.getOrder(), 0);
   int val = 0;
   for (auto it = a.begin(); it != a.end(); ++it) {
@@ -240,7 +240,33 @@ TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
 
 // MULTIPLICATION ========================================
 TEST(UtilTensorOperation, Multiplication_of_two) {
-  
+  using namespace cpp_nn::util;
+  //2D
+  int val = 0;
+  Tensor<float> a({2, 3});
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> b({3, 2});
+  val = 16;
+  for (auto it = b.begin(); it != b.end(); ++it) {
+    *it = --val;
+  }
+  // Tensor<float> c(a * b);
+  // Tensor<float> c2 = b * a;
+  Tensor<float> expected1({2, 2});
+  expected1.getElement({0, 0}) = 20;
+  expected1.getElement({0, 1}) = 14;
+  expected1.getElement({1, 0}) = 56;
+  expected1.getElement({1, 1}) = 41;
+  //EXPECT_EQ(c.getElement({0,0}), 20);
+  //EXPECT_EQ(expected1.getElement({0,0}), 20);
+
+  // for(int i = 0; i < 2; ++i){
+  //   for(int j = 0; j < 2; ++j){
+  //     EXPECT_EQ(c.getElement({i, j}), expected1.getElement({i, j}));
+  //   }
+  // }
 }
 TEST(UtilTensorOperation, Multiplication_of_three) {
   
