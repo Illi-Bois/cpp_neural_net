@@ -7,6 +7,26 @@ TEST(UtilTensorOperation, SanityCheck) {
   EXPECT_TRUE(true);
 }
 
+//GET ELEMENT
+TEST(UtilTensorOperation, GetElement_Operation) {
+  //try 1d tensor and high dim tensor 
+}
+TEST(UtilTensorOperation, GetElement_NegativeIndicies) {
+
+}
+TEST(UtilTensorOperation, GetElement_WrongNumberIndicies) {
+
+}
+TEST(UtilTensorOperation, GetElement_Outofbounds) {
+  //try for both positive and negative
+}
+TEST(UtilTensorOperation, GetElement_EmptyTensor) {
+
+}
+TEST(UtilTensorOperation, GetElement_ConstTensor) {
+
+}
+
 // TRANSPOSE =============================================
 TEST(UtilTensorOperation, Transpose_Operation) {
   using namespace cpp_nn::util;
