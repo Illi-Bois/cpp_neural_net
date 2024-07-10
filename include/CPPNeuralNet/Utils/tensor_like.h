@@ -185,7 +185,7 @@ class TensorLike {
     // TODO implement
     Derived_Iterator& operator-=(int decrement) override {
       // umm just += then, since we cant delete
-      operator+=(decrement);
+      return operator+=(decrement);
     }
 
     bool operator==(const Derived_Iterator& other) const override {
