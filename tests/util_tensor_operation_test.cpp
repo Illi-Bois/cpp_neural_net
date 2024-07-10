@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "CPPNeuralNet/Utils/tensor.h"
+#include <random>
 
 TEST(UtilTensorOperation, SanityCheck) {
   EXPECT_TRUE(true);
@@ -159,7 +160,23 @@ TEST(UtilTensorOperation, Summation_Of_many_with_parenthesis) {
   
 }
 TEST(UtilTensorOperation, SelfSumming) {
-  
+  //Using random numbers might be better
+  using namespace cpp_nn::util;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dis(0.0, 10.0);
+  Tensor<float> a({4, 3});
+  std::vector<int> idx(a.getOrder(), 0);
+  do {
+    a.getElement(idx) = dis(gen);
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b = a + a;
+  for(int i = 0; i < 4; ++i) {
+    for(int j = 0; j < 3; ++j) {
+      EXPECT_EQ(b.getElement({i ,j}), a.getElement({i, j}) * 2 );
+    }
+  }
 }
 TEST(UtilTensorOperation, Summing_To_Self) {
   
