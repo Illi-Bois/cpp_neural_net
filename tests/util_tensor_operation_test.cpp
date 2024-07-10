@@ -120,7 +120,21 @@ TEST(UtilTensorOperation, Transpose_Self) {
 
 // SUMMATION =============================================
 TEST(UtilTensorOperation, Summation_Of_Two) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3});
+  int val = 0;
+  std::vector<int> idx(a.getOrder(), 0);
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b({2, 3}, 3);
+  Tensor<float> c = a + b;
+  for(int i = 0; i < 2; ++i) {
+    for(int j = 0; j < 3; ++j) {
+      EXPECT_EQ(c.getElement({i, j}), a.getElement({i, j}) + b.getElement({i, j}));
+    }
+  }
 }
 TEST(UtilTensorOperation, Summation_Of_Three) {
   
