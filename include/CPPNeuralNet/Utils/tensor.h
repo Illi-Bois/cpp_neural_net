@@ -15,7 +15,8 @@ namespace util {
 
 template<typename T>
 class Tensor : public TensorLike<T, Tensor<T>> { // ========================================
-  typedef TensorLike<T, Tensor<T>> Parent;
+  typedef Tensor<T>           Self;
+  typedef TensorLike<T, Self> Parent;
 
  public:
 // Public Constructor-----------------------------------
@@ -124,14 +125,14 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
  *  tranposes given axes. Axes can be negative for python style.
  *  By default, transposes last two axes for matrix transpose.
  */
-  inline const TransposeOperation<T, Tensor<T>> Transpose(int axis1 = -2, int axis2 = -1) const {
+  inline const TransposeOperation<T, Self> Transpose(int axis1 = -2, int axis2 = -1) const {
     return {*this, axis1, axis2};
   }
 /**
  *  reshapes to new dimension shape.
  *  The capacity of new dimension must be same as current. 
  */
-  inline ReshapeOperation<T, Tensor<T>> 
+  inline ReshapeOperation<T, Self> 
          Reshape(const std::vector<int>& new_dimensions) const {
     return {*this, new_dimensions};
   }
@@ -140,7 +141,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
  *  The dimension can be padded or cropped.
  *    When dimension is smaller, the elements beyond the dimension are lost.
  */
-  inline PaddingOperation<T, Tensor<T>> 
+  inline PaddingOperation<T, Self> 
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
