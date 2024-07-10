@@ -105,6 +105,31 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
+  class Iterator : public Parent::DefaultIterator {
+   public:
+    Iterator(Self* self, std::vector<int> idx)
+        : Parent::DefaultIterator(self, idx) {}
+  };
+  class ConstIterator : public Parent::DefaultConstIterator {
+   public:
+    ConstIterator(const Self* self, std::vector<int> idx)
+        : Parent::DefaultConstIterator(self, idx) {}
+  };
+
+
+  Iterator begin() {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  Iterator end() {
+    return {this, getShape()};
+  }
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getOrder(), 0)};
+  }
+  ConstIterator end() const {
+    return {this, getShape()};
+  }
+
 // friends ---------------------------------------------
   friend class MultiTransposeOperation<T, HeldOperation>;
 // end of friends --------------------------------------
@@ -445,7 +470,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                                                           address);
     return tensor_like_.getElement(old_indices);
   }
-  
+
   // Non-const reshape
   inline ReshapeOperation<T, HeldOperation>&
          Reshape(const std::vector<int>& new_dimensions) {

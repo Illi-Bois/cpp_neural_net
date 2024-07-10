@@ -83,8 +83,9 @@ class TensorLike {
  
  public:
   class Iterator {
-    typedef typename Derived::Iterator Derived_Iterator;
    public:
+    typedef typename Derived::Iterator Derived_Iterator;
+
     virtual T& operator*() = 0;
 
     virtual Derived_Iterator& operator+=(int increment) = 0;
@@ -102,10 +103,10 @@ class TensorLike {
       return !(*this == other);
     }
   };
-
   class ConstIterator {
-    typedef typename Derived::ConstIterator Derived_Iterator;
    public:
+    typedef typename Derived::ConstIterator Derived_Iterator;
+
     virtual const T& operator*() const = 0;
 
     virtual Derived_Iterator& operator+=(int increment) = 0;
@@ -123,6 +124,76 @@ class TensorLike {
       return !(*this == other);
     }
   };
+  
+  /** Unoptimized iterator using solvely the vector indices */
+  class DefaultIterator : public Iterator {
+    typedef typename Iterator::Derived_Iterator Derived_Iterator;
+
+    Derived* const tensor_like_;
+    std::vector<int> current_indices_;
+   public:
+
+    DefaultIterator(Derived* self, const std::vector<int>& idx)
+        : tensor_like_(self),
+          current_indices_(idx) {}
+          
+    T& operator*() override {
+      return tensor_like_->getElement(current_indices_);
+    }
+
+    Derived_Iterator& operator+=(int increment) override {
+      while (increment) {
+        IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end());
+        --increment;
+      }
+      return static_cast<Derived_Iterator&>(*this);
+    }
+    // TODO implement
+    Derived_Iterator& operator-=(int decrement) override {
+      // umm just += then, since we cant delete
+      operator+=(decrement);
+    }
+
+    bool operator==(const Derived_Iterator& other) const override {
+      return tensor_like_ == other.tensor_like_ && 
+              current_indices_ == other.current_indices_;
+    }
+  };
+  class DefaultConstIterator : public ConstIterator {
+    typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
+
+    const Derived* const tensor_like_;
+    std::vector<int> current_indices_;
+   public:
+    DefaultConstIterator(const Derived* self, const std::vector<int>& idx)
+        : tensor_like_(self),
+          current_indices_(idx) {}
+
+    const T& operator*() const override {
+      return tensor_like_->getElement(current_indices_);
+    }
+
+    Derived_Iterator& operator+=(int increment) override {
+      while (increment) {
+        IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end());
+        --increment;
+      }
+      return static_cast<Derived_Iterator&>(*this);
+    }
+    // TODO implement
+    Derived_Iterator& operator-=(int decrement) override {
+      // umm just += then, since we cant delete
+      operator+=(decrement);
+    }
+
+    bool operator==(const Derived_Iterator& other) const override {
+      return tensor_like_ == other.tensor_like_ && 
+              current_indices_ == other.current_indices_;
+    }
+  };
+
   // TODO: Ideally want to CRTP to remove virtual, but right now
   //      because of nesting inside template that is CRTP, seems impossible...
   // TODO: many of the motions are duplicate, maybe consider making this interface as we had tried

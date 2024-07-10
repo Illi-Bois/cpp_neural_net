@@ -53,6 +53,12 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
 // Psuedo-Specializations -------------------------
 /*  Some Operations will be optimized from specialization. 
       However, this requires explicit statements. */
+
+/******* TEST GROUND */
+  template<typename HeldOperation>
+  Tensor(const TensorLike<T, TransposeOperation<T, HeldOperation>>& tens) noexcept;
+/******* End of TEST GROUND */
+
 /**
  *  Multiplication Resolution Constructor
  * 
@@ -404,6 +410,29 @@ Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like) noexcept
   } while (IncrementIndicesByShape(getShape().begin(), getShape().end(),
                                    indices.begin(),    indices.end()));
 }
+
+/***** TEST GROUND */
+template<typename T>
+template<typename HeldOperation>
+Tensor<T>::Tensor(const TensorLike<T, TransposeOperation<T, HeldOperation>>& tens) noexcept 
+    : Tensor(tens.getShape()) {
+
+  std::cout << "This called " << std::endl;
+  Iterator it = begin();
+  Iterator fin = end();
+
+
+  typename TransposeOperation<T, HeldOperation>::ConstIterator oit = tens.getRef().begin();
+  // TransposeOperation<T, HeldOperation>::ConstIterator ofin = tens.getRef().end();
+
+  while (it != fin) {
+    *it = *oit;
+
+    ++it;
+    ++oit;
+  }
+}
+/***** TEST GROUND */
 
 // Psuedo-Specializations -------------------------
 /** Multiplication Resolution Constructor */

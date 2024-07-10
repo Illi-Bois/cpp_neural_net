@@ -31,7 +31,7 @@ int main() {
   PrintTensor(A);
 
   // A = A.Transpose().Transpose() + (A.Transpose() * A);
-  A = A.Transpose() * A;
+  A = A.Transpose();
   PrintTensor(A);
 }
 
