@@ -31,6 +31,14 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
     return true;
   }
 
+  // TODO maybe make another cover to make this check redundant?
+  //    we do not want to check for this each call
+  if (count < 0) {
+    return DecrementIndicesByShape(shape_begin, shape_end, 
+                            idx_begin, idx_end,
+                            -count);
+  }
+
   // base case
   if (shape_end == shape_begin ||
       idx_end == idx_begin) {
@@ -91,9 +99,16 @@ bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator idx_end,
                              int count) noexcept {
-  //
   if (count == 0) {
     return true;
+  }
+
+  // TODO maybe make another cover to make this check redundant?
+  //    we do not want to check for this each call
+  if (count < 0) {
+    return IncrementIndicesByShape(shape_begin, shape_end, 
+                                   idx_begin, idx_end,
+                                   -count);
   }
 
   // base case
