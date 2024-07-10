@@ -211,12 +211,123 @@ TEST(Util, Multi_Increment_Right_to_the_end) {
   std::vector<int> idx{0, 0, 1, 2};
   
 
+  EXPECT_TRUE(IncrementIndicesByShape(shape.begin() + 2, shape.end(), 
+                                      idx.begin() + 2, idx.end(), 
+                                      1));
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 1, 3}));
+}
+TEST(Util, Multi_Increment_Right_past_end) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+  
+
   EXPECT_FALSE(IncrementIndicesByShape(shape.begin() + 2, shape.end(), 
                                       idx.begin() + 2, idx.end(), 
                                       2));
   EXPECT_EQ(idx, std::vector<int>({0, 0, 0, 0}));
 }
+TEST(Util, Multi_Decrement_by_Neagtive) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+  
+
+  EXPECT_TRUE(DecrementIndicesByShape(shape.begin(), shape.end(), 
+                                      idx.begin(), idx.end(), 
+                                      -4));
+  EXPECT_EQ(idx, std::vector<int>({0, 1, 0, 2}));
+}
 // End of  MULTI INCREMENT TESTING ------------------------------------------------------------
+
+// MULTI DECREMENT TESTING --------------------------------------------------------------------
+TEST(Util, Multi_Decrement) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_TRUE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      8));
+
+  EXPECT_EQ(idx, std::vector<int>({0, 1, 0, 0}));
+}
+TEST(Util, Multi_Decrement_zero) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_TRUE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      0));
+
+  EXPECT_EQ(idx, std::vector<int>({1, 2, 0, 0}));
+}
+TEST(Util, Multi_Decrement_Right_to_front) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_TRUE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      10));
+
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 0, 0}));
+}
+TEST(Util, Multi_Decrement_Right_past_front) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_FALSE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      11));
+
+  EXPECT_EQ(idx, std::vector<int>({1, 2, 0, 1}));
+}
+TEST(Util, Multi_Decrement_Underflow) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_FALSE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      20));
+
+  EXPECT_EQ(idx, std::vector<int>({1, 2, 0, 1}));
+}
+TEST(Util, Multi_Decrement_Underflow2) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_FALSE(DecrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      200));
+
+  EXPECT_EQ(idx, std::vector<int>({1, 2, 0, 1}));
+}
+TEST(Util, Multi_Increment_by_negative) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,1,2};
+  std::vector<int> idx{1, 2, 0, 0}; // at 10th
+
+  EXPECT_TRUE(IncrementIndicesByShape(shape.begin(), shape.end(),
+                                      idx.begin(), idx.end(),
+                                      -5));
+
+  EXPECT_EQ(idx, std::vector<int>({0, 2, 0, 1}));
+}
+// End of  MULTI DECREMENT TESTING ------------------------------------------------------------
 
 // BROADCAST TESTS ----------------------------------------------------------------------------
 TEST(Util, Broadcast) {
