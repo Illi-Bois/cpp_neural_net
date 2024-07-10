@@ -169,61 +169,59 @@ class TensorLike {
     }
 
     Derived_Iterator& operator+=(int increment) override {
-      if (increment < 0) return operator-=(-increment);
-
-      if (at_end_ || increment == 0) {
-        // if already at end, or increment = 0 do nothing
+      if (at_end_) {
+        // cannot increment from end, quick exit
         return static_cast<Derived_Iterator&>(*this);
       }
-      while (increment) {
-        if (IncrementIndicesByShape(tensor_like_->getShape().begin(), 
-                                    tensor_like_->getShape().end(),
-                                    current_indices_.begin(), 
-                                    current_indices_.end())) {
-          --increment;
-        } else {
-          // Incrementation fails when at end.
-          // indices are set to 0
-          at_end_ = true;
-          break; 
-        }
+      if (IncrementIndicesByShape(tensor_like_->getShape().begin(), 
+                                  tensor_like_->getShape().end(),
+                                  current_indices_.begin(), 
+                                  current_indices_.end(),
+                                  increment)) {
+        return static_cast<Derived_Iterator&>(*this);
+      } else {
+        // overflowed
+        at_end_ = true;
       }
       return static_cast<Derived_Iterator&>(*this);
-      // TODO either make it idx -> address -> idx
-      // or even any other thing to speed this up
     }
     Derived_Iterator& operator-=(int decrement) override {
-      if (decrement < 0) return operator+=(-decrement);
-
+      // Some initial checks so that end can be handled little more smoothly
+      if (decrement < 0) {
+        return operator+=(-decrement);
+      }
       if (decrement == 0) {
         // do nothing
         return static_cast<Derived_Iterator&>(*this);
       }
-
+      
+      // If at end, idx are all set to 0
       if (at_end_) {
-        // if at end, as idx is set to 0, manually decrement once
-        DecrementIndicesByShape(tensor_like_->getShape().begin(), 
-                                tensor_like_->getShape().end(),
-                                current_indices_.begin(), 
-                                current_indices_.end());
-        --decrement;
-        // reset end
+        // Manually set to correct maximum size
+        for (int axis = 0; axis < tensor_like_->getOrder(); ++axis) {
+          current_indices_[axis] = tensor_like_->getDimension(axis) - 1;
+        }
+        // alternative was to use Derement, but this might be faster
+        --decrement;    // this uses up one decrement
         at_end_ = false;
+
+        if (decrement == 0) {
+          // quick exit
+          return static_cast<Derived_Iterator&>(*this); 
+        }
       }
 
-      // TODO Right now no robust guards against overrolling exists
-      while (decrement) {
-        if (DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
-                                current_indices_.begin(), current_indices_.end())) {
-          --decrement;
-        } else {
-          // incrementation failed, meaning we are at front
-          // decrement by index will reroll it back to final element, therefore set it all to 0 manually
-          for (int& idx : current_indices_) {
-            idx = 0;
-          }
-          break;
-        }
+      // decrement is now guaranteed > 0
+      if (DecrementIndicesByShape(tensor_like_->getShape().begin(), 
+                                  tensor_like_->getShape().end(),
+                                  current_indices_.begin(), 
+                                  current_indices_.end(),
+                                  decrement)) {
+        // No underflow, therefore successful
+        return static_cast<Derived_Iterator&>(*this);
+      } else {
+        // underflow set all to 0
+        std::fill(current_indices_.begin(), current_indices_.end(), 0);
       }
       return static_cast<Derived_Iterator&>(*this);
     }
