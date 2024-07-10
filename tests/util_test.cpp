@@ -159,6 +159,53 @@ TEST(Util, Decrement_Fail) {
 // END OF DECREMENT TEST ----------------------------------------------------------------------
 
 
+// MULTI INCREMENT TESTING --------------------------------------------------------------------
+TEST(Util, Multi_Increment) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+  
+  EXPECT_TRUE(IncrementIndicesByShape(shape.begin(), shape.end(), idx.begin(), idx.end(), 6));
+
+  EXPECT_EQ(idx, std::vector<int>({0, 1, 1, 0}));
+}
+TEST(Util, Multi_Increment_Zero) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+  
+  EXPECT_TRUE(IncrementIndicesByShape(shape.begin(), shape.end(), idx.begin(), idx.end(), 0));
+
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 1, 2}));
+}
+TEST(Util, Multi_Increment_Overflow) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+  
+
+  EXPECT_FALSE(IncrementIndicesByShape(shape.begin() + 2, shape.end(), 
+                                      idx.begin() + 2, idx.end(), 
+                                      4));
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 0, 0}));
+}
+TEST(Util, Multi_Increment_Right_to_the_end) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape{2,3,2,4};
+  std::vector<int> idx{0, 0, 1, 2};
+  
+
+  EXPECT_FALSE(IncrementIndicesByShape(shape.begin() + 2, shape.end(), 
+                                      idx.begin() + 2, idx.end(), 
+                                      2));
+  EXPECT_EQ(idx, std::vector<int>({0, 0, 0, 0}));
+}
+// End of  MULTI INCREMENT TESTING ------------------------------------------------------------
+
 // BROADCAST TESTS ----------------------------------------------------------------------------
 TEST(Util, Broadcast) {
   //                             |           |   
