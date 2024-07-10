@@ -146,7 +146,15 @@ TEST(UtilTensorOperation, Summation_Of_Three) {
   }
 }
 TEST(UtilTensorOperation, Summation_Of_many_with_parenthesis) {
-  
+  using namespace cpp_nn::util;
+    Tensor<int> a({2, 2}, 1);
+    Tensor<int> b({2, 2}, -1);
+    Tensor<int> c({2, 2}, 3);
+    Tensor<int> d({2, 2}, 4);
+    Tensor<int> e = (a + b) + (c + d);
+    
+    EXPECT_EQ(e.getElement({0, 0}), 7);
+    EXPECT_EQ(e.getElement({1, 1}), 7);
 }
 TEST(UtilTensorOperation, SelfSumming) {
   using namespace cpp_nn::util;
@@ -163,13 +171,27 @@ TEST(UtilTensorOperation, SelfSumming) {
   }
 }
 TEST(UtilTensorOperation, Summing_To_Self) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 3});
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  a = a + a;
+  val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    EXPECT_EQ(*it, ++val * 2);
+  }
 }
 TEST(UtilTensorOperation, Summing_To_Self_with_others_inbetween) {
   
 }
 TEST(UtilTensorOperation, Summing_Incorrect_Dimensions) {
-  
+  using namespace cpp_nn::util;
+  Tensor<int> A({2, 2}, 1);
+  Tensor<int> B({2, 3}, 2);
+  EXPECT_THROW(A + B, std::invalid_argument);
 }
 TEST(UtilTensorOperation, Summing_broadcast) {
   
