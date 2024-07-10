@@ -149,7 +149,6 @@ class TensorLike {
           at_end_(is_end) {}
 
     T operator*() const override {
-      std::cout << "Const Accessing at idx : ";
       for (auto i : current_indices_) {
         std::cout << i << ", ";
       }
