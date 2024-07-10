@@ -54,6 +54,9 @@ namespace {
  */
 template<typename T, typename HeldOperation>
 class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperation>> {
+  typedef TransposeOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_;
   const int axis_1_;
@@ -117,6 +120,9 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
  */
 template<typename T, typename HeldOperation>
 class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, HeldOperation>> {
+  typedef MultiTransposeOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
 
@@ -204,6 +210,9 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
  */
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperation1, HeldOperation2>> {
+  typedef SummationOperation<T, HeldOperation1, HeldOperation2> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
     const std::vector<int> broadcast_shape_;
     const size_t broadcast_capacity_;
@@ -255,6 +264,9 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
  */
 template<typename T, typename HeldOperation1, typename HeldOperation2>
 class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, HeldOperation1, HeldOperation2>> {
+  typedef MultiplicationOperation<T, HeldOperation1, HeldOperation2> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   // product is resolved upon construct,
   //  so that other multiplcation algorithms can be used.
@@ -370,6 +382,9 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
  */
 template<typename T, typename HeldOperation>
 class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>> {
+  typedef ReshapeOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   std::vector<int> reshaped_dimension_;
@@ -430,11 +445,7 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
                                                           address);
     return tensor_like_.getElement(old_indices);
   }
-  inline const TransposeOperation<T, ReshapeOperation<T, HeldOperation>> 
-               Transpose(int axis1 = -2, int axis2 = -1) const {
-    return {*this, axis1, axis2};
-  }
-
+  
   // Non-const reshape
   inline ReshapeOperation<T, HeldOperation>&
          Reshape(const std::vector<int>& new_dimensions) {
@@ -462,6 +473,9 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
  */
 template<typename T, typename HeldOperation>
 class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>> {
+  typedef PaddingOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   std::vector<int> padded_shape_;
@@ -558,6 +572,9 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
  */
 template<typename T, typename HeldOperation>
 class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperation>> {
+  typedef BroadcastOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
   const std::vector<int> broadcast_shape_;
