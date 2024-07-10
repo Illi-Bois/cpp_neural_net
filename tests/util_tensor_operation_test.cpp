@@ -6,17 +6,47 @@ TEST(UtilTensorOperation, SanityCheck) {
   EXPECT_TRUE(true);
 }
 
+//GET ELEMENT
+TEST(UtilTensorOperation, GetElement_Operation) {
+  //try 1d tensor and high dim tensor 
+}
+TEST(UtilTensorOperation, GetElement_NegativeIndicies) {
+
+}
+TEST(UtilTensorOperation, GetElement_WrongNumberIndicies) {
+
+}
+TEST(UtilTensorOperation, GetElement_Outofbounds) {
+  //try for both positive and negative
+}
+TEST(UtilTensorOperation, GetElement_EmptyTensor) {
+
+}
+TEST(UtilTensorOperation, GetElement_ConstTensor) {
+
+}
+
 // TRANSPOSE =============================================
 TEST(UtilTensorOperation, Transpose_Operation) {
   using namespace cpp_nn::util;
-  //Large Dimensions
-  Tensor<int> a({1000,1005}, 1.0f);
-  Tensor<int> b = a.Transpose(0,1);
-  EXPECT_EQ(b.getShape(), std::vector<int>({1005,1000}));
+  Tensor<float> a({30,24}, 1.0f);
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }                                     
+  val = 0;
+  Tensor<float> b = a.Transpose(0,1);
+  for (int j = 0; j < 30; ++j) {
+    for (int i = 0; i < 24; ++i) {
+      EXPECT_EQ(b.getElement({i, j}), ++val);
+    }
+  }
+  EXPECT_EQ(b.getShape(), std::vector<int>({24,30}));
 
   //1D tensor
   Tensor<float> c({5}, 1.0f); 
-  auto d = c.Transpose(0, 0);
+  Tensor<float> d = c.Transpose(0, 0);
   EXPECT_EQ(d.getShape(), std::vector<int>({5}));
   for (int i = 0; i < 5; ++i) {
     EXPECT_FLOAT_EQ(d.getElement({i}), 1.0f);
@@ -25,23 +55,62 @@ TEST(UtilTensorOperation, Transpose_Operation) {
 TEST(UtilTensorOperation, Undoing_Transpose) {
   using namespace cpp_nn::util;
   Tensor<float> a({3,4,5});
-  auto b = a.Transpose(0,1).Transpose(0,1);
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b = a.Transpose(0,1).Transpose(0,1);
   EXPECT_EQ(a.getShape(), b.getShape());
+  EXPECT_EQ(a.getElement({3,2,1}), b.getElement({3,2,1}));
 }
 TEST(UtilTensorOperation, Chained_Transpose) {
   using namespace cpp_nn::util;
   Tensor<float> a({2,3,4,5});
   //{2,3,4,5} -> {3,2,4,5} -> {3,4,2,5} -> {3,4,5,2}
-  auto b = a.Transpose(0,1).Transpose(1,2).Transpose(2,3);
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b = a.Transpose(0,1).Transpose(1,2).Transpose(2,3);
   EXPECT_EQ(b.getShape(), std::vector<int>({3,4,5,2}));
+  std::vector<int> shapeB = b.getShape();
+  std::vector<int> shapeA = {2, 3, 4, 5};
+  for (int i = 0; i < shapeB[0]; ++i) {
+    for (int j = 0; j < shapeB[1]; ++j) {
+      for (int k = 0; k < shapeB[2]; ++k) {
+        for (int l = 0; l < shapeB[3]; ++l) {
+          int expectedValue = a.getElement({l, i, j, k});
+          EXPECT_EQ(b.getElement({i, j, k, l}), expectedValue);
+        }
+      }
+    }
+  }
 }
 TEST(UtilTensorOperation, Negative_Indexing) {
   using namespace cpp_nn::util;
   Tensor<float> a({2, 3, 4});
-  auto b = a.Transpose(-3, -1);
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b = a.Transpose(-3, -1);
   EXPECT_EQ(b.getShape(), std::vector<int>({4, 3, 2}));
-  auto c = a.Transpose(-3 ,1);
-  EXPECT_EQ(c.getShape(), std::vector<int>({3, 2, 4}));
+  Tensor<float> c = b.Transpose(-3 ,1);
+  EXPECT_EQ(c.getShape(), std::vector<int>({3, 4, 2}));
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      for (int k = 0; k < 2; ++k) {
+        int expectedValue = b.getElement({j, i, k});
+        EXPECT_EQ(c.getElement({i, j, k}), expectedValue);
+      }
+    }
+  }
 }
 TEST(UtilTensorOperation, Transpose_Self) {
   using namespace cpp_nn::util;
@@ -64,22 +133,65 @@ TEST(UtilTensorOperation, Transpose_Self) {
       }
     }
   }
-
 }
 // End of TRANSPOSE ======================================
 
 // SUMMATION =============================================
 TEST(UtilTensorOperation, Summation_Of_Two) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3});
+  Tensor<float> b({2, 3}, 3);
+  int val = 0;
+  std::vector<int> idx(a.getOrder(), 0);
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> c = a + b;
+  for(int i = 0; i < 2; ++i) {
+    for(int j = 0; j < 3; ++j) {
+      EXPECT_EQ(c.getElement({i, j}), a.getElement({i, j}) + b.getElement({i, j}));
+    }
+  }
+  EXPECT_EQ(a.getShape(), c.getShape());
 }
 TEST(UtilTensorOperation, Summation_Of_Three) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({3, 4});
+  int val = 0;
+  std::vector<int> idx(a.getOrder(), 0);
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b({3, 4}, 3);
+  Tensor<float> c({3, 4}, 5);
+  Tensor<float> d = a + b + c;
+  for(int i = 0; i < 3; ++i) {
+    for(int j = 0; j < 4; ++j) {
+      EXPECT_EQ(d.getElement({i, j}), a.getElement({i, j}) + b.getElement({i, j}) + c.getElement({i, j}));
+    }
+  }
 }
 TEST(UtilTensorOperation, Summation_Of_many_with_parenthesis) {
   
 }
 TEST(UtilTensorOperation, SelfSumming) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 3});
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  do {
+    a.getElement(idx) = ++val;
+  } while (cpp_nn::util::IncrementIndicesByShape(a.getShape().begin(), a.getShape().end(),
+                                                 idx.begin(), idx.end()));
+  Tensor<float> b = a + a;
+  val = 0;
+  for(int i = 0; i < 4; ++i) {
+    for(int j = 0; j < 3; ++j) {
+      EXPECT_EQ(b.getElement({i ,j}), 2 * ++val);
+    }
+  }
 }
 TEST(UtilTensorOperation, Summing_To_Self) {
   
