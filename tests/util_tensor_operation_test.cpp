@@ -93,7 +93,7 @@ TEST(UtilTensorOperation, Chained_Transpose) {
     }
   }
 }
-TEST(UtilTensorOperation, Negative_Indexing) {
+TEST(UtilTensorOperation, Transpose_Negative_Indexing) {
   using namespace cpp_nn::util;
   Tensor<float> a({2, 3, 4});
   std::vector<int> idx(a.getOrder(), 0);
