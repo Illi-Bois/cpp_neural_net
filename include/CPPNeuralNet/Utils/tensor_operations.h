@@ -109,10 +109,10 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 
 // friends ---------------------------------------------
@@ -218,10 +218,10 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 };
 
@@ -280,10 +280,10 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 }; // End of SummationOperation
 
@@ -404,10 +404,10 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 // friends ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
@@ -502,10 +502,10 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 // friend  ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
@@ -609,10 +609,10 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 };
 
@@ -689,10 +689,10 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0)};
+    return {this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, getShape()};
+    return {this, std::vector<int>(getOrder(), 0), true};
   }
 };
 

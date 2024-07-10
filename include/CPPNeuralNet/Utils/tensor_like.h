@@ -139,23 +139,38 @@ class TensorLike {
 
     const Derived* const tensor_like_;
     std::vector<int> current_indices_;
+
+    bool at_end_;  // both begin and end will be indicated by indices at all 0
+                    // must be distinguished by at_end_ flag. 
    public:
-    DefaultConstIterator(const Derived* self, const std::vector<int>& idx)
+    DefaultConstIterator(const Derived* self, const std::vector<int>& idx, bool is_end)
         : tensor_like_(self),
-          current_indices_(idx) {}
+          current_indices_(idx),
+          at_end_(is_end) {}
 
     T operator*() const override {
+      std::cout << "Const Accessing at idx : ";
+      for (auto i : current_indices_) {
+        std::cout << i << ", ";
+      }
+      std::cout << std::endl;
       return tensor_like_->getElement(current_indices_);
     }
 
     Derived_Iterator& operator+=(int increment) override {
       // TODO Right now no robust guards against overrolling exists
+      if (at_end_) {
+        // do not increment simply return
+        return static_cast<Derived_Iterator&>(*this);
+      }
+
       while (increment) {
         if (IncrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
                                 current_indices_.begin(), current_indices_.end())) {
           --increment;
         } else {
-          // incrementation failed
+          // incrementation failed, meaning we are at end
+          at_end_ = true;
           break;
         }
       }
@@ -163,13 +178,29 @@ class TensorLike {
     }
     // TODO implement
     Derived_Iterator& operator-=(int decrement) override {
+      if (decrement == 0) {
+        // do nothing
+        return static_cast<Derived_Iterator&>(*this);
+      }
+
+      if (at_end_) {
+        DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
+                                current_indices_.begin(), current_indices_.end());
+        at_end_ = false;
+        --decrement;
+      }
+
       // TODO Right now no robust guards against overrolling exists
       while (decrement) {
         if (DecrementIndicesByShape(tensor_like_->getShape().begin(), tensor_like_->getShape().end(),
                                 current_indices_.begin(), current_indices_.end())) {
           --decrement;
         } else {
-          // incrementation failed
+          // incrementation failed, meaning we are at front
+          // decrement by index will reroll it back to final element, therefore set it all to 0 manually
+          for (int& idx : current_indices_) {
+            idx = 0;
+          }
           break;
         }
       }
