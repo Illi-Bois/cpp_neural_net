@@ -300,7 +300,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 // Members ---------------------------------------------
   // product is resolved upon construct,
   //  so that other multiplcation algorithms can be used.
-  Tensor<T>*       product_tensor_;
+  Tensor<T>* product_tensor_;
 // End of Members --------------------------------------
 
  public:
@@ -400,14 +400,14 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   }
 // End of Tensor-Behaviours ----------------------------
 
-  // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+// ! ConstTerator of Tensor moved to represent ConstIterator of this
+  typedef typename Tensor<T>::ConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false};
+    return product_tensor_->begin();
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true};
+    return product_tensor_->end();
   }
 // friends ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
