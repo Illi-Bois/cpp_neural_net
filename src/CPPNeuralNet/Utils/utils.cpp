@@ -43,7 +43,7 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
 
     // final case, no more recurssion
     *idx_end += count;
-    if (*idx_end >= *shape_end) {\
+    if (*idx_end >= *shape_end) {
       count = *idx_end / *shape_end;
 
       // call recurssively
@@ -85,6 +85,51 @@ bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
   return false;
 }
 
+
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator idx_end,
+                             int count) noexcept {
+  //
+  if (count == 0) {
+    return true;
+  }
+
+  // base case
+  if (shape_end == shape_begin ||
+      idx_end == idx_begin) {
+    // if reached the end, means overflow
+    return false;
+
+  } else { // not at the end, decrement once to addess
+    --idx_end;
+    --shape_end;
+
+    *idx_end -= count % *shape_end;
+    count /= *shape_end;
+    if (*idx_end < 0) {
+      // carry under
+      *idx_end += *shape_end;
+      ++count; 
+    }
+
+    if (count == 0) {
+      return true;
+    } else {
+      if (DecrementIndicesByShape(shape_begin, shape_end,
+                                  idx_begin, idx_end,
+                                  count)) {
+        // successful decrem
+        return true;
+      } else {
+        // failed, set to max
+        *idx_end = *shape_end - 1;
+        return false;
+      }
+    }
+  }
+}
 
 std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_begin, 
                            std::vector<int>::const_iterator       first_shape_end,

@@ -37,6 +37,15 @@ bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end) noexcept;
+
+// Decrements it count number of times
+// returns false if it overflows and sets all to dimension-1
+bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end,
+                             int count) noexcept;
+
 /**
  *  given sub-vectors defining shapes two tensors to be broadcasted,
  *    returns shape of broadcasted tensor.
