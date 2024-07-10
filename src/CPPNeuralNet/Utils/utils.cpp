@@ -22,6 +22,51 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
   return false;
 }
 
+bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator idx_end,
+                             int count) noexcept {
+  if (count == 0) {
+    return true;
+  }
+
+  // base case
+  if (shape_end == shape_begin ||
+      idx_end == idx_begin) {
+    // if reached the end, means overflow
+    return false;
+
+  } else { // not at the end, decrement once to addess
+    --idx_end;
+    --shape_end;
+
+    // final case, no more recurssion
+    *idx_end += count;
+    if (*idx_end >= *shape_end) {\
+      count = *idx_end / *shape_end;
+
+      // call recurssively
+      if (IncrementIndicesByShape(shape_begin, shape_end,
+                                  idx_begin, idx_end,
+                                  count)) {
+        // successful
+        *idx_end %= *shape_end;  // setting current,
+                                 // makes more sense to be right under setting count
+                                 // but to reduce unneeded op put here
+        return true;
+      } else {
+        // overflow failed, reset to 0
+        *idx_end = 0;
+        return false;
+      }
+    } else {
+      // addition successful
+      return true;
+    }
+  }
+}
+
 bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator shape_end,
                              const std::vector<int>::const_iterator idx_begin,

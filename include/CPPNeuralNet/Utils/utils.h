@@ -25,6 +25,14 @@ bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin,
                              const std::vector<int>::const_iterator idx_begin,
                              std::vector<int>::iterator             idx_end) noexcept;
 
+// Increments it count number of times
+// returns false if it overflows and sets all to 0
+bool IncrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
+                             std::vector<int>::const_iterator       shape_end,
+                             const std::vector<int>::const_iterator idx_begin,
+                             std::vector<int>::iterator             idx_end,
+                             int count) noexcept;
+
 bool DecrementIndicesByShape(const std::vector<int>::const_iterator shape_begin, 
                              std::vector<int>::const_iterator       shape_end,
                              const std::vector<int>::const_iterator idx_begin,
