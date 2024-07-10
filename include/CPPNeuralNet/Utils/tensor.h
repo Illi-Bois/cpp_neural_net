@@ -416,13 +416,14 @@ template<typename T>
 template<typename HeldOperation>
 Tensor<T>::Tensor(const TensorLike<T, TransposeOperation<T, HeldOperation>>& tens) noexcept 
     : Tensor(tens.getShape()) {
+  typedef TransposeOperation<T, HeldOperation> TensorLikeDerived; 
 
   std::cout << "This called " << std::endl;
   Iterator it = begin();
   Iterator fin = end();
 
 
-  typename TransposeOperation<T, HeldOperation>::ConstIterator oit = tens.getRef().begin();
+  typename TensorLikeDerived::ConstIterator oit = tens.getRef().begin();
   // TransposeOperation<T, HeldOperation>::ConstIterator ofin = tens.getRef().end();
 
   while (it != fin) {
