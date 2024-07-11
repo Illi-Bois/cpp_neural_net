@@ -55,5 +55,27 @@ int main() {
   PrintTensor(A);
   A = A.Transpose(0, -1);
   PrintTensor(A);
+
+
+  A = Tensor({2, 3, 4}, 0);
+  int val = 0; 
+  auto ait = A.begin();
+  auto aend = A.end();
+
+  while (ait != aend) {
+    *ait = ++val;
+    ++ait;
+  }
+
+  PrintTensor(A);
+
+  // std::cout << "This is what it shoudl look like" << std::endl;
+  // Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4}).Transpose(0, 2);
+  Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4}).Transpose(0, 2);
+  PrintTensor(C);
+
+  // std::cout << "With multi" << std::endl;
+  // Tensor D = A.Transpose(0, 1).Transpose(0, 2);
+  // PrintTensor(D);
   
 }
