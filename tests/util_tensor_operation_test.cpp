@@ -549,6 +549,7 @@ TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_MultiTransp
               .Reshape({3, 2, 4})
               .Transpose(0, 2)
               .Transpose(1, 2)
+              .Transpose(1, 0)
               .Reshape({3, 2, 4})
               .Transpose(0, 2)
               .Transpose(1, 2);
@@ -563,6 +564,7 @@ TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_MultiTransp
   D = D.Reshape({3, 2, 4});
   D = D.Transpose(0, 2);
   D = D.Transpose(1, 2);
+  D = D.Transpose(1, 0);
   D = D.Reshape({3, 2, 4});
   D = D.Transpose(0, 2);
   D = D.Transpose(1, 2);
@@ -590,6 +592,7 @@ TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_MultiTransp
               .Reshape({3, 2, 4})
               .Transpose(0, 2)
               .Transpose(1, 2)
+              .Transpose(1, 0)
               .Reshape({3, 2, 4})
               .Transpose(0, 2)
               .Transpose(1, 2)
@@ -605,6 +608,7 @@ TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_MultiTransp
   D = D.Reshape({3, 2, 4});
   D = D.Transpose(0, 2);
   D = D.Transpose(1, 2);
+  D = D.Transpose(1, 0);
   D = D.Reshape({3, 2, 4});
   D = D.Transpose(0, 2);
   D = D.Transpose(1, 2);
