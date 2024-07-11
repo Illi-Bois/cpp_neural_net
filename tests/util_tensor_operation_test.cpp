@@ -524,4 +524,103 @@ TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_Tranpose_Re
   }
   }
 }
+
+
+
+TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_MultiTranspose_and_Reshape_hard) {
+  using namespace cpp_nn::util;
+
+  Tensor A({2, 3, 4}, 0);
+  int val = 0; 
+  auto ait = A.begin();
+  auto aend = A.end();
+
+  while (ait != aend) {
+    *ait = ++val;
+    ++ait;
+  }
+
+// Ending with Tranpose
+  Tensor C = A.Transpose(0, 1)
+              .Transpose(0, 2)
+              .Reshape({3, 2, 4})
+              .Transpose(0, 1)
+              .Transpose(1, 2)
+              .Reshape({3, 2, 4})
+              .Transpose(0, 2)
+              .Transpose(1, 2)
+              .Reshape({3, 2, 4})
+              .Transpose(0, 2)
+              .Transpose(1, 2);
+
+  // with assumptinog that individual operation works fine
+  Tensor D = A;
+  D = D.Transpose(0, 1);
+  D = D.Transpose(0, 2);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 1);
+  D = D.Transpose(1, 2);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 2);
+  D = D.Transpose(1, 2);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 2);
+  D = D.Transpose(1, 2);
+
+  {
+  auto it = C.begin();
+  auto endit = C.end();
+
+  auto oit = D.begin();
+
+  while (it != endit) {
+    EXPECT_EQ(*it, *oit);
+    ++it;
+    ++oit;
+  }
+  }
+
+
+// Ending with Reshape
+  C = A.Transpose(0, 1)
+              .Transpose(0, 2)
+              .Reshape({3, 2, 4})
+              .Transpose(0, 1)
+              .Transpose(1, 2)
+              .Reshape({3, 2, 4})
+              .Transpose(0, 2)
+              .Transpose(1, 2)
+              .Reshape({3, 2, 4})
+              .Transpose(0, 2)
+              .Transpose(1, 2)
+              .Reshape({3, 2, 4});
+
+  // with assumptinog that individual operation works fine
+  D = A;
+  D = D.Transpose(0, 1);
+  D = D.Transpose(0, 2);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 1);
+  D = D.Transpose(1, 2);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 2);
+  D = D.Transpose(1, 2);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 2);
+  D = D.Transpose(1, 2);
+  D = D.Reshape({3, 2, 4});
+
+  {
+  auto it = C.begin();
+  auto endit = C.end();
+
+  auto oit = D.begin();
+
+  while (it != endit) {
+    EXPECT_EQ(*it, *oit);
+    ++it;
+    ++oit;
+  }
+  }
+}
 // End of MULTIPLE OPERATION CHAINED =====================
