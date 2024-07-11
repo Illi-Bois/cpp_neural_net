@@ -725,36 +725,13 @@ class ReshapeOperation : public TensorLike<T, ReshapeOperation<T, HeldOperation>
   }
 // End of Tensor-Behaviours ----------------------------
 
-  class ConstIterator : public Parent::ConstIterator {
-    typedef typename HeldOperation::ConstIterator InnerIterator;
-    InnerIterator it_;
-   public:
-    ConstIterator(InnerIterator iter)
-        : it_(iter) {}
-
-    T operator*() const override {
-      return *it_;
-    }
-
-    ConstIterator& operator+=(int increment) override {
-      it_ += increment;
-      return *this;
-    }
-    ConstIterator& operator-=(int decrement) override {
-      it_ += decrement;
-      return *this;
-    }
-
-    bool operator==(const ConstIterator& other) const override {
-      return it_ == other.it_;
-    }
-  };
+  typedef typename HeldOperation::ConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return {tensor_like_.begin()};
+    return tensor_like_.begin();
   }
   ConstIterator end() const {
-    return {tensor_like_.end()};
+    return tensor_like_.end();
   }
 // friend  ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
