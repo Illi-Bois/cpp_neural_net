@@ -239,7 +239,7 @@ TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
     for (int j = 0; j < 2; ++j) {
       for (int k = 0; k < 3; ++k) {
         // a{0,j,k} as a's 0 position has been broadcastest, same for b
-        EXPECT_EQ(c.getElement({i, j, k}), a.getElement({0, j, k}) + b.getElement({i, 0, k}));
+        EXPECT_EQ(c.getElement({i, j, k}), a.getElement(/*0*/{j, k}) + b.getElement({i, 0, k}));
       }
     }
   }
