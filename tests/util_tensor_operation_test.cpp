@@ -295,7 +295,37 @@ TEST(UtilTensorOperation, Multiplication_of_two) {
   }
 }
 TEST(UtilTensorOperation, Multiplication_of_three) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({3, 4});
+  Tensor<float> b({4, 2});
+  Tensor<float> c({2, 3});
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  val = 14;
+  for (auto it = b.begin(); it != b.end(); ++it) {
+    *it = --val;
+  }
+  val = 1;
+  for (auto it = c.begin(); it != c.end(); ++it) {
+    *it = ++val * 2;
+  }
+  Tensor<float> d = a * b * c;
+  EXPECT_EQ(d.getElement({0, 0}), 1160);
+  EXPECT_EQ(d.getElement({0, 1}), 1500);
+  EXPECT_EQ(d.getElement({0, 2}), 1840);
+  EXPECT_EQ(d.getElement({1, 0}), 3240);
+  EXPECT_EQ(d.getElement({1, 1}), 4188);
+  EXPECT_EQ(d.getElement({1, 2}), 5136);
+  EXPECT_EQ(d.getElement({2, 0}), 5320);
+  EXPECT_EQ(d.getElement({2, 1}), 6876);
+  EXPECT_EQ(d.getElement({2, 2}), 8432);
+  Tensor<float> e = c * a * b;
+  EXPECT_EQ(e.getElement({0, 0}), 5140);
+  EXPECT_EQ(e.getElement({0, 1}), 4608);
+  EXPECT_EQ(e.getElement({1, 0}), 9640);
+  EXPECT_EQ(e.getElement({1, 1}), 8640);
 }
 TEST(UtilTensorOperation, Multiplication_of_many_with_parenthesis) {
   
