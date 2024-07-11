@@ -53,11 +53,7 @@ int main() {
 
   A = A.Reshape(std::vector<int>{static_cast<int>(A.getCapacity()) }).Padding({2 * 3 * 4}).Reshape({2, 3, 4});
   PrintTensor(A);
-  A = A.Transpose();
+  A = A.Transpose(0, -1);
   PrintTensor(A);
   
 }
-
-
-
-

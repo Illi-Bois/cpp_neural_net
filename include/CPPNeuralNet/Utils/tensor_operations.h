@@ -168,29 +168,17 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
       if (increment == 0) {
         return *this; 
       }
-      std::cout << "INCR" << std::endl;
-
-      std::cout << "Old Address " << curr_address_ << std::endl;
-      for (auto i : this->Parent::current_indices_) {
-        std::cout << i << "\t";
-      }
-      std::cout << std::endl;
-
+      
       this->Parent::operator+=(increment);
-      int address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
-                                                      old_chunk_sizes_,
-                                                      this->Parent::current_indices_));
-
-      std::cout << "new address " << address << std::endl;
-      for (auto i : this->Parent::current_indices_) {
-        std::cout << i << "\t";
+      int address;
+      if (Parent::at_end_) {
+        address = Parent::tensor_like_->getCapacity();
+      } else {
+        address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
+                                                        old_chunk_sizes_,
+                                                        this->Parent::current_indices_));
       }
-      std::cout << std::endl;
-
-
       size_t diff = address - curr_address_;
-
-      std::cout << "diff " << diff << std::endl;
 
       it_ += diff;
       curr_address_ = address;
@@ -204,31 +192,19 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
       if (decrement == 0) {
         return *this;
       }
-      std::cout << "DECR" << std::endl;
-
-      std::cout << "Old Address " << curr_address_ << std::endl;
-      for (auto i : this->Parent::current_indices_) {
-        std::cout << i << "\t";
-      }
-      std::cout << std::endl;
-      
 
       this->Parent::operator-=(decrement);
       int address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
                                                       old_chunk_sizes_,
                                                       this->Parent::current_indices_));
-
-      std::cout << "new address " << address << std::endl;
-      for (auto i : this->Parent::current_indices_) {
-        std::cout << i << "\t";
+      if (curr_address_ > address) {
+        size_t diff = curr_address_ - address;
+        it_ -= diff;;
+      } else {
+        size_t diff = address - curr_address_;
+        it_ += diff;;
       }
-      std::cout << std::endl;
 
-      size_t diff = curr_address_ - address;
-
-      std::cout << "diff " << diff << std::endl;
-
-      it_ -= diff;
       curr_address_ = address;
       return *this;
     }
@@ -251,13 +227,11 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 
   ConstIterator begin() const {
     return {this, std::vector<int>(getOrder(), 0), false, tensor_.begin(), 0};
-    // return {tensor_.begin(), 0, this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
     // because we dont know where tranposed end is, maybe better if we simply up begin capacity times
-    return begin() += getCapacity();
-    // return {this, std::vector<int>(getOrder(), 0), true, tensor_.end(), getCapacity()};
-    // return {tensor_.end(), getCapacity(), this, std::vector<int>(getOrder(), 0), true};
+    // return begin() += getCapacity();
+    return {this, std::vector<int>(getOrder(), 0), true, tensor_.end(), getCapacity()};
   }
 
 // friends ---------------------------------------------
