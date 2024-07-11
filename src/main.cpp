@@ -17,6 +17,20 @@ std::vector<int> CutBroadcast(std::vector<int> idx, std::vector<int> shape) {
   return res;
 }
 
+// TODO: method for computing broadcasted shapes and its prev chunk sizes
+/*
+ GET REF TO RES PREV AND RES CHUNK SIZE AS REF
+ AND BRAODCAST SHAPE AND ORI SHAPE
+
+ 0. IF SHAPES EQUAL RETURN EMPTY
+- reserve both res to broadcast length
+ 1. COMPUTE BROADCAST CHUNKSIZE AND CAP    O(B)
+ 2. for over each axis, in broadcasted shape,
+  a. if axis beyond right-align, or is broadcasestd
+    b. add to res (** NEED TO HANDLE axis 0 specially, because it will need to store CAPACITY not idx-1)    O(B)
+- shrink to fit on them to remove reserved
+ */
+
 int main() {
   using namespace cpp_nn::util;
 
@@ -57,8 +71,8 @@ int main() {
   {
     std::cout << "Broadcast iteator order testground" << std::endl;
 
-    std::vector<int> broad({3, 2, 3, 2, 4});
-    std::vector<int> small(   {2, 1, 2, 4});
+    std::vector<int> broad({3, 2, 2, 3});
+    std::vector<int> small({1, 2, 1, 1});
 
     std::vector<int> broad_chunk(broad.size(), 1);
     std::vector<int> small_chunk(small.size(), 1);
