@@ -71,8 +71,8 @@ int main() {
   {
     std::cout << "Broadcast iteator order testground" << std::endl;
 
-    std::vector<int> broad({2, 3, 3, 2});
-    std::vector<int> small(   {3, 1, 2});
+    std::vector<int> broad({2, 2, 3, 2, 3, 2, 2, 2, 2});
+    std::vector<int> small(      {3, 1, 1, 2, 1, 1, 2});
 
     std::vector<int> broad_chunk(broad.size(), 1);
     std::vector<int> small_chunk(small.size(), 1);
@@ -290,6 +290,9 @@ int main() {
 
         std::cout << "\t\t\t fin is " << recomp;
         std::cout << ((recomp == cut_address) ? " Corr" : "WRONG");
+
+        if (recomp != cut_address)
+         return -1;
 
         std::cout << std::endl;
 
