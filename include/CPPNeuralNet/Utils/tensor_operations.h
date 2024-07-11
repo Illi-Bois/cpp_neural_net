@@ -910,6 +910,39 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
   // type def instead of making another inner class
   typedef typename Parent::DefaultConstIterator ConstIterator;
 
+  // TODO: a clever iterator is iminnent, 
+  class Temp : public Parent::ConstIterator {
+    // maybe the only bezt option is same as DefaultConstIter
+    /*
+    
+    size_t current_address_;
+    vector<size_t> broadcast_checkmarks_; when address_ = checkmark, return to 0
+    vector<size_t> check_mark_count;
+    vector<size_t> current_checkmark_iteration;
+
+    do"
+    addres += increment;
+    if (address >= checkmark_ && current_checkmark_iteration != check_mark_count){
+      address -= cehckmark_
+      current_checkmark_iteration ++
+    }
+
+    // Some recursive stuff like this.
+
+    // Will need to come up with decrementation as well.
+    
+    */
+  };
+
+  // TODO
+  /*
+    if the two shapes are the same, then we would ideally want to simply make the default iterator occur.
+    oitherwise there is iterator break in this step, making everyhting slow again
+
+    OR 
+    add in summation, a check for if broadcasting is needed if not then handle it without it?
+  */
+
   ConstIterator begin() const {
     return {this, std::vector<int>(getOrder(), 0), false};
   }
