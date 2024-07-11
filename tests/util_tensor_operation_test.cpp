@@ -44,6 +44,14 @@ TEST(UtilTensorOperation, Undoing_Transpose) {
   }      
   Tensor<float> b = a.Transpose(0,1).Transpose(0,1).Transpose(1,2).Transpose(1,2);
   EXPECT_EQ(a.getShape(), b.getShape());
+  auto it1 = a.begin();
+  auto it2 = a.begin();
+  auto fin = a.end();
+  while (it1 != fin) {
+    EXPECT_EQ(*it1, *it2);
+    ++it1;
+    ++it2;
+  }
   EXPECT_EQ(a.getElement({2,2,1}), b.getElement({2,2,1}));
 }
 TEST(UtilTensorOperation, Chained_Transpose) {
@@ -219,13 +227,14 @@ TEST(UtilTensorOperation, Summing_broadcast) {
 }
 TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
   using namespace cpp_nn::util;
-  Tensor<float> a({1, 2, 3});
+  Tensor<float> a(   {2, 3});
   Tensor<float> b({4, 1, 3}, 2);
   int val = 0;
   for (auto it = a.begin(); it != a.end(); ++it) {
     *it = ++val;
   }
   Tensor<float> c = a + b; //resulting dimension would be {4, 2, 3}
+  EXPECT_EQ(c.getShape(), std::vector<int>({4, 2, 3}));
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 2; ++j) {
       for (int k = 0; k < 3; ++k) {
@@ -252,7 +261,7 @@ TEST(UtilTensorOperation, Multiplication_of_two) {
   for (auto it = b.begin(); it != b.end(); ++it) {
     *it = --val;
   }
-  // Tensor<float> c(a * b);
+  Tensor<float> c(a * b);
   // Tensor<float> c2 = b * a;
   Tensor<float> expected1({2, 2});
   expected1.getElement({0, 0}) = 20;
