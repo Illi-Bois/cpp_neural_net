@@ -106,13 +106,158 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 // End of Tensor-Behaviours ----------------------------
 
   // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  // typedef typename Parent::DefaultConstIterator ConstIterator;
+
+  typedef typename HeldOperation::ConstIterator HeldIterator;
+
+  class ConstIterator : public Parent::DefaultConstIterator {
+    typedef typename Parent::DefaultConstIterator Parent;
+
+    HeldIterator it_;
+    size_t curr_address_;
+
+    std::vector<int> old_chunk_sizes_;
+    size_t capacity_;
+
+   public:
+    ConstIterator(const Self* transpose_ptr, 
+                  std::vector<int> idx, 
+                  bool is_end,
+                  HeldIterator it,
+                  size_t address)
+        : Parent::DefaultConstIterator(transpose_ptr, 
+                                       idx, 
+                                       is_end),
+          it_(it),
+          curr_address_(address),
+          old_chunk_sizes_(transpose_ptr->getOrder(), 1),
+          capacity_(1) {
+      // compute chunk sizes from old, then swap
+      ComputeCapacityAndChunkSizes(transpose_ptr->tensor_.getShape(),
+                                   old_chunk_sizes_,
+                                   capacity_);
+      std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], old_chunk_sizes_[transpose_ptr->axis_2_]);
+
+      // print for debug
+      std::cout << "Old shape" << std::endl;
+      for (auto i : transpose_ptr->tensor_.getShape()) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+      std::cout << "New Shape" << std::endl;
+      for (auto i : transpose_ptr->getShape()) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+      std::cout << "New Chunk sizes" << std::endl;
+      for (auto i : old_chunk_sizes_) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+
+    }
+
+    T operator*() const override {
+      return *it_;
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      if (increment < 0) {
+        return operator-=(-increment);
+      }
+      if (increment == 0) {
+        return *this; 
+      }
+      std::cout << "INCR" << std::endl;
+
+      std::cout << "Old Address " << curr_address_ << std::endl;
+      for (auto i : this->Parent::current_indices_) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+
+      this->Parent::operator+=(increment);
+      int address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
+                                                      old_chunk_sizes_,
+                                                      this->Parent::current_indices_));
+
+      std::cout << "new address " << address << std::endl;
+      for (auto i : this->Parent::current_indices_) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+
+
+      size_t diff = address - curr_address_;
+
+      std::cout << "diff " << diff << std::endl;
+
+      it_ += diff;
+      curr_address_ = address;
+      return *this;
+    }
+
+    ConstIterator& operator-=(int decrement) override {
+      if (decrement < 0) {
+        return operator+=(-decrement);
+      }
+      if (decrement == 0) {
+        return *this;
+      }
+      std::cout << "DECR" << std::endl;
+
+      std::cout << "Old Address " << curr_address_ << std::endl;
+      for (auto i : this->Parent::current_indices_) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+      
+
+      this->Parent::operator-=(decrement);
+      int address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
+                                                      old_chunk_sizes_,
+                                                      this->Parent::current_indices_));
+
+      std::cout << "new address " << address << std::endl;
+      for (auto i : this->Parent::current_indices_) {
+        std::cout << i << "\t";
+      }
+      std::cout << std::endl;
+
+      size_t diff = curr_address_ - address;
+
+      std::cout << "diff " << diff << std::endl;
+
+      it_ -= diff;
+      curr_address_ = address;
+      return *this;
+    }
+
+  };
+
+  /*
+    have vector iterator
+    but with inner iterator address saved
+
+    when incremented, increment vector
+    - map to old shape
+      get address
+      find difference and increment it
+    or
+    - have associated chunk size ready
+      then compute address
+      find differenc and incrmeent it
+  */
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false};
+    return {this, std::vector<int>(getOrder(), 0), false, tensor_.begin(), 0};
+    // return {tensor_.begin(), 0, this, std::vector<int>(getOrder(), 0), false};
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true};
+    // because we dont know where tranposed end is, maybe better if we simply up begin capacity times
+    return begin() += getCapacity();
+    // return {this, std::vector<int>(getOrder(), 0), true, tensor_.end(), getCapacity()};
+    // return {tensor_.end(), getCapacity(), this, std::vector<int>(getOrder(), 0), true};
   }
 
 // friends ---------------------------------------------

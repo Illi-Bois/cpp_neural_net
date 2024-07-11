@@ -149,6 +149,7 @@ class TensorLike {
   class DefaultConstIterator : public ConstIterator {
     typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
   // Members ---------------------------------------------
+  protected: // some special cases might want to acccess, it, clean up later
     const Derived* const tensor_like_;
     std::vector<int> current_indices_;
 

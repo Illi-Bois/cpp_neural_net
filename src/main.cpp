@@ -50,6 +50,11 @@ int main() {
     std::cout << *rev_it << " ";
   }
   std::cout << std::endl;
+
+  A = A.Reshape(std::vector<int>{static_cast<int>(A.getCapacity()) }).Padding({2 * 3 * 4}).Reshape({2, 3, 4});
+  PrintTensor(A);
+  A = A.Transpose();
+  PrintTensor(A);
   
 }
 
