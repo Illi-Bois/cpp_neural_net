@@ -211,6 +211,25 @@ TEST(UtilTensorOperation, Summing_Incorrect_Dimensions) {
   Tensor<int> B({2, 3}, 2);
   EXPECT_THROW(A + B, std::invalid_argument);
 }
+// TEST(UtilTensorOperation, Summing_broadcast) {
+// //| 1  2  3  4  5 |   -broadcast-> | 1  2  3  4  5 |
+// //                                 | 1  2  3  4  5 |
+// //                                 | 1  2  3  4  5 | ...
+//   using namespace cpp_nn::util;
+//   Tensor<float> a({1, 5});
+//   int val = 0;
+//   for (auto it = a.begin(); it != a.end(); ++it) {
+//     *it = ++val;
+//   }
+//   Tensor<float> b({6,5},3);
+//   Tensor<float> c = a + b;
+//   val = 0;
+//   for (int i = 0; i < 6; ++i) {
+//     for (int j = 0; j < 5; ++j) {
+//       EXPECT_EQ(c.getElement({i, j}), (j + 1) + 3);
+//     }
+//   }
+// }
 TEST(UtilTensorOperation, Summing_broadcast) {
 //| 1  2  3  4  5 |   -broadcast-> | 1  2  3  4  5 |
 //                                 | 1  2  3  4  5 |
@@ -229,6 +248,23 @@ TEST(UtilTensorOperation, Summing_broadcast) {
       EXPECT_EQ(c.getElement({i, j}), (j + 1) + 3);
     }
   }
+  //Reset after 5 elements
+  std::vector<int> resetPositions = {5};
+  int iterationCount = 0;
+  int resetIndex = 0;
+  std::vector<int> cIndex(c.getOrder(), 0);
+  do {
+    //iterationCount 0,5,10 -> aIndex = 0
+    //iterationCount 2,7,12 -> aIndex = 2
+    int aIndex = iterationCount % a.getCapacity();
+    std::vector<int> aIdx {0, aIndex};
+    EXPECT_EQ(c.getElement(cIndex), a.getElement(aIdx) + b.getElement(cIndex));
+    ++iterationCount;
+    if (resetIndex < resetPositions.size() && iterationCount == resetPositions[resetIndex]) {
+        iterationCount = 0;
+        ++resetIndex;
+    }
+  } while (IncrementIndicesByShape(c.getShape().begin(), c.getShape().end(), cIndex.begin(), cIndex.end()));
 }
 TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
   using namespace cpp_nn::util;
