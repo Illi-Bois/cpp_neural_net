@@ -263,25 +263,33 @@ int main() {
         std::cout << "\t diff is \t" << diff;
 
 
-        int computed_difference = 0;
-        
-        // try catch last skip
-        //  should be add,add,skip, add,add,skip  because broadasted tp 3 with intervals of 2
-        int temp = broadcast_address / broad_cast_dim[1];
-        std::cout << "Rep is " << temp;
-        // NEED TO TAKE AWAY EVERY THIRD
-        int temptemp = temp / broad_cast_dim_count[1];
-        std::cout << "ev is " << temptemp;
+        int recomp = broadcast_address;
 
-        int diff_by_this = temp - temptemp;
-        std::cout << "\t\t" << "diff by that is " << diff_by_this;
+        for (int i = 0; i < broad_cast_dim.size(); ++i) {
 
-        
-        computed_difference += broad_cast_dim[1] * diff_by_this;
+          int computed_difference = 0;
+          // try catch last skip
+          //  should be add,add,skip, add,add,skip  because broadasted tp 3 with intervals of 2
+          int temp = recomp / broad_cast_dim[i];
+          // std::cout << "Rep is " << temp;
+          // NEED TO TAKE AWAY EVERY THIRD
+          int temptemp = temp / broad_cast_dim_count[i];
+          // std::cout << "ev is " << temptemp;
+
+          int diff_by_this = temp - temptemp;
+          // std::cout << "\t\t" << "diff by that is " << diff_by_this;
+
+          
+          computed_difference += broad_cast_dim[i] * diff_by_this;
 
 
-        std::cout << "\t\t\t Computed is " << computed_difference;
+          // std::cout << "\t\t\t Computed is " << computed_difference;
 
+          recomp -= computed_difference;
+        }
+
+        std::cout << "\t\t\t fin is " << recomp;
+        std::cout << ((recomp == cut_address) ? " Corr" : "WRONG");
 
         std::cout << std::endl;
 
