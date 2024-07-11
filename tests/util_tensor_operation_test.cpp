@@ -261,21 +261,33 @@ TEST(UtilTensorOperation, Multiplication_of_two) {
   for (auto it = b.begin(); it != b.end(); ++it) {
     *it = --val;
   }
-  Tensor<float> c(a * b);
-  // Tensor<float> c2 = b * a;
+  Tensor<float> c1 = a * b;
   Tensor<float> expected1({2, 2});
-  expected1.getElement({0, 0}) = 20;
-  expected1.getElement({0, 1}) = 14;
-  expected1.getElement({1, 0}) = 56;
-  expected1.getElement({1, 1}) = 41;
-  //EXPECT_EQ(c.getElement({0,0}), 20);
-  //EXPECT_EQ(expected1.getElement({0,0}), 20);
-
-  // for(int i = 0; i < 2; ++i){
-  //   for(int j = 0; j < 2; ++j){
-  //     EXPECT_EQ(c.getElement({i, j}), expected1.getElement({i, j}));
-  //   }
-  // }
+  expected1.getElement({0, 0}) = 74;
+  expected1.getElement({0, 1}) = 68;
+  expected1.getElement({1, 0}) = 191;
+  expected1.getElement({1, 1}) = 176;
+  Tensor<float> c2 = b * a;
+  for(int i = 0; i < 2; ++i){
+    for(int j = 0; j < 2; ++j){
+      EXPECT_EQ(c1.getElement({i, j}), expected1.getElement({i, j}));
+    }
+  }
+  Tensor<float> expected2({3, 3});
+  expected2.getElement({0, 0}) = 71;
+  expected2.getElement({0, 1}) = 100;
+  expected2.getElement({0, 2}) = 129;
+  expected2.getElement({1, 0}) = 61;
+  expected2.getElement({1, 1}) = 86;
+  expected2.getElement({1, 2}) = 111;
+  expected2.getElement({2, 0}) = 51;
+  expected2.getElement({2, 1}) = 72;
+  expected2.getElement({2, 2}) = 93;
+  for(int i = 0; i < 3; ++i){
+    for(int j = 0; j < 3; ++j){
+      EXPECT_EQ(c2.getElement({i, j}), expected2.getElement({i, j}));
+    }
+  }
 }
 TEST(UtilTensorOperation, Multiplication_of_three) {
   
