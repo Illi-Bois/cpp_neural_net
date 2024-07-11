@@ -95,6 +95,7 @@ int main() {
     // TO BE USED WHEN RECOMPUTING ADDRESS
     std::vector<int> broad_cast_dim;
     std::vector<int> broad_cast_dim_prev;
+    std::vector<int> add_dim;
 
     int IDX = 0; // over broad
     int diff_dim = broad.size() - small.size();
@@ -104,6 +105,7 @@ int main() {
         std::cout << "BORADCAST AT " << IDX << std::endl;
       broad_cast_dim.push_back(broad_chunk[0]);
       broad_cast_dim_prev.push_back(cap);
+      add_dim.push_back(0); // for no match, add 0??
 
       --diff_dim;
       ++IDX;
@@ -113,6 +115,7 @@ int main() {
         std::cout << "BORADCAST AT " << IDX << std::endl;
         broad_cast_dim.push_back(broad_chunk[IDX]);
         broad_cast_dim_prev.push_back(broad_chunk[IDX - 1]);
+        add_dim.push_back(0); // for no match, add 0??
         --diff_dim;
       }
       
@@ -124,6 +127,8 @@ int main() {
         std::cout << "BORADCAST AT " << IDX << std::endl;
         broad_cast_dim.push_back(broad_chunk[0]);
         broad_cast_dim_prev.push_back(cap);
+        add_dim.push_back(cap2); // for no match, add 0??
+
         ++IDX;
       }
     }
@@ -137,6 +142,8 @@ int main() {
         std::cout << "BORADCAST AT " << IDX << std::endl;
         broad_cast_dim.push_back(broad_chunk[IDX]);
         broad_cast_dim_prev.push_back(broad_chunk[IDX - 1]);
+        add_dim.push_back(small_chunk[IDX]); // for no match, add 0??
+
       }
       ++IDX;
     }
@@ -200,7 +207,8 @@ int main() {
       // FOREACH BROADCAST DIMS
       for (int i = 0; i < broad_cast_dim.size(); ++i) {
         if (comp / broad_cast_dim_prev[i]) {
-          res += broad_cast_dim[i];
+          // res += broad_cast_dim[i];
+          res += add_dim[i];
         }
         comp %= broad_cast_dim[i];
       }
