@@ -137,24 +137,6 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
                                    old_chunk_sizes_,
                                    capacity_);
       std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], old_chunk_sizes_[transpose_ptr->axis_2_]);
-
-      // print for debug
-      std::cout << "Old shape" << std::endl;
-      for (auto i : transpose_ptr->tensor_.getShape()) {
-        std::cout << i << "\t";
-      }
-      std::cout << std::endl;
-      std::cout << "New Shape" << std::endl;
-      for (auto i : transpose_ptr->getShape()) {
-        std::cout << i << "\t";
-      }
-      std::cout << std::endl;
-      std::cout << "New Chunk sizes" << std::endl;
-      for (auto i : old_chunk_sizes_) {
-        std::cout << i << "\t";
-      }
-      std::cout << std::endl;
-
     }
 
     T operator*() const override {
@@ -168,7 +150,7 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
       if (increment == 0) {
         return *this; 
       }
-      
+
       this->Parent::operator+=(increment);
       int address;
       if (Parent::at_end_) {
