@@ -197,6 +197,12 @@ int main() {
       std::cout << std::endl;
 
     } while (IncrementIndicesByShape(broad.begin(), broad.end(), idx.begin(), idx.end()));
+
+    /**
+     * TODO:!!!!
+     *  COMMENT, for broadcast iterator, if we keep running broadcast-iterator incremented count, that is, instead of having a vector iterator to compute address
+     *  we simply sum increment and decrement, we can compute original-shape address in simply O(broadcasted_axes_count).
+     */
   }
   
 }
