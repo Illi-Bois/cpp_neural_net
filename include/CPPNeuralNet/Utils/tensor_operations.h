@@ -354,20 +354,16 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
           old_chunk_sizes_(transpose_ptr->getOrder(), 1),
           capacity_(1),
           held_shape_(transpose_ptr->tensor_like_.getShape()) {
-      
-      // // compute chunk sizes from old, then swap
+      // compute chunk sizes from old, then swap
       ComputeCapacityAndChunkSizes(held_shape_,
                                    old_chunk_sizes_,
                                    capacity_);
       std::vector<int> transposed_chunk_size(transpose_ptr->getOrder());
       for (int axis = 0; axis < transpose_ptr->getOrder(); ++axis) {
-        transposed_chunk_size[axis] = old_chunk_sizes_[transpose_ptr->tranpose_map_[axis]];
-        // transposed_chunk_size[transpose_ptr->untranpose_map_[axis]] = old_chunk_sizes_[axis];
+        // transposed_chunk_size[axis] = old_chunk_sizes_[transpose_ptr->untranpose_map_[axis]];
+        transposed_chunk_size[transpose_ptr->tranpose_map_[axis]] = old_chunk_sizes_[axis];
       }
-      old_chunk_sizes_ = transposed_chunk_size;
-      // std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], 
-      //           old_chunk_sizes_[transpose_ptr->axis_2_]);
-      // TODO: FIX
+      old_chunk_sizes_ = std::move(transposed_chunk_size);
     }
 
     T operator*() const override {
