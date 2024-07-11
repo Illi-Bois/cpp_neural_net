@@ -71,8 +71,8 @@ int main() {
   {
     std::cout << "Broadcast iteator order testground" << std::endl;
 
-    std::vector<int> broad({3, 2, 2, 3});
-    std::vector<int> small({1, 2, 1, 1});
+    std::vector<int> broad({2, 3, 3, 2});
+    std::vector<int> small(   {3, 1, 2});
 
     std::vector<int> broad_chunk(broad.size(), 1);
     std::vector<int> small_chunk(small.size(), 1);
@@ -94,6 +94,7 @@ int main() {
 
     // TO BE USED WHEN RECOMPUTING ADDRESS
     std::vector<int> broad_cast_dim;
+    std::vector<int> broad_cast_dim_count;
     std::vector<int> broad_cast_dim_prev;
     std::vector<int> add_dim;
 
@@ -104,8 +105,11 @@ int main() {
       // need to fill up from front 
         std::cout << "BORADCAST AT " << IDX << std::endl;
       broad_cast_dim.push_back(broad_chunk[0]);
+      broad_cast_dim_count.push_back(broad[0]);
       broad_cast_dim_prev.push_back(cap);
       add_dim.push_back(0); // for no match, add 0??
+      // add_dim.push_back(cap2); // for no match, or cap2
+      
 
       --diff_dim;
       ++IDX;
@@ -114,8 +118,10 @@ int main() {
       {
         std::cout << "BORADCAST AT " << IDX << std::endl;
         broad_cast_dim.push_back(broad_chunk[IDX]);
+        broad_cast_dim_count.push_back(broad[IDX]);
         broad_cast_dim_prev.push_back(broad_chunk[IDX - 1]);
         add_dim.push_back(0); // for no match, add 0??
+        // add_dim.push_back(cap2); // for no match, or cap2
         --diff_dim;
       }
       
@@ -126,6 +132,7 @@ int main() {
         // broadcasted at first dim
         std::cout << "BORADCAST AT " << IDX << std::endl;
         broad_cast_dim.push_back(broad_chunk[0]);
+        broad_cast_dim_count.push_back(broad[0]);
         broad_cast_dim_prev.push_back(cap);
         add_dim.push_back(cap2); // for no match, add 0??
 
@@ -141,6 +148,7 @@ int main() {
         // broadcasted at first dim
         std::cout << "BORADCAST AT " << IDX << std::endl;
         broad_cast_dim.push_back(broad_chunk[IDX]);
+        broad_cast_dim_count.push_back(broad[IDX]);
         broad_cast_dim_prev.push_back(broad_chunk[IDX - 1]);
         add_dim.push_back(small_chunk[IDX]); // for no match, add 0??
 
@@ -150,76 +158,135 @@ int main() {
 
     // THIS IS HOW YOU COMPUTE ALL THE BROADCAST DIM AND ITS PREV
     for (int i = 0; i < broad_cast_dim.size(); ++i) {
-      std::cout << broad_cast_dim[i] << ", " << broad_cast_dim_prev[i] << "\t";
+      std::cout << broad_cast_dim[i] << ", " << broad_cast_dim_prev[i] << ".." << broad_cast_dim_count[i] << "\t";
     }
     std::cout << std::endl;
 
 
 
-    do {
-      // for (auto i : idx) {
-      //   std::cout << i << ",\t";
-      // }
-      size_t al;
-      std::cout << ":: " << (al = IndicesToAddress(broad, broad_chunk, idx) ) << "\t";
+    // do {
+    //   // for (auto i : idx) {
+    //   //   std::cout << i << ",\t";
+    //   // }
+    //   size_t al;
+    //   std::cout << ":: " << (al = IndicesToAddress(broad, broad_chunk, idx) ) << "\t";
 
-      auto cut = CutBroadcast(idx, small);
-      size_t OTHER;
-      std::cout << " AND " << (OTHER = IndicesToAddress(small, small_chunk, cut)) << "\t::";
-      // for (auto i : cut) {
-      //   std::cout << i << ",\t";
-      // }
+    //   auto cut = CutBroadcast(idx, small);
+    //   size_t OTHER;
+    //   std::cout << " AND " << (OTHER = IndicesToAddress(small, small_chunk, cut)) << "\t::";
+    //   std::cout << (al - OTHER) << " is diff";
+    //   // for (auto i : cut) {
+    //   //   std::cout << i << ",\t";
+    //   // }
 
-      size_t res = 0;
-      size_t comp = al;
+    //   size_t res = 0;
+    //   size_t comp = al;
 
-      // same thing down to lower broadcast sizes do this but upwards?
-      // comp %= broad_chunk[0];
+    //   // same thing down to lower broadcast sizes do this but upwards?
+    //   // comp %= broad_chunk[0];
 
-      // if (comp / broad_chunk[2] != broad[2]) {
-      //   res += broad_chunk[2];
-      // }
-      // comp %= broad_chunk[2];
-
-
+    //   // if (comp / broad_chunk[2] != broad[2]) {
+    //   //   res += broad_chunk[2];
+    //   // }
+    //   // comp %= broad_chunk[2];
 
 
-      // FOR EACH BROADCAST SHAPE,
-      /*
-        starting from top
-        if broadcast occured at i, if divisible by chunk[i - 1], add chunk[i]
-        irrgardless, address /= chunk[i]
 
-        repeat for all broadcast dim
 
-        at the end, add remaining from address
-      */
-      // if (comp / cap) {
-      //   res += broad_chunk[0];
-      // }
-      // comp %= broad_chunk[0];
-      // // when it is divisible by 24, add 8
-      // if (comp / broad_chunk[1]) {
-      //   res += broad_chunk[2];
-      // }
-      // comp %= broad_chunk[2];
+    //   // FOR EACH BROADCAST SHAPE,
+    //   /*
+    //     starting from top
+    //     if broadcast occured at i, if divisible by chunk[i - 1], add chunk[i]
+    //     irrgardless, address /= chunk[i]
 
-      // FOREACH BROADCAST DIMS
-      for (int i = 0; i < broad_cast_dim.size(); ++i) {
-        if (comp / broad_cast_dim_prev[i]) {
-          // res += broad_cast_dim[i];
-          res += add_dim[i];
-        }
-        comp %= broad_cast_dim[i];
-      }
-      res += comp;
+    //     repeat for all broadcast dim
+
+    //     at the end, add remaining from address
+    //   */
+    //   // if (comp / cap) {
+    //   //   res += broad_chunk[0];
+    //   // }
+    //   // comp %= broad_chunk[0];
+    //   // // when it is divisible by 24, add 8
+    //   // if (comp / broad_chunk[1]) {
+    //   //   res += broad_chunk[2];
+    //   // }
+    //   // comp %= broad_chunk[2];
+
+    //   // FOREACH BROADCAST DIMS
+    //   // for (int i = 0; i < broad_cast_dim.size(); ++i) {
+    //   //   if (comp / broad_cast_dim_prev[i]) {
+    //   //     // res += broad_cast_dim[i];
+    //   //     res += add_dim[i];
+    //   //   }
+    //   //   comp %= broad_cast_dim[i];
+    //   // }
+    //   // int size = broad_cast_dim_prev.size();
+    //   // for (int i = 0; i < size; ++i) {
+    //   // // for (int i = size - 1; i >= 0; --i) {
+    //   //   int temp = comp % broad_cast_dim_prev[i];
+    //   //   temp = comp / broad_cast_dim[i];
+    //   //   if (temp) {
+    //   //     std::cout << "GOD ";
+    //   //     res += broad_cast_dim[i];
+    //   //   }
+    //   //   comp %= broad_cast_dim[i];
+    //   //   // clearly some repeated division is fucking this up
+    //   // }
+    //   // res += comp;
+
+
+
       
-      std::cout << " ummm " << (res) << " DIFF " << (static_cast<int>(OTHER) - static_cast<int>(res))  << ((OTHER != res) ? " WRONG" : " " )<< std::endl;
+    //   std::cout << " ummm " << (res) << " DIFF " << (static_cast<int>(OTHER) - static_cast<int>(res))  << ((OTHER != res) ? " WRONG" : " " )<< std::endl;
 
-      std::cout << std::endl;
+    //   std::cout << std::endl;
 
-    } while (IncrementIndicesByShape(broad.begin(), broad.end(), idx.begin(), idx.end()));
+    // } while (IncrementIndicesByShape(broad.begin(), broad.end(), idx.begin(), idx.end()));
 
+
+    /**
+     * TRY AGAIN MAKE THINGS EASIER TO READ
+     */
+    {
+      std::cout << "Trial ground 2" << std::endl;
+
+      do {
+        size_t broadcast_address = IndicesToAddress(broad, broad_chunk, idx);
+
+        auto cut_idx = CutBroadcast(idx, small);
+        size_t cut_address = IndicesToAddress(small, small_chunk, cut_idx);
+
+        int diff = static_cast<int>(cut_address) - static_cast<int>(broadcast_address);
+
+        std::cout << broadcast_address << "\t->\t" << cut_address;
+        std::cout << "\t diff is \t" << diff;
+
+
+        int computed_difference = 0;
+        
+        // try catch last skip
+        //  should be add,add,skip, add,add,skip  because broadasted tp 3 with intervals of 2
+        int temp = broadcast_address / broad_cast_dim[1];
+        std::cout << "Rep is " << temp;
+        // NEED TO TAKE AWAY EVERY THIRD
+        int temptemp = temp / broad_cast_dim_count[1];
+        std::cout << "ev is " << temptemp;
+
+        int diff_by_this = temp - temptemp;
+        std::cout << "\t\t" << "diff by that is " << diff_by_this;
+
+        
+        computed_difference += broad_cast_dim[1] * diff_by_this;
+
+
+        std::cout << "\t\t\t Computed is " << computed_difference;
+
+
+        std::cout << std::endl;
+
+      } while (IncrementIndicesByShape(broad.begin(), broad.end(), idx.begin(), idx.end()));
+    }
     /**
      * TODO:!!!!
      *  COMMENT, for broadcast iterator, if we keep running broadcast-iterator incremented count, that is, instead of having a vector iterator to compute address
