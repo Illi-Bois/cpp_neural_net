@@ -25,6 +25,11 @@ TEST(UtilTensorOperation, Transpose_Operation) {
       EXPECT_EQ(b.getElement({i, j}), ++val);
     }
   }
+  //checks if element in a hasn't changed
+  val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    EXPECT_EQ(*it, ++val);
+  }   
   EXPECT_EQ(b.getShape(), std::vector<int>({24,30}));
   //1D tensor
   Tensor<float> c({5}, 1.0f); 
