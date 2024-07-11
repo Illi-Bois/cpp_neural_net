@@ -348,4 +348,100 @@ TEST(UtilTensorOperation, Padding_non_postive_dim) {
 TEST(UtilTensorOperation, Chaining_Different_Operations) {
   // do while and go ham, 
 }
+
+
+
+TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_Tranpose_Reshape) {
+  using namespace cpp_nn::util;
+
+  Tensor A({2, 3, 4}, 0);
+  int val = 0; 
+  auto ait = A.begin();
+  auto aend = A.end();
+
+  while (ait != aend) {
+    *ait = ++val;
+    ++ait;
+  }
+
+  Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4});
+
+  // with assumptinog that individual operation works fine
+  Tensor D = A.Transpose(0, 1);
+  D = D.Reshape({3, 2, 4});
+
+  auto it = C.begin();
+  auto endit = C.end();
+
+  auto oit = D.begin();
+
+  while (it != endit) {
+    EXPECT_EQ(*it, *oit);
+    ++it;
+    ++oit;
+  }
+}
+
+TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_Reshape_Tranpose) {
+  using namespace cpp_nn::util;
+
+  Tensor A({2, 3, 4}, 0);
+  int val = 0; 
+  auto ait = A.begin();
+  auto aend = A.end();
+
+  while (ait != aend) {
+    *ait = ++val;
+    ++ait;
+  }
+
+  Tensor C = A.Reshape({3, 2, 4}).Transpose(0, 1);
+
+  // with assumptinog that individual operation works fine
+  Tensor D = A.Reshape({3, 2, 4});
+  D = D.Transpose(0, 1);
+
+  auto it = C.begin();
+  auto endit = C.end();
+
+  auto oit = D.begin();
+
+  while (it != endit) {
+    EXPECT_EQ(*it, *oit);
+    ++it;
+    ++oit;
+  }
+}
+
+TEST(UtilTensorOperation, Chaining_Different_Operations_SPECIFICALLY_Tranpose_Reshape_Transpose) {
+  using namespace cpp_nn::util;
+
+  Tensor A({2, 3, 4}, 0);
+  int val = 0; 
+  auto ait = A.begin();
+  auto aend = A.end();
+
+  while (ait != aend) {
+    *ait = ++val;
+    ++ait;
+  }
+
+  Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4}).Transpose(0, 2);
+
+  // with assumptinog that individual operation works fine
+  Tensor D = A.Transpose(0, 1);
+  D = D.Reshape({3, 2, 4});
+  D = D.Transpose(0, 2);
+
+  auto it = C.begin();
+  auto endit = C.end();
+
+  auto oit = D.begin();
+
+  while (it != endit) {
+    EXPECT_EQ(*it, *oit);
+    ++it;
+    ++oit;
+  }
+}
 // End of MULTIPLE OPERATION CHAINED =====================

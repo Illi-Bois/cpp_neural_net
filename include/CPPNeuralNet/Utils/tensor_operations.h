@@ -367,6 +367,7 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
       old_chunk_sizes_ = transposed_chunk_size;
       // std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], 
       //           old_chunk_sizes_[transpose_ptr->axis_2_]);
+      // TODO: FIX
     }
 
     T operator*() const override {

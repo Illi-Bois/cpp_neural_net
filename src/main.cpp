@@ -71,7 +71,9 @@ int main() {
 
   // std::cout << "This is what it shoudl look like" << std::endl;
   // Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4}).Transpose(0, 2);
-  Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4}).Transpose(0, 2);
+  Tensor C = A.Transpose(0, 1).Reshape({3, 2, 4});
+  PrintTensor(C);
+  C = C.Transpose(0, 2);
   PrintTensor(C);
 
   // std::cout << "With multi" << std::endl;
