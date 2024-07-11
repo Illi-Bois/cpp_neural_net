@@ -105,19 +105,36 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
-  // type def instead of making another inner class
-  // typedef typename Parent::DefaultConstIterator ConstIterator;
-
+// Iterator --------------------------------------------
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
   class ConstIterator : public Parent::DefaultConstIterator {
+   private:
     typedef typename Parent::DefaultConstIterator Parent;
-
+  // Members ---------------------------------------------
     HeldIterator it_;
     size_t curr_address_;
 
     std::vector<int> old_chunk_sizes_;
     size_t capacity_;
+
+    const std::vector<int>& held_shape_;
+  // End of Members --------------------------------------
+
+  // Housekeeping ----------------------------------------
+  /** Updates current_address to given address */
+    void IncrementAddressTo(size_t address_to) {
+      size_t diff;
+      if (curr_address_ > address_to) {
+        diff = curr_address_ - address_to;
+        it_ -= diff;;
+      } else {
+        diff = address_to - curr_address_;
+        it_ += diff;;
+      }
+      curr_address_ = address_to;
+    }
+  // End of Housekeeping ---------------------------------
 
    public:
     ConstIterator(const Self* transpose_ptr, 
@@ -131,12 +148,14 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
           it_(it),
           curr_address_(address),
           old_chunk_sizes_(transpose_ptr->getOrder(), 1),
-          capacity_(1) {
+          capacity_(1),
+          held_shape_(this->Parent::tensor_like_->tensor_.getShape()) {
       // compute chunk sizes from old, then swap
       ComputeCapacityAndChunkSizes(transpose_ptr->tensor_.getShape(),
                                    old_chunk_sizes_,
                                    capacity_);
-      std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], old_chunk_sizes_[transpose_ptr->axis_2_]);
+      std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], 
+                old_chunk_sizes_[transpose_ptr->axis_2_]);
     }
 
     T operator*() const override {
@@ -144,77 +163,52 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     }
 
     ConstIterator& operator+=(int increment) override {
+      // Early exits
       if (increment < 0) {
-        return operator-=(-increment);
+        return operator+=(-increment);
+      } else if (increment == 0) {
+        return *this;
       }
-      if (increment == 0) {
-        return *this; 
-      }
+      // Rely on default incrementation
+      Parent::operator+=(increment);
 
-      this->Parent::operator+=(increment);
-      int address;
+      // when at end, address cannot be deduced from idx alone
+      size_t address;
       if (Parent::at_end_) {
         address = Parent::tensor_like_->getCapacity();
       } else {
-        address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
-                                                        old_chunk_sizes_,
-                                                        this->Parent::current_indices_));
+        address = IndicesToAddress(held_shape_, 
+                                   old_chunk_sizes_,
+                                   Parent::current_indices_);
       }
-      size_t diff = address - curr_address_;
-
-      it_ += diff;
-      curr_address_ = address;
+      IncrementAddressTo(address);
       return *this;
     }
-
     ConstIterator& operator-=(int decrement) override {
+      // Early exits
       if (decrement < 0) {
         return operator+=(-decrement);
-      }
-      if (decrement == 0) {
+      } else if (decrement == 0) {
         return *this;
       }
+      // Rely on default decrementation
+      Parent::operator-=(decrement);
 
-      this->Parent::operator-=(decrement);
-      int address = static_cast<int>(IndicesToAddress(this->Parent::tensor_like_->tensor_.getShape(), 
-                                                      old_chunk_sizes_,
-                                                      this->Parent::current_indices_));
-      if (curr_address_ > address) {
-        size_t diff = curr_address_ - address;
-        it_ -= diff;;
-      } else {
-        size_t diff = address - curr_address_;
-        it_ += diff;;
-      }
-
-      curr_address_ = address;
+      // as -= always sets to expected idx, can call address immediately 
+      IncrementAddressTo(IndicesToAddress(held_shape_, 
+                                          old_chunk_sizes_,
+                                          Parent::current_indices_));
       return *this;
     }
-
-  };
-
-  /*
-    have vector iterator
-    but with inner iterator address saved
-
-    when incremented, increment vector
-    - map to old shape
-      get address
-      find difference and increment it
-    or
-    - have associated chunk size ready
-      then compute address
-      find differenc and incrmeent it
-  */
+  }; // End of ConstIterator
 
   ConstIterator begin() const {
     return {this, std::vector<int>(getOrder(), 0), false, tensor_.begin(), 0};
   }
   ConstIterator end() const {
-    // because we dont know where tranposed end is, maybe better if we simply up begin capacity times
-    // return begin() += getCapacity();
     return {this, std::vector<int>(getOrder(), 0), true, tensor_.end(), getCapacity()};
   }
+// End of Iterator -------------------------------------
 
 // friends ---------------------------------------------
   friend class MultiTransposeOperation<T, HeldOperation>;
