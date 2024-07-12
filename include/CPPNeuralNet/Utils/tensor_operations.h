@@ -519,6 +519,9 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   typedef MultiplicationOperation<T, HeldOperation1, HeldOperation2> Self;
   typedef TensorLike<T, Self> Parent;
 
+  typedef BroadcastOperation<T, HeldOperation1> BroadcastFirst;
+  typedef BroadcastOperation<T, HeldOperation2> BroadcastSecond;
+
 // Members ---------------------------------------------
   // product is resolved upon construct,
   //  so that other multiplcation algorithms can be used.
@@ -533,15 +536,17 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
                           const TensorLike<T, HeldOperation2>& B)
       // tensor is build after all checks
       : product_tensor_(nullptr) {
-    // Broadcasting checks for compatiblity 
-    std::vector<int> broad_cast_shape(Broadcast(A.getShape().begin(), A.getShape().end() - 2,
-                                                B.getShape().begin(), B.getShape().end() - 2)); 
-    if (A.getOrder() < 2) {
+    // Multiplication possiblity check
+    if (A.getOrder() < 2 || B.getOrder() < 2) {
       throw std::invalid_argument("Multiplication- Insufficient Dimension");
     }
     if (A.getDimension(-1) != B.getDimension(-2)) {
       throw std::invalid_argument("Multiplication- Multiplcation Dimension Mismatch");
     }
+
+    // Broadcasting checks for compatiblity 
+    std::vector<int> broad_cast_shape(Broadcast(A.getShape().begin(), A.getShape().end() - 2,
+                                                B.getShape().begin(), B.getShape().end() - 2)); 
 
     const int rows = A.getDimension(-2);
     const int cols = B.getDimension(-1);
@@ -549,42 +554,44 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
     // !! Does not use conventional Broadcast. Need to have broadcast separaelty
 
-    // For A
+    // First set product_shape
+    broad_cast_shape.push_back(rows);
+    broad_cast_shape.push_back(cols);
+
+    const size_t order = broad_cast_shape.size();
+
+    // Broadcast A
     std::vector<int> A_broadcast_shape(broad_cast_shape);
-    A_broadcast_shape.push_back(rows);
-    A_broadcast_shape.push_back(interm);
+    A_broadcast_shape[order - 1] = interm;
     // TODO for this context these might be unnecessary to compute
     // we might as well pass broken chunk sizes
-    std::vector<int> A_broadcast_chunk;
-    size_t A_capacity;
+    std::vector<int> A_broadcast_chunk(order, 1);
+    size_t A_capacity = 1;
     ComputeCapacityAndChunkSizes(A_broadcast_shape,
                                  A_broadcast_chunk,
                                  A_capacity);
     // but for now, use proper, then reevaluate when doing strassen TODO
-    BroadcastOperation<T, HeldOperation1> A_broadcast(A, 
-                                                      A_broadcast_shape, 
-                                                      A_broadcast_chunk,
-                                                      A_capacity);
-    // For B
+    BroadcastFirst A_broadcast(A, 
+                               A_broadcast_shape, 
+                               A_broadcast_chunk,
+                               A_capacity);
+    // Broadcast B
     std::vector<int> B_broadcast_shape(broad_cast_shape);
-    B_broadcast_shape.push_back(interm);
-    B_broadcast_shape.push_back(cols);
+    B_broadcast_shape[order - 2] = interm;
     // TODO for this context these might be unnecessary to compute
     // we might as well pass broken chunk sizes
-    std::vector<int> B_broadcast_chunk;
-    size_t B_capacity;
+    std::vector<int> B_broadcast_chunk(order, 1);;
+    size_t B_capacity = 1;
     ComputeCapacityAndChunkSizes(B_broadcast_shape,
                                  B_broadcast_chunk,
                                  B_capacity);
     // but for now, use proper, then reevaluate when doing strassen TODO
-    BroadcastOperation<T, HeldOperation2> B_broadcast(B, 
-                                                      B_broadcast_shape, 
-                                                      B_broadcast_chunk,
-                                                      B_capacity);
+    BroadcastSecond B_broadcast(B, 
+                                B_broadcast_shape, 
+                                B_broadcast_chunk,
+                                B_capacity);
 
-    // For product
-    broad_cast_shape.push_back(rows);
-    broad_cast_shape.push_back(cols);
+    // Final storage for C = A*B
     product_tensor_ = new Tensor<T>(broad_cast_shape);
 
     // Using iterator, a more efficnent iteration may be pssible
