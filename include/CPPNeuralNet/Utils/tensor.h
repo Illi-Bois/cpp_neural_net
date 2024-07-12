@@ -28,6 +28,16 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
  */
   Tensor(const std::vector<int>& dimensions, 
          T init_val = T()); 
+
+// Generator Constructor-----------------------------
+/**
+ *  Takes a Generator and size vector as input,
+ *  initializes Tensor with values according to the given generator
+ * 
+ */
+template<typename Generator,
+          typename = std::enable_if_t<!std::is_convertible_v<Generator, T>>>
+Tensor(const std::vector<int>& dimensions, Generator generator);
 /**
  *  Copy Constructor
  *  assumes other was validly constructed and thus throws no exception.
@@ -357,6 +367,25 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions,
                                              capacity_);
   elements_ = new std::vector<T>(capacity_, init_val);
 }
+/** Generator Constructor */
+// Generator Constructor
+template<typename T>
+template<typename Generator,
+         typename>
+Tensor<T>::Tensor(const std::vector<int>& dimensions, Generator generator)
+    : dimensions_(dimensions),
+      chunk_size_(dimensions.size(), 1),
+      capacity_(  1),
+      elements_(  nullptr) {
+  cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, 
+                                             chunk_size_, 
+                                             capacity_);
+  elements_ = new std::vector<T>(capacity_);
+  for (int i = 0; i < capacity_; ++i) {
+      (*elements_)[i] = generator();
+  }
+}
+
 /** Copy Constructor */
 template<typename T>
 Tensor<T>::Tensor(const Tensor& other) noexcept

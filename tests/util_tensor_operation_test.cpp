@@ -142,6 +142,23 @@ TEST(UtilTensorOperation, Summation_Of_Two) {
   }     
   EXPECT_EQ(a.getShape(), c.getShape());
 }
+TEST(UtilTensorOperation, Summation_Of_Two_Constructor) {
+  using namespace cpp_nn::util;
+  int val = 0;
+  auto generator = [&val]() { return ++val; };
+  Tensor<float> a({2, 3}, generator);
+  EXPECT_EQ(a.getElement({0, 0}), 1);
+  std::vector<int> expected_elements = 
+  {
+    1,    2,    3,
+    4,    5,    6,
+  };
+  auto it = a.begin();
+  for (auto exp : expected_elements) {
+    EXPECT_EQ(*it, exp);
+    ++it;
+  }
+}
 TEST(UtilTensorOperation, Summation_Of_Three) {
   using namespace cpp_nn::util;
   Tensor<float> a({3, 4});
