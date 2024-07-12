@@ -39,7 +39,43 @@ void FindBroadcastAxes(const std::vector<int>& broadcast_dim,
                        const std::vector<int>& broadcast_chunk,
                        std::vector<int>& res_broadcast_dim,
                        std::vector<int>& res_broadcast_chunk) {
+  // assumes the res vectors are empty
+  res_broadcast_dim.reserve(original_dim.size());
+  res_broadcast_chunk.reserve(original_dim.size());
+
+  int off_set = broadcast_dim.size() - original_dim.size();
+  for (int i = 0; i < original_dim.size(); ++i) {
+    if (broadcast_dim[off_set + i] != original_dim[i]) {
+      // broadtcast at this axis
+      res_broadcast_dim.push_back(broadcast_dim[off_set + i]);
+      res_broadcast_chunk.push_back(broadcast_chunk[off_set + i]);
+    }
+  }
+
+  res_broadcast_dim.shrink_to_fit();
+  res_broadcast_chunk.shrink_to_fit();
   return;
+}
+
+size_t ComputeUnbroadcastAddress(const std::vector<int>& broadcast_dim,
+                                 const std::vector<int>& broadcast_chunk,
+                                 size_t original_capacity,
+                                 size_t broadcast_address) {
+  for (int axis = 0; axis < broadcast_dim.size(); ++axis) {
+    // see how many times we have repeated the chunksize
+    const size_t repetition = broadcast_address / broadcast_chunk[axis];
+    // every final index in dimension gets a 'pass'
+    const size_t repetition_off_setter = repetition / broadcast_dim[axis]; 
+
+    // need to remove address by this count
+    const size_t reset_count = repetition - repetition_off_setter;
+    broadcast_address -= broadcast_chunk[axis] * reset_count;
+  }
+  // Underset, ensure is in bound
+  //   needed because broadcast does not consider front-broadcasting
+  broadcast_address %= original_capacity;
+
+  return broadcast_address;
 }
 
 int main() {
