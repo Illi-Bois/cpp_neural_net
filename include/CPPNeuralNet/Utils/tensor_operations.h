@@ -876,9 +876,9 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
 
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
-  // TODO: make shape a refrence,
-  //       add chunk sizes
+
   const std::vector<int>& broadcasted_shape_;
+  // To be compatible with BroadcastPairHolder, must be reference
   const std::vector<int>& broadcasted_chunk_sizes_;
   const size_t& broadcasted_capacity_;
 // End of Members --------------------------------------
@@ -914,47 +914,102 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
-  // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  // TODO: a clever iterator is iminnent, 
-  class Temp : public Parent::ConstIterator {
-    // maybe the only bezt option is same as DefaultConstIter
-    /*
-    
-    size_t current_address_;
-    vector<size_t> broadcast_checkmarks_; when address_ = checkmark, return to 0
-    vector<size_t> check_mark_count;
-    vector<size_t> current_checkmark_iteration;
+  class ConstIterator : public Parent::ConstIterator {
+    const Self* const reference_;
+    HeldIterator it_;
 
-    do"
-    addres += increment;
-    if (address >= checkmark_ && current_checkmark_iteration != check_mark_count){
-      address -= cehckmark_
-      current_checkmark_iteration ++
+    size_t curr_address_;
+
+    size_t original_capacity_;
+
+    std::vector<int> detected_dimensions_;
+    std::vector<int> detected_chunk_sizes_;
+
+    size_t curr_inner_address_;
+   public:
+    ConstIterator(const Self* const ref, 
+         HeldIterator it,
+         size_t address) 
+        : reference_(ref),
+          it_(it),
+          curr_address_(address),
+          original_capacity_(reference_->tensor_like_.getCapacity()) {
+      DetectBroadcastAxes(reference_->broadcasted_shape_,
+                          reference_->broadcasted_chunk_sizes_,
+                          reference_->tensor_like_.getShape(),
+                          detected_dimensions_,
+                          detected_chunk_sizes_);
+      
+      curr_inner_address_ = ConvertToUnbroadcastAddress(detected_dimensions_,
+                                                        detected_chunk_sizes_,
+                                                        original_capacity_,
+                                                        curr_address_);
     }
 
-    // Some recursive stuff like this.
-
-    // Will need to come up with decrementation as well.
+    T operator*() const override {
+      return *it_;
+    }
     
-    */
+    ConstIterator& operator+=(int increment) override {
+      curr_address_ += increment;
+      if (curr_address_ >= reference_->getCapacity()) {
+        curr_address_ = reference_->getCapacity();
+      }
+
+      size_t new_inner_address = ConvertToUnbroadcastAddress(detected_dimensions_,
+                                                             detected_chunk_sizes_,
+                                                             original_capacity_,
+                                                             curr_address_);
+      
+      if (new_inner_address > curr_inner_address_) {
+        size_t diff = new_inner_address - curr_inner_address_;
+        it_ += diff;
+      } else {
+        size_t diff = curr_inner_address_ - new_inner_address;
+        it_ -= diff;
+      }
+      curr_inner_address_ = new_inner_address;
+
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      if (decrement >= curr_address_) {
+        curr_address_ = 0;
+      } else {
+        curr_address_ -= decrement;
+      }
+
+      size_t new_inner_address = ConvertToUnbroadcastAddress(detected_dimensions_,
+                                                             detected_chunk_sizes_,
+                                                             original_capacity_,
+                                                             curr_address_);
+      
+      if (new_inner_address > curr_inner_address_) {
+        size_t diff = new_inner_address - curr_inner_address_;
+        it_ += diff;
+      } else {
+        size_t diff = curr_inner_address_ - new_inner_address;
+        it_ -= diff;
+      }
+      curr_inner_address_ = new_inner_address;
+
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const override {
+      return reference_ == other.reference_ && 
+              curr_address_ == other.curr_address_;
+    }
+
   };
 
-  // TODO
-  /*
-    if the two shapes are the same, then we would ideally want to simply make the default iterator occur.
-    oitherwise there is iterator break in this step, making everyhting slow again
-
-    OR 
-    add in summation, a check for if broadcasting is needed if not then handle it without it?
-  */
-
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false};
+    return {this, tensor_like_.begin(), 0};
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true};
+    return {this, tensor_like_.begin(), getCapacity()};
   }
 }; // End of BroadcastOperation
 
