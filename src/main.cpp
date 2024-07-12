@@ -57,6 +57,7 @@ void FindBroadcastAxes(const std::vector<int>& broadcast_dim,
   return;
 }
 
+// BROADCAST DIM AND CHUNK ARE DATA OF ONLY THE AXES THAT HAS BROADCAST APPLIED
 size_t ComputeUnbroadcastAddress(const std::vector<int>& broadcast_dim,
                                  const std::vector<int>& broadcast_chunk,
                                  size_t original_capacity,
@@ -118,9 +119,9 @@ int main() {
   {
     std::cout << "Broadcast iteator order testground" << std::endl;
 
-    // // multiple broadcast in the middle in a row
-    // std::vector<int> broad({2, 3, 2, 2, 2, 5, 1});
-    // std::vector<int> small({2, 1, 2, 1, 2, 5, 1});
+    // multiple broadcast in the middle in a row
+    std::vector<int> broad({2, 3, 2, 2, 2, 5, 1});
+    std::vector<int> small({2, 1, 2, 1, 2, 5, 1});
 
     // // multiple broadcast in the middle in a row
     // std::vector<int> broad({2, 3, 2, 2, 1});
@@ -146,9 +147,9 @@ int main() {
     // std::vector<int> broad({4});
     // std::vector<int> small({1});
 
-    // multiple all order broadcasting
-    std::vector<int> broad({4, 3, 4});
-    std::vector<int> small({1, 1, 1});
+    // // multiple all order broadcasting
+    // std::vector<int> broad({4, 3, 4});
+    // std::vector<int> small({1, 1, 1});
 
     // // no broadcasting
     // std::vector<int> broad({2, 3, 2});
@@ -178,163 +179,13 @@ int main() {
 
 
     // TO BE USED WHEN RECOMPUTING ADDRESS
-    std::vector<int> broad_cast_dim;
-    std::vector<int> broad_cast_dim_count;
-    std::vector<int> broad_cast_dim_prev;
-    std::vector<int> add_dim;
+    std::vector<int> res_broadcast_dim;
+    std::vector<int> res_broadcast_chunk;
 
-    int IDX = 0; // over broad
-    int diff_dim = broad.size() - small.size();
-
-
-    // // DO NOT DO UNMATCHED BROADCAST
-    // if (diff_dim) {
-    //   // need to fill up from front 
-    //     std::cout << "BORADCAST AT " << IDX << std::endl;
-    //   // broad_cast_dim.push_back(broad_chunk[0]);
-    //   // broad_cast_dim_count.push_back(broad[0]);
-    //   // broad_cast_dim_prev.push_back(cap);
-    //   // add_dim.push_back(0); // for no match, add 0??
-    //   // add_dim.push_back(cap2); // for no match, or cap2
-      
-
-    //   --diff_dim;
-    //   ++IDX;
-
-    //   while (diff_dim)
-    //   {
-    //     std::cout << "BORADCAST AT " << IDX << std::endl;
-    //     // broad_cast_dim.push_back(broad_chunk[IDX]);
-    //     // broad_cast_dim_count.push_back(broad[IDX]);
-    //     // broad_cast_dim_prev.push_back(broad_chunk[IDX - 1]);
-    //     // add_dim.push_back(0); // for no match, add 0??
-    //     // add_dim.push_back(cap2); // for no match, or cap2
-    //     --diff_dim;
-    //   }
-      
-    // }
-
-
-    //!  we actually need that difference
-    diff_dim = broad.size() - small.size();
-    // ONLY GET MATHCING DIFFERENCES.   if we mod by old capacity, we dont need to get all the previous broadcasting sizes
-    IDX = diff_dim;
-
-    if (IDX == 0) {
-      if (broad[0] != small[0]) {
-        // broadcasted at first dim
-        std::cout << "BORADCAST AT " << IDX << std::endl;
-        broad_cast_dim.push_back(broad_chunk[0]);
-        broad_cast_dim_count.push_back(broad[0]);
-        broad_cast_dim_prev.push_back(cap);
-        add_dim.push_back(cap2); // for no match, add 0??
-
-        ++IDX;
-      }
-    }
-
-    while (IDX < broad.size()) {
-      if (broad[IDX] != small[IDX - diff_dim]) {
-        // broadcasted at first dim
-        std::cout << "BORADCAST AT " << IDX << std::endl;
-        broad_cast_dim.push_back(broad_chunk[IDX]);
-        broad_cast_dim_count.push_back(broad[IDX]);
-        broad_cast_dim_prev.push_back(broad_chunk[IDX - 1]);
-        add_dim.push_back(small_chunk[IDX]); // for no match, add 0??
-
-      }
-      ++IDX;
-    }
-
-    // THIS IS HOW YOU COMPUTE ALL THE BROADCAST DIM AND ITS PREV
-    for (int i = 0; i < broad_cast_dim.size(); ++i) {
-    // for (int i = broad_cast_dim.size()- 1; i >= 0 ; --i) {
-      // std::cout << broad_cast_dim[i] << ", " << broad_cast_dim_prev[i] << ".." << broad_cast_dim_count[i] << "\t";
-      std::cout << "dim of " << broad_cast_dim_count[i] << " with chunk_Size " << broad_cast_dim[i] << std::endl;
-    }
-    std::cout << std::endl;
-
-
-
-    // do {
-    //   // for (auto i : idx) {
-    //   //   std::cout << i << ",\t";
-    //   // }
-    //   size_t al;
-    //   std::cout << ":: " << (al = IndicesToAddress(broad, broad_chunk, idx) ) << "\t";
-
-    //   auto cut = CutBroadcast(idx, small);
-    //   size_t OTHER;
-    //   std::cout << " AND " << (OTHER = IndicesToAddress(small, small_chunk, cut)) << "\t::";
-    //   std::cout << (al - OTHER) << " is diff";
-    //   // for (auto i : cut) {
-    //   //   std::cout << i << ",\t";
-    //   // }
-
-    //   size_t res = 0;
-    //   size_t comp = al;
-
-    //   // same thing down to lower broadcast sizes do this but upwards?
-    //   // comp %= broad_chunk[0];
-
-    //   // if (comp / broad_chunk[2] != broad[2]) {
-    //   //   res += broad_chunk[2];
-    //   // }
-    //   // comp %= broad_chunk[2];
-
-
-
-
-    //   // FOR EACH BROADCAST SHAPE,
-    //   /*
-    //     starting from top
-    //     if broadcast occured at i, if divisible by chunk[i - 1], add chunk[i]
-    //     irrgardless, address /= chunk[i]
-
-    //     repeat for all broadcast dim
-
-    //     at the end, add remaining from address
-    //   */
-    //   // if (comp / cap) {
-    //   //   res += broad_chunk[0];
-    //   // }
-    //   // comp %= broad_chunk[0];
-    //   // // when it is divisible by 24, add 8
-    //   // if (comp / broad_chunk[1]) {
-    //   //   res += broad_chunk[2];
-    //   // }
-    //   // comp %= broad_chunk[2];
-
-    //   // FOREACH BROADCAST DIMS
-    //   // for (int i = 0; i < broad_cast_dim.size(); ++i) {
-    //   //   if (comp / broad_cast_dim_prev[i]) {
-    //   //     // res += broad_cast_dim[i];
-    //   //     res += add_dim[i];
-    //   //   }
-    //   //   comp %= broad_cast_dim[i];
-    //   // }
-    //   // int size = broad_cast_dim_prev.size();
-    //   // for (int i = 0; i < size; ++i) {
-    //   // // for (int i = size - 1; i >= 0; --i) {
-    //   //   int temp = comp % broad_cast_dim_prev[i];
-    //   //   temp = comp / broad_cast_dim[i];
-    //   //   if (temp) {
-    //   //     std::cout << "GOD ";
-    //   //     res += broad_cast_dim[i];
-    //   //   }
-    //   //   comp %= broad_cast_dim[i];
-    //   //   // clearly some repeated division is fucking this up
-    //   // }
-    //   // res += comp;
-
-
-
-      
-    //   std::cout << " ummm " << (res) << " DIFF " << (static_cast<int>(OTHER) - static_cast<int>(res))  << ((OTHER != res) ? " WRONG" : " " )<< std::endl;
-
-    //   std::cout << std::endl;
-
-    // } while (IncrementIndicesByShape(broad.begin(), broad.end(), idx.begin(), idx.end()));
+    FindBroadcastAxes(broad,
+                      small, 
+                      broad_chunk,
+                      res_broadcast_dim,res_broadcast_chunk);
 
 
     /**
@@ -355,35 +206,7 @@ int main() {
         std::cout << "\t diff is \t" << diff;
 
 
-        int recomp = broadcast_address;
-
-
-        for (int i = 0; i < broad_cast_dim.size(); ++i) {
-
-          int computed_difference = 0;
-          // try catch last skip
-          //  should be add,add,skip, add,add,skip  because broadasted tp 3 with intervals of 2
-          int temp = (recomp) / broad_cast_dim[i];
-          // std::cout << "Rep is " << temp;
-          // NEED TO TAKE AWAY EVERY THIRD
-          int temptemp = temp / broad_cast_dim_count[i];
-          // std::cout << "ev is " << temptemp;
-
-          int diff_by_this = temp - temptemp;
-          // std::cout << "\t\t" << "diff by that is " << diff_by_this;
-
-          
-          computed_difference += broad_cast_dim[i] * diff_by_this;
-
-
-          // std::cout << "\t\t\t Computed is " << computed_difference;
-
-          recomp -= computed_difference;
-        }
-
-
-        // undersetting AT THE END? // as to not distrupt any existin rules above.
-        recomp %= cap2;
+        int recomp = ComputeUnbroadcastAddress(res_broadcast_dim, res_broadcast_chunk, cap2, broadcast_address);
 
         std::cout << "\t\t\t fin is " << recomp;
         std::cout << ((recomp == cut_address) ? " Corr" : " WRONG");
