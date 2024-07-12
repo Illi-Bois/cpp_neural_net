@@ -598,16 +598,12 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     typename Tensor<T>::Iterator fin = product_tensor_->end();
     typename BroadcastFirst::ConstIterator Ait = A_broadcast.begin();
     typename BroadcastSecond::ConstIterator Bit = B_broadcast.begin();
-    
+
     while (it != fin) {
       for (int r = 0; r < rows; ++r) {
         typename BroadcastSecond::ConstIterator BHolder = Bit;
 
         for (int c = 0; c < cols; ++c) {
-
-          indices[getOrder() - 2] = r;
-          indices[getOrder() - 1] = c;
-
           T& element = *it;
 
           element = T();
