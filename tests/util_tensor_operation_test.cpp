@@ -384,6 +384,48 @@ TEST(UtilTensorOperation, Multiplying_broadcast) {
 TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
   
 }
+
+TEST(UtilTensorOperation, Multiplying_Incredibly_large) {
+  // checking that it doesnt crash. also running to see runtime
+  using namespace cpp_nn::util;
+
+  // THESE ARE TOO BIG,
+  // Tensor<float> A(   {3, 4, 5, 6, 1, 100, 150});
+  // Tensor<float> B({2, 3, 1, 5, 6, 3, 150, 200});
+
+  Tensor<float> A({3, 100, 150});
+  Tensor<float> B(   {150, 200});
+  float val = 0;
+
+  Tensor<float>::Iterator ait = A.begin();
+  Tensor<float>::Iterator aend = A.end();
+  while (ait != aend) {
+    *ait = val;
+    ++val;
+    val /= 2;
+
+    ++ait;
+  }
+
+  val = 0;
+  Tensor<float>::Iterator bit = B.begin();
+  Tensor<float>::Iterator bend = B.end();
+  while (bit != bend) {
+    *bit = val;
+    ++val;
+    ++val;
+    val /= 3;
+
+    ++bit;
+  }
+
+  std::cout << "READY" << std::endl;
+
+  Tensor<float> C = A * B;
+  EXPECT_TRUE(true); // simply a sanity check
+  // want only to see that this does not fail
+  
+}
 // END OF MULTIPLICATION =================================
 
 // RESHAPE ===============================================
