@@ -292,6 +292,30 @@ void DetectBroadcastAxes(const std::vector<int>& broadcast_shape,
   ret_detected_dimensions.shrink_to_fit();
   ret_detected_chunk_size.shrink_to_fit();
 }
+
+size_t ConvertToUnbroadcastAddress(const std::vector<int>& detected_broadcast_dim,
+                                   const std::vector<int>& detected_broadcast_chunk_size,
+                                   const size_t original_capacity,
+                                   size_t broadcasted_address) noexcept {
+  for (int axis = 0; axis < detected_broadcast_dim.size(); ++axis) {
+    // see how many times we have repeated the chunksize
+    const size_t repetition = broadcasted_address / detected_broadcast_chunk_size[axis];
+    // every final index in dimension gets a 'pass'
+    const size_t repetition_off_setter = repetition / detected_broadcast_dim[axis]; 
+
+    // need to remove address by this count
+    const size_t reset_count = repetition - repetition_off_setter;
+    broadcasted_address -= detected_broadcast_chunk_size[axis] * reset_count;
+
+    // TODO: can we summarize this into one line?
+    // broadcasted_address -= detected_broadcast_chunk_size[axis] * ((broadcasted_address / detected_broadcast_chunk_size[axis]) - ((broadcasted_address / detected_broadcast_chunk_size[axis]) / detected_broadcast_dim[axis]));
+  }
+  // Underset, ensure is in bound
+  //   needed because broadcast does not consider front-broadcasting
+  broadcasted_address %= original_capacity;
+
+  return broadcasted_address;
+}
 // End of Broadcasting =========================================
 
 

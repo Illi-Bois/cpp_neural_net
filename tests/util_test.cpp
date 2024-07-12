@@ -545,6 +545,339 @@ TEST(Util, Broadcast_detect_broadcast_same_order_all_broadcasting) {
   EXPECT_EQ(res_dim, exp_dim);
   EXPECT_EQ(res_chunk, exp_chunk);
 }
-
 // End of DetectBroadcasting ---------------------------
+
+// Broadcast Address Conversion ------------------------
+TEST(Util, Broadcast_address_conversion) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({2, 3, 2, 2, 2, 5, 1});
+  std::vector<int> origin({2, 1, 2, 1, 2, 5, 1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+
+TEST(Util, Broadcast_address_conversion_consecutive) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({2, 3, 2, 2, 2, 5, 1});
+  std::vector<int> origin({2, 1, 2, 1, 1, 5, 1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+
+TEST(Util, Broadcast_address_conversion_front_padding) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({2, 3, 2, 2, 2, 5, 1});
+  std::vector<int> origin(     {1, 2, 1, 5, 1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+TEST(Util, Broadcast_address_conversion_ONLY_front_padding) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({2, 3, 2, 2, 2, 5, 1});
+  std::vector<int> origin(     {2, 2, 2, 5, 1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+
+TEST(Util, Broadcast_address_conversion_all_broadcasted) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({2, 3, 2, 2, 2, 5});
+  std::vector<int> origin(     {1, 1, 1, 1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+
+TEST(Util, Broadcast_address_conversion_single_order) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({5});
+  std::vector<int> origin({1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+TEST(Util, Broadcast_address_conversion_matching_order_all_broadcasted) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({5, 2, 3});
+  std::vector<int> origin({1, 1, 1});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+
+TEST(Util, Broadcast_address_conversion_no_broadcasted) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> broad({5, 2, 3, 7, 8});
+  std::vector<int> origin({5, 2, 3, 7, 8});
+
+  size_t broadcast_capacity = 0;
+  size_t original_capacity = 0;
+
+  std::vector<int> broad_chunk(broad.size(), 1);
+  std::vector<int> origin_chunk(origin.size(), 1);
+
+  ComputeCapacityAndChunkSizes(broad, broad_chunk, broadcast_capacity);
+  ComputeCapacityAndChunkSizes(origin, origin_chunk, original_capacity);
+
+  std::vector<int> res_detect_dim;
+  std::vector<int> res_detect_chunk;
+  DetectBroadcastAxes(broad,
+                      broad_chunk,
+                      origin,
+                      res_detect_dim,
+                      res_detect_chunk);
+
+  std::vector<int> broadcast_idx(broad.size(), 0);
+  do {
+    size_t broad_address = IndicesToAddress(broad,
+                                            broad_chunk,
+                                            broadcast_idx);
+    std::vector<int> cut_idx = CutToShape(broadcast_idx, origin);
+    size_t cut_address = IndicesToAddress(origin,
+                                          origin_chunk,
+                                          cut_idx);
+    
+    size_t computed_address = ConvertToUnbroadcastAddress(res_detect_dim, res_detect_chunk,
+                                                          original_capacity,
+                                                          broad_address);
+    EXPECT_EQ(computed_address, cut_address);
+  } while(IncrementIndicesByShape(broad.begin(), broad.end(),
+                                  broadcast_idx.begin(), broadcast_idx.end()));
+}
+// End of Broadcast Address Conversion -----------------
 // END OF BROADCAST TESTS ---------------------------------------------------------------------

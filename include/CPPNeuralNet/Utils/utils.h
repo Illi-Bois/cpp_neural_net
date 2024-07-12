@@ -111,6 +111,17 @@ void DetectBroadcastAxes(const std::vector<int>& broadcast_shape,
                          const std::vector<int>& original_shape,
                          std::vector<int>& ret_detected_dimensions,
                          std::vector<int>& ret_detected_chunk_size) noexcept;
+
+/** 
+ *  given detected broadcast dimension and chunksizes, and capacity of original shape,
+ *    convert address on the broadcast shape to address of the index cut to the original-shape.
+ *  
+ *  Will require uses of DetectBroadcastAxes.
+ */
+size_t ConvertToUnbroadcastAddress(const std::vector<int>& detected_broadcast_dim,
+                                   const std::vector<int>& detected_broadcast_chunk_size,
+                                   const size_t original_capacity,
+                                   size_t broadcasted_address) noexcept;
 // End of Broadcasting =========================================
 
 /** 
