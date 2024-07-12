@@ -379,7 +379,42 @@ TEST(UtilTensorOperation, Mult_Incorrect_tensor_dim) {
   
 }
 TEST(UtilTensorOperation, Multiplying_broadcast) {
+  using namespace cpp_nn::util;
   
+  Tensor<int> A({2, 3, 4});
+  Tensor<int> B({4, 5});
+
+  int i = 0;
+  for (auto it = A.begin(); it != A.end(); ++it) {
+    *it = ++i;
+  }
+  i = 0;
+  for (auto it = B.begin(); it != B.end(); ++it) {
+    *it = ++i;
+  }
+
+  Tensor<int> C = A * B;
+  
+
+  std::vector<int> expected_elements = 
+    {
+      110,    120,    130,    140,    150,
+      246,    272,    298,    324,    350,
+      382,    424,    466,    508,    550,
+      
+      518,    576,    634,    692,    750,
+      654,    728,    802,    876,    950,
+      790,    880,    970,    1060,   1150,
+    };
+  
+  PrintTensor(C);
+  
+  EXPECT_EQ(C.getShape(), std::vector<int>({2, 3, 5}));
+  auto it = C.begin();
+  for (auto exp : expected_elements) {
+    EXPECT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
   
