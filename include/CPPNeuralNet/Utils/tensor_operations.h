@@ -26,6 +26,10 @@ template<typename T, typename HeldOperation>
 class PaddingOperation;
 template<typename T, typename HeldOperation>
 class BroadcastOperation;
+
+// Not an Operation
+template<typename T, typename HeldOperation1, typename HeldOperation2>
+class BroadcastedPairHolder;
 } // unnamed namespace
 
 template<typename T>
@@ -428,11 +432,12 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   typedef TensorLike<T, Self> Parent;
 
 // Members ---------------------------------------------
-    const std::vector<int> broadcast_shape_;
-    const size_t broadcast_capacity_;
+    // const std::vector<int> broadcast_shape_;
+    // const size_t broadcast_capacity_;
 
-    const BroadcastOperation<T, HeldOperation1> first_;
-    const BroadcastOperation<T, HeldOperation2> second_;
+    // const BroadcastOperation<T, HeldOperation1> first_;
+    // const BroadcastOperation<T, HeldOperation2> second_;
+  BroadcastedPairHolder<T, HeldOperation1, HeldOperation2> broadcast_pair_;
 // End of Members --------------------------------------
 
  public:
@@ -440,33 +445,25 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   SummationOperation(const TensorLike<T, HeldOperation1>& first, 
                      const TensorLike<T, HeldOperation2>& second) 
       // Broadcasting also checks for compatiblity.
-      : broadcast_shape_(Broadcast(first.getShape().begin(),  first.getShape().end(),
-                                   second.getShape().begin(), second.getShape().end())),
-        broadcast_capacity_(std::accumulate(broadcast_shape_.begin(), broadcast_shape_.end(),
-                            1, std::multiplies<int>())),
-        first_( BroadcastOperation(first, 
-                                   broadcast_shape_, 
-                                   broadcast_capacity_)), 
-        second_(BroadcastOperation(second, 
-                                   broadcast_shape_, 
-                                   broadcast_capacity_)) {}
+      : broadcast_pair_(first, second) {}
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    return broadcast_shape_;
+    return broadcast_pair_.getShape();
   } 
   inline int getDimension(int axis) const {
-    return broadcast_shape_[SumIfNegative(axis, getOrder())];
+    return getShape()[SumIfNegative(axis, getOrder())];
   }
   inline size_t getCapacity() const noexcept {
-    return broadcast_capacity_;
+    return broadcast_pair_.getCapacity();
   }
   inline int getOrder() const noexcept {
-    return broadcast_shape_.size();
+    return getShape().size();
   }
   inline const T getElement(const std::vector<int>& indices) const {
-    return first_.getElement(indices) + second_.getElement(indices);
+    return broadcast_pair_.getFirst().getElement(indices) +
+           broadcast_pair_.getSecond().getElement(indices);
   }
 // End of Tensor-Behaviours ----------------------------
 
@@ -503,10 +500,12 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   };
 
   ConstIterator begin() const {
-    return {first_.begin(), second_.begin()};
+    return {broadcast_pair_.getFirst().begin(),
+            broadcast_pair_.getSecond().begin()};
   }
   ConstIterator end() const {
-    return {first_.end(), second_.end()};
+    return {broadcast_pair_.getFirst().end(), 
+            broadcast_pair_.getSecond().end()};
   }
 }; // End of SummationOperation
 
@@ -548,27 +547,47 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     const int cols = B.getDimension(-1);
     const int interm = A.getDimension(-1);
 
+    // !! Does not use conventional Broadcast. Need to have broadcast separaelty
+
     // For A
-    broad_cast_shape.push_back(rows);
-    broad_cast_shape.push_back(interm);
-    size_t capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
-                                      1, std::multiplies<int>());
+    std::vector<int> A_broadcast_shape(broad_cast_shape);
+    A_broadcast_shape.push_back(rows);
+    A_broadcast_shape.push_back(interm);
+    // TODO for this context these might be unnecessary to compute
+    // we might as well pass broken chunk sizes
+    std::vector<int> A_broadcast_chunk;
+    size_t A_capacity;
+    ComputeCapacityAndChunkSizes(A_broadcast_shape,
+                                 A_broadcast_chunk,
+                                 A_capacity);
+    // but for now, use proper, then reevaluate when doing strassen TODO
     BroadcastOperation<T, HeldOperation1> A_broadcast(A, 
-                                                      broad_cast_shape, 
-                                                      capacity);
+                                                      A_broadcast_shape, 
+                                                      A_broadcast_chunk,
+                                                      A_capacity);
     // For B
-    broad_cast_shape[broad_cast_shape.size() - 2] = interm;
-    broad_cast_shape[broad_cast_shape.size() - 1] = cols;
-    capacity = std::accumulate(broad_cast_shape.begin(), broad_cast_shape.end(), 
-                               1, std::multiplies<int>());
+    std::vector<int> B_broadcast_shape(broad_cast_shape);
+    B_broadcast_shape.push_back(interm);
+    B_broadcast_shape.push_back(cols);
+    // TODO for this context these might be unnecessary to compute
+    // we might as well pass broken chunk sizes
+    std::vector<int> B_broadcast_chunk;
+    size_t B_capacity;
+    ComputeCapacityAndChunkSizes(B_broadcast_shape,
+                                 B_broadcast_chunk,
+                                 B_capacity);
+    // but for now, use proper, then reevaluate when doing strassen TODO
     BroadcastOperation<T, HeldOperation2> B_broadcast(B, 
-                                                      broad_cast_shape, 
-                                                      capacity);
+                                                      B_broadcast_shape, 
+                                                      B_broadcast_chunk,
+                                                      B_capacity);
+
     // For product
-    broad_cast_shape[broad_cast_shape.size() - 2] = rows;
-    // col is readily set 
+    broad_cast_shape.push_back(rows);
+    broad_cast_shape.push_back(cols);
     product_tensor_ = new Tensor<T>(broad_cast_shape);
 
+    // Using iterator, a more efficnent iteration may be pssible
     // iterate through each matrix blocks
     std::vector<int> indices(getOrder(), 0);
     do {
@@ -857,53 +876,41 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
 
 // Members ---------------------------------------------
   const HeldOperation& tensor_like_;
-  const std::vector<int> broadcast_shape_;
-
-  size_t broadcast_capacity_;
+  // TODO: make shape a refrence,
+  //       add chunk sizes
+  const std::vector<int>& broadcasted_shape_;
+  const std::vector<int>& broadcasted_chunk_sizes_;
+  const size_t& broadcasted_capacity_;
 // End of Members --------------------------------------
 
  public:
 // Constructor -----------------------------------------
   // passed broadcast shape is assumed to be validly formed, and so does no checks in construction
   BroadcastOperation(const TensorLike<T, HeldOperation>& tensor_like, 
-                     const std::vector<int>& broadcast_shape,
-                     const size_t broadcast_capacity) noexcept
+                     const std::vector<int>& broadcasted_shape,
+                     const std::vector<int>& broadcasted_chunk_sizes,
+                     const size_t& broadcasted_capacity) noexcept
       : tensor_like_(tensor_like.getRef()),
-        broadcast_shape_(broadcast_shape),
-        broadcast_capacity_(broadcast_capacity)  {}
+        broadcasted_shape_(broadcasted_shape),
+        broadcasted_chunk_sizes_(broadcasted_chunk_sizes),
+        broadcasted_capacity_(broadcasted_capacity)  {}
 // End of Constructor ----------------------------------
 
 // Tensor-Behaviours -----------------------------------
   inline const std::vector<int>& getShape() const noexcept {
-    return broadcast_shape_;
+    return broadcasted_shape_;
   } 
   inline int getDimension(int axis) const {
-    return broadcast_shape_[SumIfNegative(axis, getOrder())];
+    return broadcasted_shape_[SumIfNegative(axis, getOrder())];
   }
   inline size_t getCapacity() const noexcept {
-    return broadcast_capacity_;
+    return broadcasted_capacity_;
   }
   inline int getOrder() const noexcept {
-    return broadcast_shape_.size();
+    return broadcasted_shape_.size();
   }
   const T getElement(const std::vector<int>& indices) const {
-    // TODO: Broadcast shape is not used here... should we have all axis check?
-
-    // get last tensor_like.order indices and set all that is beyond dim as 0
-    std::vector<int> passing_indices(indices.end() - tensor_like_.getOrder(), indices.end());
-    int axis = passing_indices.size() - 1;
-    std::vector<int>::const_iterator original_dim  = tensor_like_.getShape().end() - 1;    
-    // with the assumption that broadcast shape is correct, only need to check if original dim is not 1
-    while (axis >= 0) {
-      if (*original_dim != 1) {
-        // do noting
-      } else {
-        passing_indices[axis] = 0; 
-      }
-      --axis;
-      original_dim--;
-    }
-    return tensor_like_.getElement(passing_indices);
+    return tensor_like_.getElement(CutToShape(indices, tensor_like_.getShape()));
   }
 // End of Tensor-Behaviours ----------------------------
 
@@ -950,6 +957,55 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
     return {this, std::vector<int>(getOrder(), 0), true};
   }
 }; // End of BroadcastOperation
+
+
+// NOT A OPERATIONHOLDER, but instead a holder for operations
+// internally holds two broadcastOperations
+template<typename T, typename HeldOperation1, typename HeldOperation2>
+class BroadcastedPairHolder {
+  typedef BroadcastOperation<T, HeldOperation1> BroadcastFirst;
+  typedef BroadcastOperation<T, HeldOperation2> BroadcastSecond;
+
+  std::vector<int> broadcasted_shape_;
+
+  // WILL PASS AS REFERENCE FIRST, THEN SET IN CONSTRUCT
+  std::vector<int> broadcasted_chunk_sizes_;
+  size_t broadcasted_capacity_;
+
+  BroadcastFirst first_;
+  BroadcastSecond second_;
+
+  // above are to be shared to broadcast operation
+  // as those will store reference to this only
+ public:
+  BroadcastedPairHolder(const TensorLike<T, HeldOperation1>& first_operation,
+                        const TensorLike<T, HeldOperation2>& second_operation) noexcept
+      : broadcasted_shape_(Broadcast(first_operation.getShape().begin(),  first_operation.getShape().end(),
+                                     second_operation.getShape().begin(), second_operation.getShape().end())),
+        broadcasted_chunk_sizes_(broadcasted_shape_.size(), 1),
+        broadcasted_capacity_(1),
+        // The broadcasts are passed unset vector and capacity, because they will now stroe them as rference
+        first_ (first_operation,  broadcasted_shape_, broadcasted_chunk_sizes_, broadcasted_capacity_),
+        second_(second_operation, broadcasted_shape_, broadcasted_chunk_sizes_, broadcasted_capacity_) {
+    ComputeCapacityAndChunkSizes(broadcasted_shape_,
+                                 broadcasted_chunk_sizes_,
+                                 broadcasted_capacity_);
+  }
+
+  inline const BroadcastFirst& getFirst() const noexcept {
+    return first_;
+  }
+  inline const BroadcastSecond& getSecond() const noexcept {
+    return second_;
+  }
+
+  inline const std::vector<int>& getShape() const noexcept {
+    return broadcasted_shape_;
+  }
+  inline size_t getCapacity() const noexcept {
+    return broadcasted_capacity_;
+  }
+};
 
 } // unnamed namespace 
 
