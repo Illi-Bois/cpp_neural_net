@@ -397,4 +397,50 @@ TEST(Util, Broadcast_both_are_empty) {
                                                  b.begin(), b.end());
   EXPECT_EQ(res, b);
 }
+
+// CutToShape ------------------------------------------
+TEST(Util, Broadcast_cut_idx_to_shape) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape = {3, 2, 1, 1};
+  std::vector<int> idx   = {2, 1, 2, 0};
+
+  std::vector<int> cut_idx = CutToShape(idx, shape);
+
+  EXPECT_EQ(cut_idx, std::vector<int>({2, 1, 0, 0}));
+}
+
+TEST(Util, Broadcast_cut_idx_to_shape_From_higher_order) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape = {3, 2, 1, 1};
+  std::vector<int> idx   = {2, 1, 2, 1, 2, 0};
+
+  std::vector<int> cut_idx = CutToShape(idx, shape);
+
+  EXPECT_EQ(cut_idx, std::vector<int>({2, 1, 0, 0}));
+}
+
+TEST(Util, Broadcast_cut_idx_to_shape_to_all_1_shape) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape = {1, 1, 1, 1};
+  std::vector<int> idx   = {2, 1, 2, 1, 2, 0};
+
+  std::vector<int> cut_idx = CutToShape(idx, shape);
+
+  EXPECT_EQ(cut_idx, std::vector<int>({0, 0, 0, 0}));
+}
+
+TEST(Util, Broadcast_cut_idx_to_shape_to_1_order_shape) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> shape = {8};
+  std::vector<int> idx   = {2, 1, 2, 1, 2, 2};
+
+  std::vector<int> cut_idx = CutToShape(idx, shape);
+
+  EXPECT_EQ(cut_idx, std::vector<int>({2}));
+}
+// End of CutToShape -----------------------------------
 // END OF BROADCAST TESTS ---------------------------------------------------------------------

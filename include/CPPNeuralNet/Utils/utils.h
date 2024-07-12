@@ -65,6 +65,7 @@ bool MultipleDecrementIndicesByShape(const std::vector<int>::const_iterator shap
 // End of Recursive Increment Helpers ---------------------
 // End of Increment/Decrement ==================================
 
+// Broadcasting ================================================
 /**
  *  given sub-vectors defining shapes two tensors to be broadcasted,
  *    returns shape of broadcasted tensor.
@@ -78,6 +79,15 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
                            std::vector<int>::const_iterator       first_shape_end,
                            const std::vector<int>::const_iterator second_shape_begin,
                            std::vector<int>::const_iterator       second_shape_end);
+
+/**
+ *  given indices that is assumed to be for shape that is compatible to given shape
+ *    (meaning SomeShape >= given_shape)
+ *  cut the indices to fit the given shape by right-aligning, truncating front-axes,
+ *    and setting index for 1-dim axes to 0
+ */
+std::vector<int> CutToShape(const std::vector<int>& indices, const std::vector<int>& shape) noexcept;
+// End of Broadcasting =========================================
 
 /** 
  *  adds the two values if first arguement if negative.

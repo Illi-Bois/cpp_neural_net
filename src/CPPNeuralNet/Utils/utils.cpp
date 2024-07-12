@@ -202,6 +202,7 @@ bool MultipleDecrementIndicesByShape(const std::vector<int>::const_iterator shap
 
 
 
+// Broadcasting ================================================
 std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_begin, 
                            std::vector<int>::const_iterator       first_shape_end,
                            const std::vector<int>::const_iterator second_shape_begin,
@@ -249,6 +250,24 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
 
   return res;
 }
+
+std::vector<int> CutToShape(const std::vector<int>& indices, const std::vector<int>& shape) noexcept {
+  std::vector<int> cut_indices(indices.end() - shape.size(), indices.end());
+
+  std::vector<int>::iterator it = cut_indices.begin();
+  const std::vector<int>::iterator it_end = cut_indices.end();
+  std::vector<int>::const_iterator it_shape = shape.begin();
+
+  while (it != it_end) {
+    if (*it_shape == 1) {
+      *it = 0;
+    }
+    ++it;
+    ++it_shape;
+  }
+  return cut_indices;
+}
+// End of Broadcasting =========================================
 
 
 void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
