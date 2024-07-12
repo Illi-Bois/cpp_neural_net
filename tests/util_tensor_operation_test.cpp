@@ -25,6 +25,11 @@ TEST(UtilTensorOperation, Transpose_Operation) {
       EXPECT_EQ(b.getElement({i, j}), ++val);
     }
   }
+  //checks if element in a hasn't changed
+  val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    EXPECT_EQ(*it, ++val);
+  }   
   EXPECT_EQ(b.getShape(), std::vector<int>({24,30}));
   //1D tensor
   Tensor<float> c({5}, 1.0f); 
@@ -206,6 +211,25 @@ TEST(UtilTensorOperation, Summing_Incorrect_Dimensions) {
   Tensor<int> B({2, 3}, 2);
   EXPECT_THROW(A + B, std::invalid_argument);
 }
+// TEST(UtilTensorOperation, Summing_broadcast) {
+// //| 1  2  3  4  5 |   -broadcast-> | 1  2  3  4  5 |
+// //                                 | 1  2  3  4  5 |
+// //                                 | 1  2  3  4  5 | ...
+//   using namespace cpp_nn::util;
+//   Tensor<float> a({1, 5});
+//   int val = 0;
+//   for (auto it = a.begin(); it != a.end(); ++it) {
+//     *it = ++val;
+//   }
+//   Tensor<float> b({6,5},3);
+//   Tensor<float> c = a + b;
+//   val = 0;
+//   for (int i = 0; i < 6; ++i) {
+//     for (int j = 0; j < 5; ++j) {
+//       EXPECT_EQ(c.getElement({i, j}), (j + 1) + 3);
+//     }
+//   }
+// }
 TEST(UtilTensorOperation, Summing_broadcast) {
 //| 1  2  3  4  5 |   -broadcast-> | 1  2  3  4  5 |
 //                                 | 1  2  3  4  5 |
@@ -224,6 +248,23 @@ TEST(UtilTensorOperation, Summing_broadcast) {
       EXPECT_EQ(c.getElement({i, j}), (j + 1) + 3);
     }
   }
+  //Reset after 5 elements
+  std::vector<int> resetPositions = {5};
+  int iterationCount = 0;
+  int resetIndex = 0;
+  std::vector<int> cIndex(c.getOrder(), 0);
+  do {
+    //iterationCount 0,5,10 -> aIndex = 0
+    //iterationCount 2,7,12 -> aIndex = 2
+    int aIndex = iterationCount % a.getCapacity();
+    std::vector<int> aIdx {0, aIndex};
+    EXPECT_EQ(c.getElement(cIndex), a.getElement(aIdx) + b.getElement(cIndex));
+    ++iterationCount;
+    if (resetIndex < resetPositions.size() && iterationCount == resetPositions[resetIndex]) {
+        iterationCount = 0;
+        ++resetIndex;
+    }
+  } while (IncrementIndicesByShape(c.getShape().begin(), c.getShape().end(), cIndex.begin(), cIndex.end()));
 }
 TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
   using namespace cpp_nn::util;
@@ -261,24 +302,66 @@ TEST(UtilTensorOperation, Multiplication_of_two) {
   for (auto it = b.begin(); it != b.end(); ++it) {
     *it = --val;
   }
-  Tensor<float> c(a * b);
-  // Tensor<float> c2 = b * a;
+  Tensor<float> c1 = a * b;
   Tensor<float> expected1({2, 2});
-  expected1.getElement({0, 0}) = 20;
-  expected1.getElement({0, 1}) = 14;
-  expected1.getElement({1, 0}) = 56;
-  expected1.getElement({1, 1}) = 41;
-  //EXPECT_EQ(c.getElement({0,0}), 20);
-  //EXPECT_EQ(expected1.getElement({0,0}), 20);
-
-  // for(int i = 0; i < 2; ++i){
-  //   for(int j = 0; j < 2; ++j){
-  //     EXPECT_EQ(c.getElement({i, j}), expected1.getElement({i, j}));
-  //   }
-  // }
+  expected1.getElement({0, 0}) = 74;
+  expected1.getElement({0, 1}) = 68;
+  expected1.getElement({1, 0}) = 191;
+  expected1.getElement({1, 1}) = 176;
+  Tensor<float> c2 = b * a;
+  for(int i = 0; i < 2; ++i){
+    for(int j = 0; j < 2; ++j){
+      EXPECT_EQ(c1.getElement({i, j}), expected1.getElement({i, j}));
+    }
+  }
+  Tensor<float> expected2({3, 3});
+  expected2.getElement({0, 0}) = 71;
+  expected2.getElement({0, 1}) = 100;
+  expected2.getElement({0, 2}) = 129;
+  expected2.getElement({1, 0}) = 61;
+  expected2.getElement({1, 1}) = 86;
+  expected2.getElement({1, 2}) = 111;
+  expected2.getElement({2, 0}) = 51;
+  expected2.getElement({2, 1}) = 72;
+  expected2.getElement({2, 2}) = 93;
+  for(int i = 0; i < 3; ++i){
+    for(int j = 0; j < 3; ++j){
+      EXPECT_EQ(c2.getElement({i, j}), expected2.getElement({i, j}));
+    }
+  }
 }
 TEST(UtilTensorOperation, Multiplication_of_three) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({3, 4});
+  Tensor<float> b({4, 2});
+  Tensor<float> c({2, 3});
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  val = 14;
+  for (auto it = b.begin(); it != b.end(); ++it) {
+    *it = --val;
+  }
+  val = 1;
+  for (auto it = c.begin(); it != c.end(); ++it) {
+    *it = ++val * 2;
+  }
+  Tensor<float> d = a * b * c;
+  EXPECT_EQ(d.getElement({0, 0}), 1160);
+  EXPECT_EQ(d.getElement({0, 1}), 1500);
+  EXPECT_EQ(d.getElement({0, 2}), 1840);
+  EXPECT_EQ(d.getElement({1, 0}), 3240);
+  EXPECT_EQ(d.getElement({1, 1}), 4188);
+  EXPECT_EQ(d.getElement({1, 2}), 5136);
+  EXPECT_EQ(d.getElement({2, 0}), 5320);
+  EXPECT_EQ(d.getElement({2, 1}), 6876);
+  EXPECT_EQ(d.getElement({2, 2}), 8432);
+  Tensor<float> e = c * a * b;
+  EXPECT_EQ(e.getElement({0, 0}), 5140);
+  EXPECT_EQ(e.getElement({0, 1}), 4608);
+  EXPECT_EQ(e.getElement({1, 0}), 9640);
+  EXPECT_EQ(e.getElement({1, 1}), 8640);
 }
 TEST(UtilTensorOperation, Multiplication_of_many_with_parenthesis) {
   
