@@ -596,39 +596,41 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
     typename Tensor<T>::Iterator it = product_tensor_->begin();
     typename Tensor<T>::Iterator fin = product_tensor_->end();
-    typename BroadcastFirst::ConstIterator Ait = A_broadcast.begin();
-    typename BroadcastSecond::ConstIterator Bit = B_broadcast.begin();
+
+    typename BroadcastFirst::ConstIterator A_it = A_broadcast.begin();
+    typename BroadcastSecond::ConstIterator B_it = B_broadcast.begin();
+    typename BroadcastSecond::ConstIterator B_end = B_broadcast.end();
 
     while (it != fin) {
       for (int r = 0; r < rows; ++r) {
-        typename BroadcastSecond::ConstIterator BHolder = Bit;
-
         for (int c = 0; c < cols; ++c) {
           T& element = *it;
-
           element = T();
 
-          typename BroadcastFirst::ConstIterator Ait_copy = Ait;
-          typename BroadcastSecond::ConstIterator Bit_copy = BHolder;
           for (int k = 0; k < interm; ++k) {
-            T a_element = *Ait_copy;
+            element += (*A_it) * (*B_it);
 
-            T b_element = *Bit_copy;
-
-            element += a_element * b_element;
-
-
-            ++Ait_copy;
-            Bit_copy += cols;
+            // increment to next col
+            ++A_it;
+            // increment to next row
+            B_it += cols;
           }
 
-          ++it;
-          ++BHolder;
+          // reset to front of the row
+          A_it -= interm;
+          // reset to column head
+          B_it -= cols * interm - ((B_it == B_end) ? c : 0)
+                  - 1; // increment to next column
+          ++it; // next element...
         }
         // skip to next row
-        Ait += interm;
+        A_it += interm;
+        // reset to first colum
+        B_it -= cols + 1;
       }
-      Bit += interm * cols;
+      // A is incremented naturally
+      // Increment matrix head
+      B_it += interm * cols;
     }
   }
 // End of Constructor ----------------------------------
