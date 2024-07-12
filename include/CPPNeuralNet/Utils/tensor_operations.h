@@ -595,12 +595,16 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     product_tensor_ = new Tensor<T>(broad_cast_shape);
 
     typename Tensor<T>::Iterator it = product_tensor_->begin();
-    // Using iterator, a more efficnent iteration may be pssible
-    // iterate through each matrix blocks
-    std::vector<int> indices(getOrder(), 0);
-    do {
+    typename Tensor<T>::Iterator fin = product_tensor_->end();
+    typename BroadcastFirst::ConstIterator Ait = A_broadcast.begin();
+    typename BroadcastSecond::ConstIterator Bit = B_broadcast.begin();
+    
+    while (it != fin) {
       for (int r = 0; r < rows; ++r) {
+        typename BroadcastSecond::ConstIterator BHolder = Bit;
+
         for (int c = 0; c < cols; ++c) {
+
           indices[getOrder() - 2] = r;
           indices[getOrder() - 1] = c;
 
@@ -608,24 +612,28 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
           element = T();
 
+          typename BroadcastFirst::ConstIterator Ait_copy = Ait;
+          typename BroadcastSecond::ConstIterator Bit_copy = BHolder;
           for (int k = 0; k < interm; ++k) {
-            indices[getOrder() - 2] = r;
-            indices[getOrder() - 1] = k;
-            T a_element = A_broadcast.getElement(indices);
+            T a_element = *Ait_copy;
 
-            indices[getOrder() - 2] = k;
-            indices[getOrder() - 1] = c;
-            T b_element = B_broadcast.getElement(indices);
+            T b_element = *Bit_copy;
 
             element += a_element * b_element;
+
+
+            ++Ait_copy;
+            Bit_copy += cols;
           }
 
           ++it;
+          ++BHolder;
         }
+        // skip to next row
+        Ait += interm;
       }
-    // increments for block-indices only, which are first order-2 axes
-    } while (IncrementIndicesByShape(broad_cast_shape.begin(), broad_cast_shape.end() - 2,
-                                     indices.begin(),          indices.end()          - 2));
+      Bit += interm * cols;
+    }
   }
 // End of Constructor ----------------------------------
 
@@ -657,10 +665,10 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
   typedef typename Tensor<T>::ConstIterator ConstIterator;
 
   ConstIterator begin() const {
-    return product_tensor_->begin();
+    return static_cast<const Tensor<T>*>(product_tensor_)->begin();
   }
   ConstIterator end() const {
-    return product_tensor_->end();
+    return  static_cast<const Tensor<T>*>(product_tensor_)->end();
   }
 // friends ---------------------------------------------
   friend Tensor<T>;   // For specialized constructor
