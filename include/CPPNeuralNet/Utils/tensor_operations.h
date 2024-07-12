@@ -1035,7 +1035,7 @@ class BroadcastedPairHolder {
   // as those will store reference to this only
  public:
   BroadcastedPairHolder(const TensorLike<T, HeldOperation1>& first_operation,
-                        const TensorLike<T, HeldOperation2>& second_operation) noexcept
+                        const TensorLike<T, HeldOperation2>& second_operation)
       : broadcasted_shape_(Broadcast(first_operation.getShape().begin(),  first_operation.getShape().end(),
                                      second_operation.getShape().begin(), second_operation.getShape().end())),
         broadcasted_chunk_sizes_(broadcasted_shape_.size(), 1),
