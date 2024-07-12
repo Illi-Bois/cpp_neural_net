@@ -924,6 +924,7 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
 
     size_t original_capacity_;
 
+    // To be constructed in const. body
     std::vector<int> detected_dimensions_;
     std::vector<int> detected_chunk_sizes_;
 
