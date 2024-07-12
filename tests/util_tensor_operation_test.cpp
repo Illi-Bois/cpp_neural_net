@@ -147,7 +147,6 @@ TEST(UtilTensorOperation, Summation_Of_Two_Constructor) {
   int val = 0;
   auto generator = [&val]() { return ++val; };
   Tensor<float> a({2, 3}, generator);
-  EXPECT_EQ(a.getElement({0, 0}), 1);
   std::vector<int> expected_elements = 
   {
     1,    2,    3,
@@ -157,6 +156,19 @@ TEST(UtilTensorOperation, Summation_Of_Two_Constructor) {
   for (auto exp : expected_elements) {
     EXPECT_EQ(*it, exp);
     ++it;
+  }
+  val = 1;
+  auto generator2 = [&val]() { return val++ * 2; };
+  Tensor<float> b({2, 3}, generator2);
+    std::vector<int> expected_elements2 = 
+  {
+    2,    4,    6,
+    8,    10,    12,
+  };
+  auto it2 = b.begin();
+  for (auto exp : expected_elements2) {
+    EXPECT_EQ(*it2, exp);
+    ++it2;
   }
 }
 TEST(UtilTensorOperation, Summation_Of_Three) {
