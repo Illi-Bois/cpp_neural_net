@@ -87,6 +87,30 @@ std::vector<int> Broadcast(const std::vector<int>::const_iterator first_shape_be
  *    and setting index for 1-dim axes to 0
  */
 std::vector<int> CutToShape(const std::vector<int>& indices, const std::vector<int>& shape) noexcept;
+
+/**
+ *  given broadcasted dimensions, and its chunk_Sizes after broadcasting,
+ *    and original compatible shape,
+ *  detects where broadcastings has occured, then store broadcast-dimension,
+ *    and broadcast-chunk-sizes to return vector (which are passed as reference in argurmenmt)
+ *  
+ *  This does not consider front-padded as broadcasting.
+ *    In other words, broadcast axes are only detected if it has
+ *    associated axes in original-shape.
+ * 
+ *  The detected are added front most-significant index to leave
+ *    (meaning left-to-right)
+ *  
+ *  The result of this function is to be used for
+ *    broadcast address conversion, and so provides very specific functionality.
+ * 
+ *  ! The passed return-references are expected to be empty vectors.
+ */
+void DetectBroadcastAxes(const std::vector<int>& broadcast_shape,
+                         const std::vector<int>& broadcast_chunk_sizes,
+                         const std::vector<int>& original_shape,
+                         std::vector<int>& ret_detected_dimensions,
+                         std::vector<int>& ret_detected_chunk_size) noexcept;
 // End of Broadcasting =========================================
 
 /** 

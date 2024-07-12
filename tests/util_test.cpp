@@ -443,4 +443,108 @@ TEST(Util, Broadcast_cut_idx_to_shape_to_1_order_shape) {
   EXPECT_EQ(cut_idx, std::vector<int>({2}));
 }
 // End of CutToShape -----------------------------------
+
+// DetectBroadcasting ----------------------------------
+TEST(Util, Broadcast_detect_broadcast) {
+  using namespace cpp_nn::util;
+
+  //                                  |     
+  std::vector<int> bro_chunk ={60,20,10, 5, 5, 1};
+  std::vector<int> bro_shape = {5, 3, 2, 2, 1, 5};
+  std::vector<int> ori_shape =    {3, 1, 2, 1, 5};
+
+  std::vector<int> exp_dim      = {2};
+  std::vector<int> exp_chunk    = {10};
+
+  std::vector<int> res_dim;
+  std::vector<int> res_chunk;
+
+  DetectBroadcastAxes(bro_shape, bro_chunk, ori_shape, res_dim, res_chunk);
+
+  EXPECT_EQ(res_dim, exp_dim);
+  EXPECT_EQ(res_chunk, exp_chunk);
+}
+
+TEST(Util, Broadcast_detect_broadcast_only_front_padding) {
+  using namespace cpp_nn::util;
+
+  //                                       
+  std::vector<int> bro_chunk ={60,20,10, 5, 5, 1};
+  std::vector<int> bro_shape = {5, 3, 2, 2, 1, 5};
+  std::vector<int> ori_shape =    {3, 2, 2, 1, 5};
+
+  std::vector<int> exp_dim      = {};
+  std::vector<int> exp_chunk    = {};
+
+  std::vector<int> res_dim;
+  std::vector<int> res_chunk;
+
+  DetectBroadcastAxes(bro_shape, bro_chunk, ori_shape, res_dim, res_chunk);
+
+  EXPECT_EQ(res_dim, exp_dim);
+  EXPECT_EQ(res_chunk, exp_chunk);
+}
+
+
+TEST(Util, Broadcast_detect_broadcast_multiple_broadcasting) {
+  using namespace cpp_nn::util;
+
+  //                                  |  |     |
+  std::vector<int> bro_chunk ={60,20,10, 5, 5, 1};
+  std::vector<int> bro_shape = {5, 3, 2, 2, 1, 5};
+  std::vector<int> ori_shape =       {1, 1, 1, 1};
+
+  std::vector<int> exp_dim      = {2, 2, 5};
+  std::vector<int> exp_chunk    = {10, 5, 1};
+
+  std::vector<int> res_dim;
+  std::vector<int> res_chunk;
+
+  DetectBroadcastAxes(bro_shape, bro_chunk, ori_shape, res_dim, res_chunk);
+
+  EXPECT_EQ(res_dim, exp_dim);
+  EXPECT_EQ(res_chunk, exp_chunk);
+}
+
+
+TEST(Util, Broadcast_detect_broadcast_no_broadcasting) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> bro_chunk ={60,20,10, 5, 5, 1};
+  std::vector<int> bro_shape = {5, 3, 2, 2, 1, 5};
+  std::vector<int> ori_shape = {5, 3, 2, 2, 1, 5};
+
+  std::vector<int> exp_dim      = {};
+  std::vector<int> exp_chunk    = {};
+
+  std::vector<int> res_dim;
+  std::vector<int> res_chunk;
+
+  DetectBroadcastAxes(bro_shape, bro_chunk, ori_shape, res_dim, res_chunk);
+
+  EXPECT_EQ(res_dim, exp_dim);
+  EXPECT_EQ(res_chunk, exp_chunk);
+}
+
+
+TEST(Util, Broadcast_detect_broadcast_same_order_all_broadcasting) {
+  using namespace cpp_nn::util;
+
+  std::vector<int> bro_chunk = {3, 2, 1};
+  std::vector<int> bro_shape = {5, 3, 2};
+  std::vector<int> ori_shape = {1, 1, 1};
+
+  std::vector<int> exp_dim      = {5, 3, 2};
+  std::vector<int> exp_chunk    = {3, 2, 1};
+
+  std::vector<int> res_dim;
+  std::vector<int> res_chunk;
+
+  DetectBroadcastAxes(bro_shape, bro_chunk, ori_shape, res_dim, res_chunk);
+
+  EXPECT_EQ(res_dim, exp_dim);
+  EXPECT_EQ(res_chunk, exp_chunk);
+}
+
+// End of DetectBroadcasting ---------------------------
 // END OF BROADCAST TESTS ---------------------------------------------------------------------

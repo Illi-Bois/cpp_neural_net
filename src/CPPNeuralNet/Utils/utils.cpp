@@ -267,6 +267,31 @@ std::vector<int> CutToShape(const std::vector<int>& indices, const std::vector<i
   }
   return cut_indices;
 }
+
+void DetectBroadcastAxes(const std::vector<int>& broadcast_shape,
+                         const std::vector<int>& broadcast_chunk_sizes,
+                         const std::vector<int>& original_shape,
+                         std::vector<int>& ret_detected_dimensions,
+                         std::vector<int>& ret_detected_chunk_size) noexcept {
+  // assuming ret vectors are empty
+  // at most, the detected axes are same as order of original_shape
+  ret_detected_dimensions.reserve(original_shape.size());
+  ret_detected_chunk_size.reserve(original_shape.size());
+
+  //  all of the front-paddings are broadcasted, and for 
+  //    intended computation can be ignored
+  const int front_padding_size = broadcast_shape.size() - original_shape.size();
+  for (int axis = 0; axis < original_shape.size(); ++axis) {
+    if (broadcast_shape[front_padding_size + axis] != original_shape[axis]) {
+      // assuming broadcast shape is valid, mismatch of dimension indicates broadcasting
+      ret_detected_dimensions.push_back(broadcast_shape[front_padding_size + axis]);
+      ret_detected_chunk_size.push_back(broadcast_chunk_sizes[front_padding_size + axis]);
+    }
+  }
+
+  ret_detected_dimensions.shrink_to_fit();
+  ret_detected_chunk_size.shrink_to_fit();
+}
 // End of Broadcasting =========================================
 
 
