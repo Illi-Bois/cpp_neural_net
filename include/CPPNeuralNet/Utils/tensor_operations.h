@@ -594,6 +594,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     // Final storage for C = A*B
     product_tensor_ = new Tensor<T>(broad_cast_shape);
 
+    typename Tensor<T>::Iterator it = product_tensor_->begin();
     // Using iterator, a more efficnent iteration may be pssible
     // iterate through each matrix blocks
     std::vector<int> indices(getOrder(), 0);
@@ -603,7 +604,8 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
           indices[getOrder() - 2] = r;
           indices[getOrder() - 1] = c;
 
-          T& element = product_tensor_->getElement(indices);
+          T& element = *it;
+
           element = T();
 
           for (int k = 0; k < interm; ++k) {
@@ -617,6 +619,8 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
             element += a_element * b_element;
           }
+
+          ++it;
         }
       }
     // increments for block-indices only, which are first order-2 axes
