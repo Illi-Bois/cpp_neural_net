@@ -160,6 +160,8 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
                                    capacity_);
       std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], 
                 old_chunk_sizes_[transpose_ptr->axis_2_]);
+
+      // TODO: should inner iterator not be set at construction?
     }
 
     T operator*() const override {
@@ -868,13 +870,163 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 // End of Tensor-Behaviours ----------------------------
 
   // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  typedef typename Parent::DefaultConstIterator ConstIteratorTEMP;
+
+  // Padding barrows from transpose iterator idea, where
+  //    we keep running default vector indexer
+  //    WHEN IN INCREMENTATION, it is deemed we are WITHIN PADDING, make a bool for that
+  //    we increment the inner indexer too (using previous address)
+  //  in accessor, if bool for INBOUND is true, return iterator, 
+  //    if not, return padding value
+
+  typedef typename HeldOperation::ConstIterator HeldIterator;
+
+  class ConstIterator : public Parent::DefaultConstIterator {
+    typedef typename Parent::DefaultConstIterator Parent;
+   private:
+  // Members ---------------------------------------------
+    HeldIterator it_;
+    size_t inner_address_; // address of inner
+
+    const T& padded_value_;
+    const std::vector<int>& inner_shape_;
+    std::vector<int> inner_chunk_sizes_;
+
+
+    // axies where padding has happened. when no padding is found, is empty
+    std::vector<int> padded_axes_;
+    std::vector<int> original_axes_dimensions_;
+
+    bool in_bounds_;
+  // End of Members --------------------------------------
+
+    void SetIsInBound() noexcept {
+      // if not in bound for any of thre padded axes, then not in bound
+      std::vector<int>::const_iterator dim_it = original_axes_dimensions_.begin();
+      for (int axis : padded_axes_) {
+        if (Parent::current_indices_[axis] >= *dim_it) {
+          in_bounds_ = false;
+          return;
+        }
+        ++dim_it;
+      }
+      // otherwise is in bound
+      in_bounds_ = true;
+    }
+ /** Updates current_address to given address */
+    void IncrementAddressTo(size_t address_to) noexcept {
+      size_t diff;
+      if (inner_address_ > address_to) {
+        diff = inner_address_ - address_to;
+        it_ -= diff;;
+      } else {
+        diff = address_to - inner_address_;
+        it_ += diff;;
+      }
+      inner_address_ = address_to;
+    }
+
+    void SetInner() noexcept {
+      // compute initial position
+      SetIsInBound();
+
+      // If out of bounds, ignore update
+      if (Parent::at_end_) {
+        return;
+      }
+
+      if (in_bounds_) {
+        // need to update the position
+        size_t address_to = IndicesToAddress(inner_shape_,
+                                             inner_chunk_sizes_,
+                                             Parent::current_indices_);
+        IncrementAddressTo(address_to);
+      }
+    }
+
+   public:
+    ConstIterator(const Self* transpose_ptr, 
+                  std::vector<int> idx, 
+                  bool is_end,
+                  HeldIterator it,
+                  size_t inner_address) 
+        : Parent::DefaultConstIterator(transpose_ptr, 
+                                       idx, 
+                                       is_end),
+          it_(it),
+          inner_address_(inner_address),
+          padded_value_(transpose_ptr->padded_value_),
+          inner_shape_(transpose_ptr->tensor_like_.getShape()),
+          inner_chunk_sizes_(transpose_ptr->getOrder(), 1) {
+      // compute axes where padding has happened,
+      // we only care for axis where curr dimension is stictly larger
+      //  if it is lesser, we can address it simply skipping values 
+
+      padded_axes_.reserve(inner_shape_.size());
+      original_axes_dimensions_.reserve(inner_shape_.size());
+
+      for (int axis = 0; axis < transpose_ptr->getOrder(); ++axis) {
+        if (transpose_ptr->getDimension(axis) > inner_shape_[axis]) {
+          padded_axes_.push_back(axis);
+          original_axes_dimensions_.push_back(inner_shape_[axis]);
+        }
+      }
+
+      padded_axes_.shrink_to_fit();
+      original_axes_dimensions_.shrink_to_fit();
+
+      // Compute chunk_sizes for address conversion
+      size_t inner_cap = 1;
+      ComputeCapacityAndChunkSizes(inner_shape_,
+                                   inner_chunk_sizes_,
+                                   inner_cap);
+      
+
+      SetInner();
+    }
+
+    T operator*() const override {
+      if (in_bounds_) {
+        return *it_;
+      }
+      return padded_value_;
+    }
+
+    ConstIterator& operator+=(int increment) override {
+      // Early exits
+      if (increment < 0) {
+        return operator+=(-increment);
+      } else if (increment == 0) {
+        return *this;
+      }
+      // Rely on default incrementation
+      Parent::operator+=(increment);
+
+      std::cout << inner_address_ << std::endl;
+
+      SetInner();
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) override {
+      // Early exits
+      if (decrement < 0) {
+        return operator+=(-decrement);
+      } else if (decrement == 0) {
+        return *this;
+      }
+      // Rely on default decrementation
+      Parent::operator-=(decrement);
+
+      SetInner();
+      return *this;
+    }
+  };
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false};
+    return {this, std::vector<int>(getOrder(), 0), false, tensor_like_.begin(), 0};
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true};
+    return {this, std::vector<int>(getOrder(), 0), true, tensor_like_.end(), tensor_like_.getCapacity()};
   }
 }; // End of PaddingOperation
 

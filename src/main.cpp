@@ -104,4 +104,10 @@ int main() {
   // Generator<float> g([&]() {return "NO";});
 
   // g();
+
+  std::cout << "PADDING" << std::endl;
+  Tensor<float> padded = a.Padding({3, 3});
+  PrintTensor(padded);
+  Tensor<float> cropped = a.Padding({3, 2});
+  PrintTensor(cropped);
 }
