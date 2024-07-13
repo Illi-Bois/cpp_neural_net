@@ -8,6 +8,32 @@
 #include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/Utils/utils.h"
 
+template<typename T>
+struct Generator {
+  std::function<T()> f;
+
+  Generator(std::function<T()> F)
+      : f(F) {}
+  
+  T operator()() {
+    return f();
+  }
+};
+
+int a= 0;
+int genVal() {
+  return ++a;
+}
+
+struct anon {
+  double a = 10;
+  double getA() {
+    return a += 10;
+  }
+  double operator()() {
+    return getA();
+  }
+} al;
 
 int main() {
   using namespace cpp_nn::util;
@@ -34,13 +60,29 @@ int main() {
   // PrintTensor(C);
 
 
+  int val = 0;
+  auto gen1 = [&]() -> float { return ++val; };
 
   auto generator = [val = 0]() mutable { return ++val; };
   Tensor<float> a({2, 3}, generator);
   Tensor<float> b({2, 3}, 2);
+  Tensor<float> c({2, 3}, &genVal);
+  Tensor<float> d({2, 3}, al);
+
+  std::function<int()> thisWorks = al;
 
   PrintTensor(a);
   PrintTensor(b);
+  PrintTensor(c);
+  PrintTensor(d);
 
-  
+  std::cout << typeid(decltype(gen1)).name() << std::endl;
+  std::cout << val << std::endl;
+
+  std::cout << thisWorks() << std::endl;
+
+
+  // Generator<float> g([&]() {return "NO";});
+
+  // g();
 }

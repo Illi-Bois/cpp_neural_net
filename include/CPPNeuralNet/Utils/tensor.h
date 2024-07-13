@@ -29,14 +29,19 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
   Tensor(const std::vector<int>& dimensions, 
          T init_val = T()); 
 /**
- *  Generator Constructor
- *  Takes a Generator and size vector as input,
+ *  generates tensor of desired shape and
  *  initializes Tensor with values according to the given generator
- * 
+ *  Generator is preferably lambda function, or function pointer.
+ *    But can also be passed as struct with operator() overloaded. 
+ *    ie)
+ *        struct gen {
+ *          int a = 10;
+ *          int operator()() {
+ *            return a++;
+ *          }
+ *        };
  */
-template<typename Generator,
-          typename = std::enable_if_t<!std::is_convertible_v<Generator, T>>>
-Tensor(const std::vector<int>& dimensions, Generator generator);
+  Tensor(const std::vector<int>& dimensions, std::function<T()> generator);
 /**
  *  Copy Constructor
  *  assumes other was validly constructed and thus throws no exception.
@@ -368,9 +373,7 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions,
 }
 /** Generator Constructor */
 template<typename T>
-template<typename Generator,
-         typename>
-Tensor<T>::Tensor(const std::vector<int>& dimensions, Generator generator)
+Tensor<T>::Tensor(const std::vector<int>& dimensions, std::function<T()> generator)
     : Tensor(dimensions) {
   // Let init-value construct the infastructure, then simply fill with generator
   std::generate(elements_->begin(), elements_->end(), generator);
