@@ -360,6 +360,7 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions,
       chunk_size_(dimensions.size(), 1),
       capacity_(  1),
       elements_(  nullptr) {
+  std::cout << "Regular" << std::endl;
   // Computes chunk_sizes and capacity from dimension. 
   // Also performs checks and can throw exception
   cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, 
@@ -373,17 +374,9 @@ template<typename T>
 template<typename Generator,
          typename>
 Tensor<T>::Tensor(const std::vector<int>& dimensions, Generator generator)
-    : dimensions_(dimensions),
-      chunk_size_(dimensions.size(), 1),
-      capacity_(  1),
-      elements_(  nullptr) {
-  cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, 
-                                             chunk_size_, 
-                                             capacity_);
-  elements_ = new std::vector<T>(capacity_);
-  for (int i = 0; i < capacity_; ++i) {
-      (*elements_)[i] = generator();
-  }
+    : Tensor(dimensions) {
+  // Let init-value construct the infastructure, then simply fill with generator
+  std::generate(elements_->begin(), elements_->end(), generator);
 }
 
 /** Copy Constructor */
