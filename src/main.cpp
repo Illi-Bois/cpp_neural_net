@@ -37,8 +37,10 @@ int main() {
 
   auto generator = [val = 0]() mutable { return ++val; };
   Tensor<float> a({2, 3}, generator);
+  Tensor<float> b({2, 3}, 2);
 
   PrintTensor(a);
+  PrintTensor(b);
 
   
 }

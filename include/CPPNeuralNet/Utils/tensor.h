@@ -28,9 +28,8 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
  */
   Tensor(const std::vector<int>& dimensions, 
          T init_val = T()); 
-
-// Generator Constructor-----------------------------
 /**
+ *  Generator Constructor
  *  Takes a Generator and size vector as input,
  *  initializes Tensor with values according to the given generator
  * 
@@ -360,7 +359,6 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions,
       chunk_size_(dimensions.size(), 1),
       capacity_(  1),
       elements_(  nullptr) {
-  std::cout << "Regular" << std::endl;
   // Computes chunk_sizes and capacity from dimension. 
   // Also performs checks and can throw exception
   cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, 
@@ -369,7 +367,6 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions,
   elements_ = new std::vector<T>(capacity_, init_val);
 }
 /** Generator Constructor */
-// Generator Constructor
 template<typename T>
 template<typename Generator,
          typename>
@@ -378,7 +375,6 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions, Generator generator)
   // Let init-value construct the infastructure, then simply fill with generator
   std::generate(elements_->begin(), elements_->end(), generator);
 }
-
 /** Copy Constructor */
 template<typename T>
 Tensor<T>::Tensor(const Tensor& other) noexcept
