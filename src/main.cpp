@@ -110,4 +110,12 @@ int main() {
   PrintTensor(padded);
   Tensor<float> cropped = a.Padding({3, 2});
   PrintTensor(cropped);
+
+
+  std::cout << "Complex" << std::endl;
+
+  Tensor<int> A = ((Tensor<int>({3, 150, 100}, [val = 0]() mutable {return ++val;})
+                * Tensor<int>({150*100}, 2).Reshape({100, 150}))
+                + (Tensor<int>({20, 10}, 10).Padding({150, 15}) * Tensor<int>({10, 15}, [val=0]() mutable {return +val;}).Padding({15, 150}) )).Padding({1, 10, 10});
+  PrintTensor(A);
 }

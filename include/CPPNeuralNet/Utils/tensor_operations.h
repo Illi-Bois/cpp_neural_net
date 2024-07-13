@@ -1002,8 +1002,6 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       // Rely on default incrementation
       Parent::operator+=(increment);
 
-      std::cout << inner_address_ << std::endl;
-
       SetInner();
       return *this;
     }
