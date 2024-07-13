@@ -597,82 +597,46 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     typename Tensor<T>::Iterator it = product_tensor_->begin();
     typename Tensor<T>::Iterator fin = product_tensor_->end();
 
-    // typename BroadcastFirst::ConstIterator A_it = A_broadcast.begin();
-    // typename BroadcastSecond::ConstIterator B_it = B_broadcast.begin();
-    // typename BroadcastSecond::ConstIterator B_end = B_broadcast.end();
-
-    /*
-    // while (it != fin) {
-    //   for (int r = 0; r < rows; ++r) {
-    //     for (int c = 0; c < cols; ++c) {
-    //       T& element = *it;
-    //       element = T();
-
-    //       typename BroadcastFirst::ConstIterator Ait_copy = Ait;
-
-    //       for (int k = 0; k < interm; ++k) {
-    //         element += (*Ait_copy) * (*B_it);
-
-    //         // increment to next col
-    //         ++Ait_copy;
-    //         // increment to next row
-    //         B_it += cols;
-    //       }
-
-    //       // reset to front of the row
-    //       // A_it -= interm;
-    //       // reset to column head
-    //       B_it -= cols * interm - ((B_it == B_end) ? c : 0)
-    //               - 1; // increment to next column
-    //       ++it; // next element...
-    //     }
-    //     // skip to next row
-    //     Ait += interm;
-    //     // reset to first colum
-    //     B_it -= cols + 1;
-    //   }
-    //   // A is incremented naturally
-    //   // Increment matrix head
-    //   B_it += interm * cols;
-    // }
-    */
-
-    typename BroadcastFirst::ConstIterator A_it = A_broadcast.begin();
-    typename BroadcastSecond::ConstIterator Bit = B_broadcast.begin();
+    typename BroadcastFirst::ConstIterator  A_it = A_broadcast.begin();
+    typename BroadcastSecond::ConstIterator B_it = B_broadcast.begin();
 
     while (it != fin) {
       for (int r = 0; r < rows; ++r) {
-        typename BroadcastSecond::ConstIterator BHolder = Bit;
-
         for (int c = 0; c < cols; ++c) {
           T& element = *it;
 
           element = T();
 
-          typename BroadcastSecond::ConstIterator Bit_copy = BHolder;
           for (int k = 0; k < interm; ++k) {
-            T a_element = *A_it;
-
-            T b_element = *Bit_copy;
-
-            element += a_element * b_element;
+            element += (*A_it) * (*B_it);
 
             // Increment A to next column
             ++A_it;
-            Bit_copy += cols;
-          }
+            // increment to next row if only not at the last col
+            if (k != interm - 1) {
+              B_it += cols;
+            }
+          } /// k loop --
+
           // Reset A to start of row
           A_it -= interm;
-
+          // rest to first row
+          B_it -= cols * (interm - 1)
+                  - 1; // Increment B to next col
           ++it;
-          ++BHolder;
-        }
+        } /// c Loop --
+
         // Increment A to next row
         A_it += interm;
-      }
-      Bit += interm * cols;
-    }
-  }
+        // Reset B to first column
+        B_it -= cols;
+      }/// r Loop --
+
+      // A naturally increments to next matrix by row incr.
+      // B Move to next matrix
+      B_it += interm * cols;
+    } 
+  } 
 // End of Constructor ----------------------------------
 
 // Destructor ------------------------------------------
