@@ -144,31 +144,18 @@ TEST(UtilTensorOperation, Summation_Of_Two) {
 }
 TEST(UtilTensorOperation, Summation_Of_Two_Constructor) {
   using namespace cpp_nn::util;
-  int val = 0;
-  auto generator = [&val]() { return ++val; };
-  Tensor<float> a({2, 3}, generator);
-  std::vector<int> expected_elements = 
+  auto generator = [val = 0]() mutable {return ++val; };
+  auto generator2 = [val = 0]() mutable {return ++val * 2; };
+  std::vector<int> expected_elements3 = 
   {
-    1,    2,    3,
-    4,    5,    6,
+    3,    6,    9,
+    12,    15,    18,
   };
-  auto it = a.begin();
-  for (auto exp : expected_elements) {
-    EXPECT_EQ(*it, exp);
-    ++it;
-  }
-  val = 1;
-  auto generator2 = [&val]() { return val++ * 2; };
-  Tensor<float> b({2, 3}, generator2);
-    std::vector<int> expected_elements2 = 
-  {
-    2,    4,    6,
-    8,    10,    12,
-  };
-  auto it2 = b.begin();
-  for (auto exp : expected_elements2) {
-    EXPECT_EQ(*it2, exp);
-    ++it2;
+  Tensor<float> c = Tensor<float>({2, 3}, generator) + Tensor<float>({2, 3}, generator2);
+  auto it3 = c.begin();
+  for (auto exp : expected_elements3) {
+    EXPECT_EQ(*it3, exp);
+    ++it3;
   }
 }
 TEST(UtilTensorOperation, Summation_Of_Three) {
