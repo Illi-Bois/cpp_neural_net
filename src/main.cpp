@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <numeric>
 
+#include <cstdlib>
+
 #include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/Utils/utils.h"
 
@@ -34,6 +36,11 @@ struct anon {
     return getA();
   }
 } al;
+struct randomer {
+  double operator()() {
+    return static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+  }
+} ra;
 
 int main() {
   using namespace cpp_nn::util;
@@ -68,6 +75,16 @@ int main() {
   Tensor<float> b({2, 3}, 2);
   Tensor<float> c({2, 3}, &genVal);
   Tensor<float> d({2, 3}, al);
+  Tensor<float> e({2, 3}, randomer());
+  struct HERE {
+    float operator()() {
+      return 10;
+    }
+  };
+  {
+    Tensor<float> f({2, 3}, HERE());  
+  }
+  Tensor<float> f({2, 3}, HERE{});
 
   std::function<int()> thisWorks = al;
 
@@ -75,6 +92,8 @@ int main() {
   PrintTensor(b);
   PrintTensor(c);
   PrintTensor(d);
+  PrintTensor(e);
+  PrintTensor(f);
 
   std::cout << typeid(decltype(gen1)).name() << std::endl;
   std::cout << val << std::endl;
