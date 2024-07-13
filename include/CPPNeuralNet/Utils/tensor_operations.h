@@ -637,9 +637,9 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
     // }
     */
 
-    typename BroadcastFirst::ConstIterator Ait = A_broadcast.begin();
+    typename BroadcastFirst::ConstIterator A_it = A_broadcast.begin();
     typename BroadcastSecond::ConstIterator Bit = B_broadcast.begin();
-    
+
     while (it != fin) {
       for (int r = 0; r < rows; ++r) {
         typename BroadcastSecond::ConstIterator BHolder = Bit;
@@ -649,24 +649,26 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
 
           element = T();
 
-          typename BroadcastFirst::ConstIterator Ait_copy = Ait;
           typename BroadcastSecond::ConstIterator Bit_copy = BHolder;
           for (int k = 0; k < interm; ++k) {
-            T a_element = *Ait_copy;
+            T a_element = *A_it;
 
             T b_element = *Bit_copy;
 
             element += a_element * b_element;
 
-            ++Ait_copy;
+            // Increment A to next column
+            ++A_it;
             Bit_copy += cols;
           }
+          // Reset A to start of row
+          A_it -= interm;
 
           ++it;
           ++BHolder;
         }
-        // skip to next row
-        Ait += interm;
+        // Increment A to next row
+        A_it += interm;
       }
       Bit += interm * cols;
     }
