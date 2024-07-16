@@ -434,23 +434,17 @@ TEST(UtilTensorOperation, Mult_Incorrect_matrix_dim) {
   EXPECT_THROW(a * b, std::invalid_argument);
 }
 TEST(UtilTensorOperation, Mult_Incorrect_tensor_dim) {
+    using namespace cpp_nn::util;
+  Tensor<float> a({4, 3, 5}, [val = 1]() mutable { return val++; });
+  Tensor<float> b({2, 3, 1}, [val = 2]() mutable { return val++; });
   
+  EXPECT_THROW(a * b, std::invalid_argument);
 }
 TEST(UtilTensorOperation, Multiplying_broadcast) {
   using namespace cpp_nn::util;
   
-  Tensor<int> A({2, 3, 4});
-  Tensor<int> B({4, 5});
-
-  int i = 0;
-  for (auto it = A.begin(); it != A.end(); ++it) {
-    *it = ++i;
-  }
-  i = 0;
-  for (auto it = B.begin(); it != B.end(); ++it) {
-    *it = ++i;
-  }
-
+  Tensor<int> A({2, 3, 4}, [val = 0]() mutable { return ++val; });
+  Tensor<int> B({4, 5}, [val = 0]() mutable { return ++val; });
   Tensor<int> C = A * B;
   
 
@@ -475,7 +469,13 @@ TEST(UtilTensorOperation, Multiplying_broadcast) {
   }
 }
 TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
-  
+  using namespace cpp_nn::util;
+  // Feel like this should work but is keep giving me errors
+  // Tensor<float> a({2, 3, 4}, [val = 1]() mutable { return val++; });
+  // Tensor<float> b({1}, 1.0f);
+  // Tensor<float> c = a * b;
+  // PrintTensor(c);
+
 }
 
 TEST(UtilTensorOperation, Multiplying_Incredibly_large) {
@@ -643,10 +643,38 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large4) {
 
 // RESHAPE ===============================================
 TEST(UtilTensorOperation, Reshaping) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4}, [val = 0]() mutable { return val++; });
+  Tensor<float> b = a.Reshape({4, 6});
   
+  EXPECT_EQ(b.getShape(), std::vector<int>({4, 6}));
+  EXPECT_EQ(b.getCapacity(), a.getCapacity());
+  // PrintTensor(a);
+  // PrintTensor(b);
+  auto it_a = a.begin();
+  auto it_b = b.begin();
+  while (it_a != a.end()) {
+    EXPECT_FLOAT_EQ(*it_a, *it_b);
+    ++it_a;
+    ++it_b;
+  }
 }
 TEST(UtilTensorOperation, Reshaping_to_self) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4}, [val = 0]() mutable { return val++; });
+  Tensor<float> original = a;
+  a = a.Reshape({4, 6});
   
+  EXPECT_EQ(a.getShape(), std::vector<int>({4, 6}));
+  EXPECT_EQ(a.getCapacity(), original.getCapacity());
+  
+  auto it_orig = original.begin();
+  auto it_a = a.begin();
+  while (it_orig != original.end()) {
+    EXPECT_FLOAT_EQ(*it_orig, *it_a);
+    ++it_orig;
+    ++it_a;
+  }
 }
 TEST(UtilTensorOperation, Reshaping_chained) {
   
