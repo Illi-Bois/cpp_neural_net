@@ -390,7 +390,20 @@ TEST(UtilTensorOperation, Multiplication_of_many_with_parenthesis) {
   }
 }
 TEST(UtilTensorOperation, Multiplication_to_self) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 2}, [val = 1]() mutable { return val++ * 3; });
+  a = a * a;
+  PrintTensor(a);
+  std::vector<float> expected = 
+  {
+    63,    90, 
+    135,   198, 
+  };
+  auto it = a.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Multiplication_of_many_involving_to_self) {
   
