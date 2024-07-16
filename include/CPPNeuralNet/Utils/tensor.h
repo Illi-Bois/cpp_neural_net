@@ -245,6 +245,16 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
 // End of Iterator Getters ------------------------
 // End of Iterator -------------------------------------
 
+// Static Constructors ---------------------------------
+/** 
+ *  constructs tensor from given array of Elements.
+ *  The shape is [capacity] of the elements.
+ * 
+ *  To specify shape, call Reshape on the returned tensor.
+ */
+inline static Tensor<T> AsTensor(const std::vector<T>& elements);
+// End of Static Constructors --------------------------
+
  protected:
 // Member Fields ---------------------------------------
   std::vector<int> dimensions_;
@@ -252,6 +262,24 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
   size_t capacity_;
   std::vector<T>* elements_;      // containter of elements of tensor.
 // End of Member fields --------------------------------
+
+// Private Constructor ---------------------------------
+/** 
+ *  private constructor to be used internally.
+ *  Sets each members directly with no checks.
+ *  
+ *  As of now, only used for AsTensor. 
+ *  Not intended to be used outside of housekeeping.
+ */
+  Tensor<T>(const std::vector<int>& dimensions,
+            const std::vector<int>& chunk_size,
+            size_t capacity,
+            std::vector<T>* elements) noexcept 
+      : dimensions_(dimensions),
+        chunk_size_(chunk_size),
+        capacity_(capacity),
+        elements_(elements) {}
+// End of Private Constructor --------------------------
 
 // Swap ------------------------------------------------
 /** recommended for unifying copy constrcutor and assignment from:
@@ -343,6 +371,14 @@ void PrintTensor(const Tensor<T>& tensor, std::vector<int>& idx, int axis) noexc
  */
 template<typename T>
 void PrintTensor(const Tensor<T>& tensor) noexcept;
+
+/**
+ *  AsTensor as extenral callable.
+ */
+template<typename T> 
+inline Tensor<T> AsTensor(const std::vector<T>& elements) {
+  return Tensor<T>::AsTensor(elements);
+}
 // End of Extreneous -----------------------------------
 
 } // util
@@ -518,6 +554,17 @@ inline const T& Tensor<T>::getElement(const std::vector<int>& indicies) const no
                                        indicies)];
 }
 // End of Accessors -------------------------------------
+
+// Static Constructors ---------------------------------
+template<typename T>
+inline Tensor<T> Tensor<T>::AsTensor(const std::vector<T>& elements) {
+  return Tensor<T>(/*dim  =*/{static_cast<int>(elements.size())},
+                   /*chunk=*/{1},
+                   /*cap  =*/elements.size(),
+                   /*elem =*/new std::vector<T>(elements));
+}
+// End of Static Constructors --------------------------
+
 // End of Tensor DEFINITION =====================================
 
 // Operations =================================================

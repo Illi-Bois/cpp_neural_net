@@ -336,6 +336,43 @@ TEST(UtilTensorOperation, Multiplication_of_two) {
     ++it2;
   }
 }
+TEST(UtilTensorOperation, Multiplication_with_identity) {
+  using namespace cpp_nn::util;
+
+  std::vector<float> id = 
+  {
+    1, 0, 0,
+    0, 1, 0,
+    0, 0, 1
+  };
+  std::vector<float> A = 
+  {
+    2, 1, 3, -1,
+    1, 2, 3,  4,
+    2, -1, -3, -1,
+  };
+
+  // Tensor<float> idTensor = Tensor<float>::AsTensor(id).Reshape({3, 3});
+  Tensor<float> idTensor = AsTensor(id).Reshape({3, 3});
+  // Tensor<float> ATensor =  Tensor<float>::AsTensor(A).Reshape({3, 4});
+  Tensor<float> ATensor =  AsTensor(A).Reshape({3, 4});
+
+  PrintTensor(idTensor);
+  PrintTensor(ATensor);
+
+  Tensor<float> C = idTensor * ATensor;
+
+  auto cit = C.begin();
+  auto cend = C.begin();
+
+  auto ait = ATensor.begin();
+
+  while (cit != cend) {
+    EXPECT_EQ(*cit, *ait);
+    ++cit;
+    ++ait;
+  }
+}
 TEST(UtilTensorOperation, Multiplication_of_three) {
   using namespace cpp_nn::util;
   Tensor<float> a({3, 4});
