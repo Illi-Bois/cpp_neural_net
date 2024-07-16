@@ -307,43 +307,33 @@ TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
 // MULTIPLICATION ========================================
 TEST(UtilTensorOperation, Multiplication_of_two) {
   using namespace cpp_nn::util;
-  //2D
-  int val = 0;
-  Tensor<float> a({2, 3});
-  for (auto it = a.begin(); it != a.end(); ++it) {
-    *it = ++val;
-  }
-  Tensor<float> b({3, 2});
-  val = 16;
-  for (auto it = b.begin(); it != b.end(); ++it) {
-    *it = --val;
-  }
+ 
+  Tensor<float> a({2, 3}, [val = 0]() mutable { return ++val; });
+  Tensor<float> b({3, 2}, [val = 16]() mutable { return --val; });
+
   Tensor<float> c1 = a * b;
-  Tensor<float> expected1({2, 2});
-  expected1.getElement({0, 0}) = 74;
-  expected1.getElement({0, 1}) = 68;
-  expected1.getElement({1, 0}) = 191;
-  expected1.getElement({1, 1}) = 176;
-  Tensor<float> c2 = b * a;
-  for(int i = 0; i < 2; ++i){
-    for(int j = 0; j < 2; ++j){
-      EXPECT_EQ(c1.getElement({i, j}), expected1.getElement({i, j}));
-    }
+  std::vector<int> expected_elements = 
+  {
+    74,    68,    
+    191,    176, 
+  };
+  auto it = c1.begin();
+  for (auto exp : expected_elements) {
+    EXPECT_EQ(*it, exp);
+    ++it;
   }
-  Tensor<float> expected2({3, 3});
-  expected2.getElement({0, 0}) = 71;
-  expected2.getElement({0, 1}) = 100;
-  expected2.getElement({0, 2}) = 129;
-  expected2.getElement({1, 0}) = 61;
-  expected2.getElement({1, 1}) = 86;
-  expected2.getElement({1, 2}) = 111;
-  expected2.getElement({2, 0}) = 51;
-  expected2.getElement({2, 1}) = 72;
-  expected2.getElement({2, 2}) = 93;
-  for(int i = 0; i < 3; ++i){
-    for(int j = 0; j < 3; ++j){
-      EXPECT_EQ(c2.getElement({i, j}), expected2.getElement({i, j}));
-    }
+
+  Tensor<float> c2 = b * a;
+  std::vector<int> expected_elements2 = 
+  {
+    71,    100,    129,
+    61,    86,     111,
+    51,    72,     93,
+  };
+  auto it2 = c2.begin();
+  for (auto exp : expected_elements2) {
+    EXPECT_EQ(*it2, exp);
+    ++it2;
   }
 }
 TEST(UtilTensorOperation, Multiplication_of_three) {
@@ -380,7 +370,24 @@ TEST(UtilTensorOperation, Multiplication_of_three) {
   EXPECT_EQ(e.getElement({1, 1}), 8640);
 }
 TEST(UtilTensorOperation, Multiplication_of_many_with_parenthesis) {
-  
+  using namespace cpp_nn::util;
+
+  Tensor<float> a({3, 2}, [val = 2]() mutable { return ++val; });
+  Tensor<float> b({2, 4}, [val = 1]() mutable { return ++val * 2; });
+  Tensor<float> c({4, 3}, [val = 1]() mutable { return ++val; });
+  Tensor<float> d({3, 3}, [val = 13]() mutable { return --val ; });
+  Tensor<float> result = (a * b) * (c * d);
+  std::vector<int> expected_elements = 
+  {
+    69336,    61416,    53496,    
+    107160,    94920,   82680,
+    144984,   128424,   111864,
+  };
+  auto it = result.begin();
+  for (auto exp : expected_elements) {
+    EXPECT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Multiplication_to_self) {
   
