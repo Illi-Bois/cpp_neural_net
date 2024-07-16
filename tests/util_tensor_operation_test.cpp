@@ -406,10 +406,32 @@ TEST(UtilTensorOperation, Multiplication_to_self) {
   }
 }
 TEST(UtilTensorOperation, Multiplication_of_many_involving_to_self) {
+    using namespace cpp_nn::util;
+  Tensor<float> a({4, 2}, [val = 1]() mutable { return val++; });
+  Tensor<float> b({2, 3}, [val = 2]() mutable { return val++; });
+  Tensor<float> c({3, 4}, [val = 3]() mutable { return val++; });
   
+  a = a * b * c * a;
+  // PrintTensor(a);
+  std::vector<float> expected = 
+  {
+    6954,   8580,
+    15350,  18940,
+    23746,  29300,
+    32142,  39660,
+  };
+  auto it = a.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Mult_Incorrect_matrix_dim) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 3}, [val = 1]() mutable { return val++; });
+  Tensor<float> b({2, 3}, [val = 2]() mutable { return val++; });
   
+  EXPECT_THROW(a * b, std::invalid_argument);
 }
 TEST(UtilTensorOperation, Mult_Incorrect_tensor_dim) {
   
