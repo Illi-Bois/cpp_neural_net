@@ -2,6 +2,8 @@
 
 #include "CPPNeuralNet/Utils/tensor.h"
 
+#include <chrono> // for time
+
 
 TEST(UtilTensorOperation, SanityCheck) {
   EXPECT_TRUE(true);
@@ -122,6 +124,49 @@ TEST(UtilTensorOperation, Transpose_Self) {
       }
     }
   }
+}
+TEST(UtilTensorOperation, Tranposing_Large_Timed) {
+  using namespace cpp_nn::util;
+  Tensor<float> A({100, 50, 100, 200, 50}, [val = 0]()mutable {return ++val;});
+
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose();
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+  std::cout << "Single End-Transpose" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
+
+  begin = std::chrono::steady_clock::now();
+  C = A.Transpose(2, 4);
+  end = std::chrono::steady_clock::now();
+
+  std::cout << "Single Middle-Transpose" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
+
+  begin = std::chrono::steady_clock::now();
+  C = A.Transpose(2, 4).Transpose().Transpose(1, 2);
+  end = std::chrono::steady_clock::now();
+
+  std::cout << "3 Transpose" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
+
+  begin = std::chrono::steady_clock::now();
+  C = A.Transpose(2, 4).Transpose().Transpose(1, 2).Transpose().Transpose(-2, 2).Transpose(1, -1);
+  end = std::chrono::steady_clock::now();
+
+  std::cout << "6 Transpose" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
 }
 // End of TRANSPOSE ======================================
 
@@ -357,9 +402,6 @@ TEST(UtilTensorOperation, Multiplication_with_identity) {
   // Tensor<float> ATensor =  Tensor<float>::AsTensor(A).Reshape({3, 4});
   Tensor<float> ATensor =  AsTensor(A).Reshape({3, 4});
 
-  PrintTensor(idTensor);
-  PrintTensor(ATensor);
-
   Tensor<float> C = idTensor * ATensor;
 
   auto cit = C.begin();
@@ -551,7 +593,14 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large) {
 
   std::cout << "READY" << std::endl;
 
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A * B;
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
   EXPECT_TRUE(true); // simply a sanity check
   // want only to see that this does not fail
 }
@@ -591,7 +640,14 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large2) {
 
   std::cout << "READY" << std::endl;
 
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A * B;
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
   EXPECT_TRUE(true); // simply a sanity check
   // want only to see that this does not fail
 }
@@ -631,7 +687,14 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large3) {
 
   std::cout << "READY" << std::endl;
 
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A * B;
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
   EXPECT_TRUE(true); // simply a sanity check
   // want only to see that this does not fail
 }
@@ -672,7 +735,14 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large4) {
 
   std::cout << "READY" << std::endl;
 
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A * B;
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
   EXPECT_TRUE(true); // simply a sanity check
   // want only to see that this does not fail
 }
@@ -704,12 +774,10 @@ TEST(UtilTensorOperation, Reshaping_to_self) {
   
   EXPECT_EQ(a.getShape(), std::vector<int>({4, 6}));
   EXPECT_EQ(a.getCapacity(), original.getCapacity());
-  
-  auto it_orig = original.begin();
+
   auto it_a = a.begin();
-  while (it_orig != original.end()) {
-    EXPECT_FLOAT_EQ(*it_orig, *it_a);
-    ++it_orig;
+  for (int val = 0; val < 2*3*4; ++val) {
+    EXPECT_FLOAT_EQ(*it_a, val);
     ++it_a;
   }
 }
@@ -736,7 +804,7 @@ TEST(UtilTensorOperation, Reshape_incorrect_capacity) {
   EXPECT_THROW(a.Reshape({2, 3, 6}), std::invalid_argument);
   EXPECT_THROW(a.Reshape({5, 5}), std::invalid_argument);
 }
-TEST(UtilTensorOperation, Reshape_with_non_post_dim) {
+TEST(UtilTensorOperation, Reshape_with_non_possible_dim) {
   using namespace cpp_nn::util;
   Tensor<float> a({2, 3, 4});
   
