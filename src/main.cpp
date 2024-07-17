@@ -118,4 +118,61 @@ int main() {
                 * Tensor<int>({150*100}, 2).Reshape({100, 150}))
                 + (Tensor<int>({20, 10}, 10).Padding({150, 15}) * Tensor<int>({10, 15}, [val=0]() mutable {return +val;}).Padding({15, 150}) )).Padding({1, 10, 10});
   PrintTensor(A);
+
+
+  std::cout << "TRANSPOSE ORDER optimize for 2" << std::endl;
+
+  Tensor<int> tpOri({3, 4}, [val=0]()mutable {return val++;});
+  std::vector<int> chunk(tpOri.getOrder(), 1);
+  size_t cap = 1;
+  ComputeCapacityAndChunkSizes(tpOri.getShape(), chunk, cap);
+  std::cout << "ORI shape " << std::endl;
+  for (auto i : tpOri.getShape()) {
+    std::cout << i << ", ";
+  }
+  std::cout << std::endl;
+  std::cout << "ORI CZ " << std::endl;
+  for (auto i : chunk) {
+    std::cout << i << ", ";
+  }
+  std::cout << std::endl;
+
+  Tensor<int> tp = tpOri.Transpose();
+  std::swap(chunk[1], chunk[2]);
+  std::cout << "tra shape " << std::endl;
+  for (auto i : tp.getShape()) {
+    std::cout << i << ", ";
+  }
+  std::cout << std::endl;
+  std::cout << "swapped CZ " << std::endl;
+  for (auto i : chunk) {
+    std::cout << i << ", ";
+  }
+  std::cout << std::endl;
+
+
+  int dim1 = 4;
+  int chunk1 = 1;
+
+  int dim2 = 3;
+  int chunk2 = 4;
+
+  int idx = 0;
+  auto it = tp.begin();
+  while (it != tp.end()) {
+    int temp = idx;
+    int computed = 0;
+
+    computed += (temp / dim2);
+    computed += temp * dim1;
+
+    computed %= cap;
+
+
+    // maybe we need to 
+
+    std::cout << idx << "\t" << *it << ",\t" << computed <<std::endl;
+    ++it;
+    ++idx;
+  }
 }
