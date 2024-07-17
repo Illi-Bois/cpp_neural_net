@@ -127,9 +127,10 @@ int main() {
   // Tensor<int> tpOri({5, 2, 3, 3, 4}, [val=0]()mutable {return val++;});
   
   
-  int ax1 = 0;
-  int ax2 = 1;
-  Tensor<int> tpOri({ 3, 4}, [val=0]()mutable {return val++;});
+  int ax1 = 2;
+  int ax2 = ax1 + 1;
+  Tensor<int> tpOri({ 3, 4, 3, 2}, [val=0]()mutable {return val++;});
+
   std::vector<int> chunk(tpOri.getOrder(), 1);
   size_t cap = 1;
   ComputeCapacityAndChunkSizes(tpOri.getShape(), chunk, cap);
@@ -166,6 +167,7 @@ int main() {
   int chunk2 = chunk[ax2];
 
   int after2 = dim2 * chunk2;
+  int bef1 = dim2 * chunk1;
 
   std::cout << dim1 << " " << chunk1 << std::endl;
   std::cout << dim2 << " " << chunk2 << std::endl;
@@ -176,16 +178,85 @@ int main() {
     int temp = idx;
     int computed = 0;
 
-    computed += temp - (temp % after2);
-    temp %= after2;
-    computed += (temp % dim2) * dim1;
-    computed += (temp / dim2);
+    // computed += temp - (temp % after2);
+    // temp %= after2;
+    // computed += temp % chunk1;
+    // temp /= chunk1;
+    // computed += temp * chunk2;
+
+    // temp /= dim2;
+    // computed += temp * chunk1;
+
+
+    // TRY DO IT AS WE NORMALLY DO THIS
+    // everything before the tranposed dim is kept as is
+    computed += temp % chunk1;
+    // everything after the tranpose should be the same too
+    computed += idx - (idx % (chunk2 * dim2));
+    // CORRECT UNTIL HERE
+
+    // We only need to tranpose tjings between ax1 and ax2
+    temp %= (chunk2 * dim2);
+    temp /= chunk1;
+
+
+    // accounts for jump from every small...
+    computed += (temp / dim2) * chunk1;
+    temp %= dim2;
+    computed += temp * chunk2;
+
+    // To do that...
+    // computed += temp * chunk2;
+    // temp /= dim2;
+
+
+    // we can treat the inner as regular end tranpose then
+    // handle above tranpose first
+
+    // temp /= chunk1;
+    // computed += temp * chunk2;
+    // temp /= dim2;
+    // // computed -= temp * chunk2 * dim2;
+
+    // temp -= temp % chunk2;
+    std::cout << temp << std::endl;
+
+    // computed += (temp % dim2) * chunk2;
+    // temp /= dim2;
+    // temp /= dim2;
+    // computed += temp * dim1 * chunk1;
+
+
+
+    // computed += (temp - (temp % chunk1))  * dim1;
+
     // computed %= cap;
 
+    // computed += (temp % dim1) * chunk1;
+    // temp /= dim2;
+
+    // computed += (temp % chunk2) * chunk1 * dim2;
+    // temp /= chunk1;
+    // computed += (temp)  * chunk1 * dim2 * chunk1;
+    // computed += (temp % chunk2)  * chunk1 * dim1 * chunk2;
+
+
+    // computed += ((temp ) % dim2) * chunk2;
+
+
+    // computed %= cap;
+
+    // computed += temp - (temp % after2);
+    // temp %= after2;
+    // computed += (temp % dim2) * dim1;
+    // computed += (temp / dim2);
 
     // maybe we need to 
 
     std::cout << idx << "\t" << *it << ",\t" << computed <<std::endl;
+    if (*it != computed) {
+      std::cout << "ABOVE IS WRONG" << std::endl;
+    }
     ++it;
     ++idx;
   }
