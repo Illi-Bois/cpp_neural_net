@@ -747,7 +747,7 @@ TEST(UtilTensorOperation, Reshape_with_non_post_dim) {
 
 // PADDING ===============================================
 TEST(UtilTensorOperation, Padding) {
-    using namespace cpp_nn::util;
+  using namespace cpp_nn::util;
   Tensor<float> a({2, 3}, [val = 1]() mutable { return val++; });
   Tensor<float> b = a.Padding({4,5}, 0);
   
@@ -767,19 +767,100 @@ TEST(UtilTensorOperation, Padding) {
   }
 }
 TEST(UtilTensorOperation, Padding_to_self) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3}, [val = 1]() mutable { return val++; });
+  a = a.Padding({4, 5}, 0);
   
+  EXPECT_EQ(a.getShape(), std::vector<int>({4, 5}));
+  
+  std::vector<float> expected = {
+    1, 2, 3, 0, 0,
+    4, 5, 6, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0
+  };
+  
+  auto it = a.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Multiple_Padding) {
+    using namespace cpp_nn::util;
+  Tensor<float> a({4, 4}, [val = 1]() mutable { return val++ * 3; });
+  Tensor<float> b = a.Padding({4, 4}, 3).Padding({6, 6}, -1);
+  PrintTensor(b);
   
+  EXPECT_EQ(b.getShape(), std::vector<int>({6, 6}));
+  
+  std::vector<float> expected = {
+    3,      6,      9,      12,     -1,     -1,
+    15,     18,     21,     24,     -1,     -1,
+    27,     30,     33,     36,     -1,     -1,
+    39,     42,     45,     48,     -1,     -1,
+    -1,     -1,     -1,     -1,     -1,     -1,
+    -1,     -1,     -1,     -1,     -1,     -1,
+  };
+  
+  auto it = b.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Reductive_padding) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 4}, [val = 1]() mutable { return val++; });
+  Tensor<float> b = a.Padding({3, 3}, 0);
+  EXPECT_EQ(b.getShape(), std::vector<int>({3, 3}));
   
+  std::vector<float> expected = {
+    1, 2, 3,
+    5, 6, 7,
+    9, 10, 11,
+  };
+  
+  auto it = b.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
+
+
+  Tensor<float> c = b.Padding({2, 2}, 0);
+  
+  EXPECT_EQ(c.getShape(), std::vector<int>({2, 2}));
+  
+  std::vector<float> expected2 = {
+    1, 2,
+    5, 6
+  };
+  
+  auto it2 = c.begin();
+  for (auto exp : expected2) {
+    EXPECT_FLOAT_EQ(*it2, exp);
+    ++it2;
+  }
 }
 TEST(UtilTensorOperation, Padding_incorrect_order) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4});
   
+  EXPECT_THROW(a.Padding({1, 1}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({2, 5}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({3, 2}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({14, 20}, 0), std::invalid_argument);
 }
 TEST(UtilTensorOperation, Padding_non_postive_dim) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3});
   
+  EXPECT_THROW(a.Padding({-3, 1}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({-1, 1}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({2, -1}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({1, -2}, 0), std::invalid_argument);
+  EXPECT_THROW(a.Padding({4, -3}, 0), std::invalid_argument);
 }
 // END OF PADDING ========================================
 
