@@ -122,10 +122,14 @@ int main() {
 
   std::cout << "TRANSPOSE ORDER optimize for 2" << std::endl;
 
-  int ax1 = 1;
-  int ax2 = 2;
-
-  Tensor<int> tpOri({2, 3, 4}, [val=0]()mutable {return val++;});
+  // int ax1 = 3;
+  // int ax2 = 4;
+  // Tensor<int> tpOri({5, 2, 3, 3, 4}, [val=0]()mutable {return val++;});
+  
+  
+  int ax1 = 0;
+  int ax2 = 1;
+  Tensor<int> tpOri({ 3, 4}, [val=0]()mutable {return val++;});
   std::vector<int> chunk(tpOri.getOrder(), 1);
   size_t cap = 1;
   ComputeCapacityAndChunkSizes(tpOri.getShape(), chunk, cap);
