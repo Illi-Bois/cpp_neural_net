@@ -714,19 +714,57 @@ TEST(UtilTensorOperation, Reshaping_to_self) {
   }
 }
 TEST(UtilTensorOperation, Reshaping_chained) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4}, [val = 0]() mutable { return val++; });
+  Tensor<float> b = a.Reshape({4, 6}).Reshape({3, 8}).Reshape({2,2,6});
   
+  EXPECT_EQ(b.getShape(), std::vector<int>({2, 2, 6}));
+  EXPECT_EQ(b.getCapacity(), a.getCapacity());
+  
+  auto it_a = a.begin();
+  auto it_b = b.begin();
+  while (it_a != a.end()) {
+    EXPECT_FLOAT_EQ(*it_a, *it_b);
+    ++it_a;
+    ++it_b;
+  }
 }
 TEST(UtilTensorOperation, Reshape_incorrect_capacity) {
-  
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4});
+  EXPECT_THROW(a.Reshape({2, 3, 3}), std::invalid_argument);
+  EXPECT_THROW(a.Reshape({2, 3, 6}), std::invalid_argument);
+  EXPECT_THROW(a.Reshape({5, 5}), std::invalid_argument);
 }
 TEST(UtilTensorOperation, Reshape_with_non_post_dim) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4});
   
+  EXPECT_THROW(a.Reshape({2, 3, -1}), std::invalid_argument);
+  EXPECT_THROW(a.Reshape({0, 6, 4}), std::invalid_argument);
 }
 // END OF RESHAPE ========================================
 
 // PADDING ===============================================
 TEST(UtilTensorOperation, Padding) {
+    using namespace cpp_nn::util;
+  Tensor<float> a({2, 3}, [val = 1]() mutable { return val++; });
+  Tensor<float> b = a.Padding({4,5}, 0);
   
+  EXPECT_EQ(b.getShape(), std::vector<int>({4, 5}));
+  PrintTensor(b);
+  std::vector<float> expected = {
+    1, 2, 3, 0, 0,
+    4, 5, 6, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0
+  };
+  
+  auto it = b.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
 }
 TEST(UtilTensorOperation, Padding_to_self) {
   
