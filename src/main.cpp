@@ -122,7 +122,10 @@ int main() {
 
   std::cout << "TRANSPOSE ORDER optimize for 2" << std::endl;
 
-  Tensor<int> tpOri({3, 4}, [val=0]()mutable {return val++;});
+  int ax1 = 1;
+  int ax2 = 2;
+
+  Tensor<int> tpOri({2, 3, 4}, [val=0]()mutable {return val++;});
   std::vector<int> chunk(tpOri.getOrder(), 1);
   size_t cap = 1;
   ComputeCapacityAndChunkSizes(tpOri.getShape(), chunk, cap);
@@ -137,8 +140,8 @@ int main() {
   }
   std::cout << std::endl;
 
-  Tensor<int> tp = tpOri.Transpose();
-  std::swap(chunk[1], chunk[2]);
+  Tensor<int> tp = tpOri.Transpose(ax1, ax2);
+  std::swap(chunk[ax1], chunk[ax2]);
   std::cout << "tra shape " << std::endl;
   for (auto i : tp.getShape()) {
     std::cout << i << ", ";
@@ -150,12 +153,18 @@ int main() {
   }
   std::cout << std::endl;
 
+  // dim1 is the inner- of the two axes in original,
+  //  that is chunk1 < chunk2
+  int dim1 = tpOri.getDimension(ax2);
+  int chunk1 = chunk[ax1];
 
-  int dim1 = 4;
-  int chunk1 = 1;
+  int dim2 = tpOri.getDimension(ax1);
+  int chunk2 = chunk[ax2];
 
-  int dim2 = 3;
-  int chunk2 = 4;
+  int after2 = dim2 * chunk2;
+
+  std::cout << dim1 << " " << chunk1 << std::endl;
+  std::cout << dim2 << " " << chunk2 << std::endl;
 
   int idx = 0;
   auto it = tp.begin();
@@ -163,10 +172,11 @@ int main() {
     int temp = idx;
     int computed = 0;
 
+    computed += temp - (temp % after2);
+    temp %= after2;
+    computed += (temp % dim2) * dim1;
     computed += (temp / dim2);
-    computed += temp * dim1;
-
-    computed %= cap;
+    // computed %= cap;
 
 
     // maybe we need to 
