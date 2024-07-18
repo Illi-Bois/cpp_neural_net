@@ -127,9 +127,9 @@ int main() {
   // Tensor<int> tpOri({5, 2, 3, 3, 4}, [val=0]()mutable {return val++;});
   
   
-  int ax1 = 2;
-  int ax2 = ax1 + 1;
-  Tensor<int> tpOri({ 3, 4, 3, 2}, [val=0]()mutable {return val++;});
+  int ax1 = 1;
+  int ax2 = ax1 + 2;
+  Tensor<int> tpOri({ 3, 4, 3, 5, 2}, [val=0]()mutable {return val++;});
 
   std::vector<int> chunk(tpOri.getOrder(), 1);
   size_t cap = 1;
@@ -166,6 +166,8 @@ int main() {
   int dim2 = tpOri.getDimension(ax1);
   int chunk2 = chunk[ax2];
 
+  int SWAPPER_RATIO = chunk2 / chunk1; // this is the amount to swap by
+
   int after2 = dim2 * chunk2;
   int bef1 = dim2 * chunk1;
 
@@ -175,51 +177,105 @@ int main() {
   int idx = 0;
   auto it = tp.begin();
   while (it != tp.end()) {
+    /* isolation method,
+        find specific indices that are to be tranposed, then apply tranpose only on those indices
+    */
     int temp = idx;
+
+    // idx of the splits before transpose
+    int before = temp % chunk1;
+    temp -= before;
+
+    int idx1 = (temp / chunk1) % dim1;
+    temp -= idx1 * chunk1;
+
+    int between = (temp % chunk2) / (dim1 * chunk1);
+    temp -= between * chunk1 * dim1;
+   
+    int idx2 = (temp / chunk2) % dim2;
+    temp -= idx2 * chunk2;
+
+    int after = temp / (chunk2 * dim2);
+    temp -= after;
+
+    std::cout << after << " " << idx2 << " " << between << " " << idx1 << " " << before << std::endl;
+
     int computed = 0;
+    computed += before * 1; // associated chunk size is 1
+    std::cout << "BEFORE " << before << std::endl;
+    computed += idx2 * chunk1; // associated chunk size is chunk1
+    std::cout << "FIRST " << (idx2 * chunk1) << std::endl;
+    computed += between * dim2 * chunk1; // associated chunk size is chunj1*dim2 because
+                                          // the tranposed to later retains teh same chunk size, the the axis after
+                                          // increments now by dim2 not dim1
+    std::cout << "BETWEEN " << (idx2 * chunk1) << std::endl;
+    computed += idx1 * dim2 * (chunk2 / dim1); // associated chunk size is dim2*chunk2/dim1
+                                              // because associated chunk size is same as old, except that it should multiply dim2 istead of dim1
+    computed += after * chunk2 * dim2; // chunk size of previous times dim1, which cancels out to this                                         
+    
+    // THIS CONCERTS TRANPOSED IDX BACK TO ORIGINAL
 
-    // computed += temp - (temp % after2);
-    // temp %= after2;
+
+    // // shift betweens
+    // between *= dim1; // the dim in front gets pushed forwards
+    // between /= dim2;
+
+    // int computed = before + after;
+    // // computed += idx1 * chunk2;
+    // // computed += idx2 * chunk1 * chunk2;
+
+    // computed %= cap;
+   
+
+    // int temp = idx;
+    // int computed = 0;
+
+    // int before = idx % chunk1
+    //             +idx - (idx % (chunk2 * dim2));
+    // // find middle too
+
+    // // computed += temp - (temp % after2);
+    // // temp %= after2;
+    // // computed += temp % chunk1;
+    // // temp /= chunk1;
+    // // computed += temp * chunk2;
+
+    // // temp /= dim2;
+    // // computed += temp * chunk1;
+
+
+    // // TRY DO IT AS WE NORMALLY DO THIS
+    // // everything before the tranposed dim is kept as is
     // computed += temp % chunk1;
+    // // everything after the tranpose should be the same too
+    // computed += idx - (idx % (chunk2 * dim2));
+    // // CORRECT UNTIL HERE
+
+    // // We only need to tranpose tjings between ax1 and ax2
+    // temp %= (chunk2 * dim2);
     // temp /= chunk1;
+
+
+    // // accounts for jump from every small...
+    // computed += (temp / dim2) * chunk1;
+    // temp %= dim2;
     // computed += temp * chunk2;
 
-    // temp /= dim2;
-    // computed += temp * chunk1;
+    // // To do that...
+    // // computed += temp * chunk2;
+    // // temp /= dim2;
 
 
-    // TRY DO IT AS WE NORMALLY DO THIS
-    // everything before the tranposed dim is kept as is
-    computed += temp % chunk1;
-    // everything after the tranpose should be the same too
-    computed += idx - (idx % (chunk2 * dim2));
-    // CORRECT UNTIL HERE
+    // // we can treat the inner as regular end tranpose then
+    // // handle above tranpose first
 
-    // We only need to tranpose tjings between ax1 and ax2
-    temp %= (chunk2 * dim2);
-    temp /= chunk1;
+    // // temp /= chunk1;
+    // // computed += temp * chunk2;
+    // // temp /= dim2;
+    // // // computed -= temp * chunk2 * dim2;
 
-
-    // accounts for jump from every small...
-    computed += (temp / dim2) * chunk1;
-    temp %= dim2;
-    computed += temp * chunk2;
-
-    // To do that...
-    // computed += temp * chunk2;
-    // temp /= dim2;
-
-
-    // we can treat the inner as regular end tranpose then
-    // handle above tranpose first
-
-    // temp /= chunk1;
-    // computed += temp * chunk2;
-    // temp /= dim2;
-    // // computed -= temp * chunk2 * dim2;
-
-    // temp -= temp % chunk2;
-    std::cout << temp << std::endl;
+    // // temp -= temp % chunk2;
+    // std::cout << temp << std::endl;
 
     // computed += (temp % dim2) * chunk2;
     // temp /= dim2;
@@ -253,10 +309,14 @@ int main() {
 
     // maybe we need to 
 
-    std::cout << idx << "\t" << *it << ",\t" << computed <<std::endl;
-    if (*it != computed) {
-      std::cout << "ABOVE IS WRONG" << std::endl;
+    if (idx1 == 0 && idx2 == 0) {
+      std::cout << "HERE" << std::endl;
+
+      if (*it != computed) {
+        std::cout << "COMP OFF" << std::endl;
+      }
     }
+    std::cout << idx << "\t" << *it << ",\t" << computed << (*it != computed ? "\t X" : "") <<std::endl;
     ++it;
     ++idx;
   }
