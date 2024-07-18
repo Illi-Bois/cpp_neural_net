@@ -213,7 +213,9 @@ int main() {
                                               // because associated chunk size is same as old, except that it should multiply dim2 istead of dim1
     computed += after * chunk2 * dim2; // chunk size of previous times dim1, which cancels out to this                                         
     
-    // THIS CONCERTS TRANPOSED IDX BACK TO ORIGINAL
+    // last commet was incorrect
+    // This converts Real-address back to Tranposed address
+    // The function we want for tranpose iterator will be inverse of this function.
 
 
     // // shift betweens
