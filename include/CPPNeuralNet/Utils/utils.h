@@ -190,6 +190,29 @@ struct IteratorInterface {
   }
 };
 
+// Tranpose Address Operations =================================
+/* Two Axis only Transpose */
+/** converts address on tranposed shape to address on untraposed shape 
+ *  
+ *  assumes chunk1 < chunk2
+ * 
+ *  Dim and Chunk sizes are of original shape
+*/
+size_t TranposedAddressToOriginalAddress(size_t transposed_address,
+                                         const int dim1, const int chunk1,
+                                         const int dim2, const int chunk2) noexcept;
+/** converts address on untranposed shape to address on traposed shape 
+ *  serves as inverse to TranposedAddressToOriginalAddress
+ *  
+ *  assumes chunk1 < chunk2
+ * 
+ *  Dim and Chunk sizes are of original shape
+*/
+size_t OriginalAddressToTransposedAddress(size_t transposed_address,
+                                         const int dim1, const int chunk1,
+                                         const int dim2, const int chunk2) noexcept;
+// End of Tranpose Address Operations ==========================
+
 } // util
 } // cpp_nn
 

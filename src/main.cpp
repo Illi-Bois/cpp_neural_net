@@ -42,49 +42,49 @@ struct randomer {
   }
 } ra;
 
-int TranposedAddressToOriginalAddress(int tranposed_address,
-                                      int dim1, int chunk1,
-                                      int dim2, int chunk2) {
-  // take the previous found Origina->Tranpose in main and work it backwards.
-  // essentially doing the same computation but backwards, meaning
-  //  mod to pick by what we multiply for computed...
+// int TranposedAddressToOriginalAddress(int tranposed_address,
+//                                       int dim1, int chunk1,
+//                                       int dim2, int chunk2) {
+//   // take the previous found Origina->Tranpose in main and work it backwards.
+//   // essentially doing the same computation but backwards, meaning
+//   //  mod to pick by what we multiply for computed...
 
 
-  // FIRST cut indices base on tranposed-shape
-  // Before first axes of tranpose, which is from 0-chunk1, remain the same
-  int before = tranposed_address % chunk1;
-  // after tranposing, the Second idx, which goes as first after tranposing
-  //  is responsible for chunk1's size. The dim is dim2
-  int idx2 =   (tranposed_address / chunk1) % dim2;
-  // the inbetween is resposible for chunk1* dim2, because
-  //    idx2 covered chunk1 and it itself covers dim2
-  // The dimension of between is product of all axes between the two,
-  //    which can be summarised as chunk2/chunk1 / dim1.
-  int between = (tranposed_address / (chunk1 * dim2)) % ((chunk2 / (chunk1 * dim1)));
-  /*
-  // same proecess can be  thiswritten as below,
-  //    where we cut by range-limit of between which is chunk2*dim/dim1, and divide down by its own chunk size
-  int between = ((tranposed_address % (chunk2 * dim2 / dim1)) / (chunk1 * dim2));
-  // the possible ebnefit is this process uses the same variable as for idx1
-  */
-  // By the same idea, divide down by its tranposed chunk size which is chunk2 * dim2/dim1, and mod by its dim
-  int idx1 = (tranposed_address / (chunk2 * dim2 / dim1)) % dim1;
-  // final chunk size is always the same, 
-  // since division and multiplcation of dimensions cancel out at the end
-  int after = tranposed_address / (chunk2 * dim2);
+//   // FIRST cut indices base on tranposed-shape
+//   // Before first axes of tranpose, which is from 0-chunk1, remain the same
+//   int before = tranposed_address % chunk1;
+//   // after tranposing, the Second idx, which goes as first after tranposing
+//   //  is responsible for chunk1's size. The dim is dim2
+//   int idx2 =   (tranposed_address / chunk1) % dim2;
+//   // the inbetween is resposible for chunk1* dim2, because
+//   //    idx2 covered chunk1 and it itself covers dim2
+//   // The dimension of between is product of all axes between the two,
+//   //    which can be summarised as chunk2/chunk1 / dim1.
+//   int between = (tranposed_address / (chunk1 * dim2)) % ((chunk2 / (chunk1 * dim1)));
+//   /*
+//   // same proecess can be  thiswritten as below,
+//   //    where we cut by range-limit of between which is chunk2*dim/dim1, and divide down by its own chunk size
+//   int between = ((tranposed_address % (chunk2 * dim2 / dim1)) / (chunk1 * dim2));
+//   // the possible ebnefit is this process uses the same variable as for idx1
+//   */
+//   // By the same idea, divide down by its tranposed chunk size which is chunk2 * dim2/dim1, and mod by its dim
+//   int idx1 = (tranposed_address / (chunk2 * dim2 / dim1)) % dim1;
+//   // final chunk size is always the same, 
+//   // since division and multiplcation of dimensions cancel out at the end
+//   int after = tranposed_address / (chunk2 * dim2);
 
-  // std::cout << after << " " << idx2 << " " << between << " " << idx1 << " " << before << std::endl;
-  std::cout << after << " " << idx1 << " " << between << " " << idx2 << " " << before << std::endl;
+//   // std::cout << after << " " << idx2 << " " << between << " " << idx1 << " " << before << std::endl;
+//   std::cout << after << " " << idx1 << " " << between << " " << idx2 << " " << before << std::endl;
 
-  int sum = 0;
-  sum += before;
-  sum += idx1 * chunk1;
-  sum += between * chunk1 * dim1;
-  sum += idx2 * chunk2;
-  sum += after * chunk2 * dim2;
+//   int sum = 0;
+//   sum += before;
+//   sum += idx1 * chunk1;
+//   sum += between * chunk1 * dim1;
+//   sum += idx2 * chunk2;
+//   sum += after * chunk2 * dim2;
 
-  return sum;
-}
+//   return sum;
+// }
 
 int main() {
   using namespace cpp_nn::util;
@@ -171,8 +171,8 @@ int main() {
   // Tensor<int> tpOri({5, 2, 3, 3, 4}, [val=0]()mutable {return val++;});
   
   
-  int ax1 = 4;
-  int ax2 = 5;
+  int ax1 = 1;
+  int ax2 = 4;
   Tensor<int> tpOri({ 3, 4, 2, 3, 5, 2}, [val=0]()mutable {return val++;});
 
   std::vector<int> chunk(tpOri.getOrder(), 1);
@@ -218,7 +218,7 @@ int main() {
   std::cout << dim1 << " " << chunk1 << std::endl;
   std::cout << dim2 << " " << chunk2 << std::endl;
 
-  int idx = 0;
+  size_t idx = 0;
   auto it = tp.begin();
   while (it != tp.end()) {
     /* isolation method,
@@ -262,7 +262,10 @@ int main() {
     // // The function we want for tranpose iterator will be inverse of this function.
 
     /**/
-    int computed = TranposedAddressToOriginalAddress(idx,
+    size_t computed = TranposedAddressToOriginalAddress(idx,
+                                                     dim1, chunk1, 
+                                                     dim2, chunk2);
+    size_t uncomputed = OriginalAddressToTransposedAddress(computed,
                                                      dim1, chunk1, 
                                                      dim2, chunk2);
     /**/
@@ -361,14 +364,7 @@ int main() {
 
     // maybe we need to 
 
-    if (idx1 == 0 && idx2 == 0) {
-      std::cout << "HERE" << std::endl;
-
-      if (*it != computed) {
-        std::cout << "COMP OFF" << std::endl;
-      }
-    }
-    std::cout << idx << "\t" << *it << ",\t" << computed << (*it != computed ? "\t X" : "") <<std::endl;
+    std::cout << idx << "\t" << *it << ",\t" << computed << "\t\t" << uncomputed << (*it != computed ? "\t X" : "") <<std::endl;
     if (*it != computed) {
       std::cout << "WRONGK RGV" << std::endl;
       return -1;

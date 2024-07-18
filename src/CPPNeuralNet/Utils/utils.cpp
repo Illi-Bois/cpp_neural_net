@@ -360,5 +360,82 @@ size_t IndicesToAddress(const std::vector<int>& shape,
   return address;
 }
 
+
+// Tranpose Address Operations =================================
+/* Two Axis only Transpose */
+/** converts address on tranposed shape to address on untraposed shape */
+size_t TranposedAddressToOriginalAddress(size_t transposed_address,
+                                         const int dim1, const int chunk1,
+                                         const int dim2, const int chunk2) noexcept {
+  /* when tranposed, the index can be thought as 5-order shape
+
+    indices name:
+      AFTER,        idx1,             BETWEEN,      idx2,     BEFORE
+      chunk2*dim2   chunk2*dim2/dim1  chunk1*dim2   chunk1    1
+    with associated chunk-sizes as above
+
+    we conver this to:
+      AFTER,        idx2,             BETWEEN,      idx1,     BEFORE
+      chunk2*dim2   chunk2            chunk1*dim1   chunk1    1
+
+    Note that we can take advantage of those indices with identical chunk-sizes
+      to skip some conversion
+   */
+  const int idx1_chunk_size = chunk2 / dim1 * dim2;
+
+  /** these are full-value, meaning idx * chunk size  */
+  const size_t before_fv = transposed_address % chunk1;
+  transposed_address -= before_fv;
+  const size_t idx2_fv = transposed_address % (chunk1 * dim2);
+  transposed_address -= idx2_fv;
+  const size_t between_fv = transposed_address % (idx1_chunk_size);
+  transposed_address -= between_fv;
+  const size_t idx1_fv = transposed_address % (chunk2 * dim2);
+  transposed_address -= idx1_fv;
+  const size_t after_fv = transposed_address;
+
+  return before_fv + 
+         (idx1_fv    / idx1_chunk_size * chunk1) +
+         (between_fv / dim2            * dim1) +
+         (idx2_fv    / chunk1          * chunk2) +
+         after_fv;
 }
+/** converts address on untranposed shape to address on traposed shape */
+size_t OriginalAddressToTransposedAddress(size_t transposed_address,
+                                          const int dim1, const int chunk1,
+                                          const int dim2, const int chunk2) noexcept {
+  /* when tranposed, the index can be thought as 5-order shape
+
+    indices name:
+      AFTER,        idx2,             BETWEEN,      idx1,     BEFORE
+      chunk2*dim2   chunk2            chunk1*dim1   chunk1    1
+    with associated chunk-sizes as above
+
+    we conver this to:
+      AFTER,        idx1,             BETWEEN,      idx2,     BEFORE
+      chunk2*dim2   chunk2*dim2/dim1  chunk1*dim2   chunk1    1
+
+    Note that we can take advantage of those indices with identical chunk-sizes
+      to skip some conversion
+   */
+  /** these are full-value, meaning idx * chunk size  */
+  const size_t before_fv = transposed_address % chunk1;
+  transposed_address -= before_fv;
+  const size_t idx1_fv = transposed_address % (chunk1 * dim1);
+  transposed_address -= idx1_fv;
+  const size_t between_fv = transposed_address % (chunk2);
+  transposed_address -= between_fv;
+  const size_t idx2_fv = transposed_address % (chunk2 * dim2);
+  transposed_address -= idx2_fv;
+  const size_t after_fv = transposed_address;
+
+  return before_fv + 
+         (idx2_fv    / chunk2          * chunk1) +
+         (between_fv / dim1            * dim2) +
+         (idx1_fv    / chunk1          * chunk2 / dim1 * dim2) +
+         after_fv;
 }
+// End of Tranpose Address Operations ==========================
+
+}
+} 
