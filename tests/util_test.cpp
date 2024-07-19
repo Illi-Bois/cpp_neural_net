@@ -1194,4 +1194,49 @@ TEST(Util, TranposedIndexConversion_To_and_From_Same_Axis) {
                                    transposed_idx.begin(), transposed_idx.end()));
 }
 
+TEST(Util, TranposedIndexConversion_To_and_From_Same_Axis_at_End) {
+  using namespace cpp_nn::util;
+  std::vector<int> shape = {2, 5, 2, 3, 4, 2};
+
+  int upper_axis = 5;
+  int lower_axis = 5;
+
+  size_t cap = 1;
+  std::vector<int> chunk_size(shape.size(), 1);
+  ComputeCapacityAndChunkSizes(shape, chunk_size, cap);
+
+  int dim1 = shape[lower_axis];
+  int chunk1 = chunk_size[lower_axis];
+  int dim2 = shape[upper_axis];
+  int chunk2 = chunk_size[upper_axis];
+
+  
+  std::vector<int> transposed_shape(shape);
+  std::swap(transposed_shape[upper_axis], transposed_shape[lower_axis]);
+
+  size_t transposed_cap = 1;
+  std::vector<int> transposed_chunk_size(shape.size(), 1);
+  ComputeCapacityAndChunkSizes(transposed_shape, transposed_chunk_size, transposed_cap);
+
+  std::vector<int> transposed_idx(shape.size(), 0);
+  do {
+    std::vector<int> idx(transposed_idx);
+    std::swap(idx[upper_axis], idx[lower_axis]);
+
+    size_t address = IndicesToAddress(shape, chunk_size, idx);
+    size_t tranposed_address = IndicesToAddress(transposed_shape, transposed_chunk_size, transposed_idx);
+    
+    size_t computed_original = TranposedAddressToOriginalAddress(tranposed_address, 
+                                                                 dim1, chunk1,
+                                                                 dim2, chunk2);
+    size_t computed_tranposed = OriginalAddressToTransposedAddress(address, 
+                                                                 dim1, chunk1,
+                                                                 dim2, chunk2);
+
+    EXPECT_EQ(address, computed_original);
+    EXPECT_EQ(tranposed_address, computed_tranposed);
+  } while (IncrementIndicesByShape(transposed_shape.begin(), transposed_shape.end(),
+                                   transposed_idx.begin(), transposed_idx.end()));
+}
+
 // End of Tranpose Address Operations ---------------------------------------------------------

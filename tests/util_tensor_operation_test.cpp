@@ -21,23 +21,30 @@ TEST(UtilTensorOperation, Transpose_Operation) {
   int val = 0;
   for (auto it = a.begin(); it != a.end(); ++it) {
     *it = ++val;
-  }                                     
+  }         
+
   val = 0;
   Tensor<float> b = a.Transpose(0,1);
+  std::cout << "DONE" << std::endl;
+
   for (int j = 0; j < 30; ++j) {
     for (int i = 0; i < 24; ++i) {
       EXPECT_EQ(b.getElement({i, j}), ++val);
     }
   }
+  std::cout << "Passed1" << std::endl;
+
   //checks if element in a hasn't changed
   val = 0;
   for (auto it = a.begin(); it != a.end(); ++it) {
     EXPECT_EQ(*it, ++val);
   }   
   EXPECT_EQ(b.getShape(), std::vector<int>({24,30}));
+  std::cout << "Passed2" << std::endl;
   //1D tensor
   Tensor<float> c({5}, 1.0f); 
   Tensor<float> d = c.Transpose(0, 0);
+  std::cout << "Passed3" << std::endl;
   EXPECT_EQ(d.getShape(), std::vector<int>({5}));
   for (int i = 0; i < 5; ++i) {
     EXPECT_FLOAT_EQ(d.getElement({i}), 1.0f);
@@ -54,7 +61,7 @@ TEST(UtilTensorOperation, Undoing_Transpose) {
   Tensor<float> b = a.Transpose(0,1).Transpose(0,1).Transpose(1,2).Transpose(1,2);
   EXPECT_EQ(a.getShape(), b.getShape());
   auto it1 = a.begin();
-  auto it2 = a.begin();
+  auto it2 = b.begin(); // typo fixed
   auto fin = a.end();
   while (it1 != fin) {
     EXPECT_EQ(*it1, *it2);

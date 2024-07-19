@@ -63,10 +63,14 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 
 // Members ---------------------------------------------
   const HeldOperation& tensor_;
+  // axis_1 is the further in of the two, meaning chunk1 < chunk2
   const int axis_1_;
   const int axis_2_;
 
   std::vector<int> dimension_;    // dimension post-tranposing
+
+  const int chunk_size_1_;
+  const int chunk_size_2_;
 // End of Members --------------------------------------
 
  public:
@@ -75,10 +79,16 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
                      const int axis_1, const int axis_2)
       : tensor_(tensor_like.getRef()), 
         // axis are stored as positive int, though it can be given as negative
-        axis_1_(SumIfNegative(axis_1, tensor_.getOrder())), 
-        axis_2_(SumIfNegative(axis_2, tensor_.getOrder())), 
-        dimension_(tensor_like.getShape()) {
+        axis_1_(SumIfNegative(std::max(axis_1, axis_2), tensor_.getOrder())), 
+        axis_2_(SumIfNegative(std::min(axis_1, axis_2), tensor_.getOrder())), 
+        dimension_(tensor_like.getShape()),
+        chunk_size_1_(std::accumulate(dimension_.begin() + axis_1_ + 1, dimension_.end(), 
+                                      1, std::multiplies<int>())),
+        chunk_size_2_(std::accumulate(dimension_.begin() + axis_2_ + 1, dimension_.end(), 
+                                      1, std::multiplies<int>())) {
     std::swap(dimension_[axis_1_], dimension_[axis_2_]);
+    std::cout << "MADE" << tensor_.getDimension(axis_1_) << tensor_.getDimension(axis_2_) << std::endl;
+    std::cout << "MADEd" << chunk_size_1_ << chunk_size_2_ << std::endl;
   }
 // End of Constructor ----------------------------------
 
@@ -112,55 +122,53 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 // Iterator --------------------------------------------
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::DefaultConstIterator {
+  class ConstIterator : public Parent::ConstIterator {
    private:
-    typedef typename Parent::DefaultConstIterator Parent;
   // Members ---------------------------------------------
     HeldIterator it_;
     size_t curr_address_;
+    size_t inner_address_;
 
-    std::vector<int> old_chunk_sizes_;
-    size_t capacity_;
+    // with chunk1 < chunk2
+    const int dim1_;
+    const int chunk1_;
 
-    const std::vector<int>& held_shape_;
+    const int dim2_;
+    const int chunk2_;
+
+    const size_t capacity_;
   // End of Members --------------------------------------
 
   // Housekeeping ----------------------------------------
   /** Updates current_address to given address */
     void IncrementAddressTo(size_t address_to) {
       size_t diff;
-      if (curr_address_ > address_to) {
-        diff = curr_address_ - address_to;
+      if (inner_address_ > address_to) {
+        diff = inner_address_ - address_to;
         it_ -= diff;;
       } else {
-        diff = address_to - curr_address_;
+        diff = address_to - inner_address_;
         it_ += diff;;
       }
-      curr_address_ = address_to;
+      inner_address_ = address_to;
     }
   // End of Housekeeping ---------------------------------
 
    public:
-    ConstIterator(const Self* transpose_ptr, 
-                  std::vector<int> idx, 
-                  bool is_end,
-                  HeldIterator it,
-                  size_t address)
-        : Parent::DefaultConstIterator(transpose_ptr, 
-                                       idx, 
-                                       is_end),
-          it_(it),
+    ConstIterator(HeldIterator it,
+                  size_t address,
+                  size_t inner_address,
+                  int dim1, int chunk1,
+                  int dim2, int chunk2,
+                  size_t capacity)
+        : it_(it),
           curr_address_(address),
-          old_chunk_sizes_(transpose_ptr->getOrder(), 1),
-          capacity_(1),
-          held_shape_(transpose_ptr->tensor_.getShape()) {
-      // compute chunk sizes from old, then swap
-      ComputeCapacityAndChunkSizes(transpose_ptr->tensor_.getShape(),
-                                   old_chunk_sizes_,
-                                   capacity_);
-      std::swap(old_chunk_sizes_[transpose_ptr->axis_1_], 
-                old_chunk_sizes_[transpose_ptr->axis_2_]);
-
+          inner_address_(inner_address),
+          dim1_(dim1), 
+          chunk1_(chunk1),
+          dim2_(dim2), 
+          chunk2_(chunk2),
+          capacity_(capacity) {
       // TODO: should inner iterator not be set at construction?
     }
 
@@ -169,50 +177,69 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
     }
 
     ConstIterator& operator+=(int increment) override {
-      // Early exits
-      if (increment < 0) {
-        return operator+=(-increment);
-      } else if (increment == 0) {
-        return *this;
-      }
-      // Rely on default incrementation
-      Parent::operator+=(increment);
+      if (increment < 0) return operator-=(-increment);
+      if (increment == 0) return *this;
 
-      // when at end, address cannot be deduced from idx alone
-      size_t address;
-      if (Parent::at_end_) {
-        address = Parent::tensor_like_->getCapacity();
-      } else {
-        address = IndicesToAddress(held_shape_, 
-                                   old_chunk_sizes_,
-                                   Parent::current_indices_);
+      curr_address_ += increment;
+      if (curr_address_ >=  capacity_) {
+        // not expected to yield anything anyway, do nto incement
+        curr_address_ = capacity_;
       }
-      IncrementAddressTo(address);
+
+      std::cout << "Incrementing " << std::endl;
+
+      IncrementAddressTo(TranposedAddressToOriginalAddress(curr_address_,
+                                                           dim1_, chunk1_, 
+                                                           dim2_, chunk2_));
       return *this;
     }
     ConstIterator& operator-=(int decrement) override {
-      // Early exits
-      if (decrement < 0) {
-        return operator+=(-decrement);
-      } else if (decrement == 0) {
-        return *this;
-      }
-      // Rely on default decrementation
-      Parent::operator-=(decrement);
+      if (decrement < 0) return operator+=(-decrement);
+      if (decrement == 0) return *this;
 
-      // as -= always sets to expected idx, can call address immediately 
-      IncrementAddressTo(IndicesToAddress(held_shape_, 
-                                          old_chunk_sizes_,
-                                          Parent::current_indices_));
+      curr_address_ -= decrement;
+      if (curr_address_ < 0) {
+        // not expected to yield anything anyway, do nto incement
+        curr_address_ = 0;
+      }
+
+      // std::cout << dim1_ << " " << chunk1_ << std::endl;
+      // std::cout << dim2_ << " " << chunk2_ << std::endl;
+
+      std::cout << "Dec" << dim1_ << " " << chunk1_ << ", " << dim2_ << " " << chunk2_ << std::endl;
+
+      size_t to_address = TranposedAddressToOriginalAddress(curr_address_,
+                                                            dim1_, chunk1_, 
+                                                            dim2_, chunk2_);
+      // std::cout << "Decrementing to " << to_address << std::endl;
+      std::cout << "Decrementing " << curr_address_ << " to " << to_address  << std::endl;
+
+      IncrementAddressTo(to_address);
       return *this;
     }
+
+    bool operator==(const ConstIterator& other) const override {
+      // with the assumption that we are pointing to the same data,
+      return curr_address_ == other.curr_address_;
+    }
+
   }; // End of ConstIterator
 
   ConstIterator begin() const {
-    return {this, std::vector<int>(getOrder(), 0), false, tensor_.begin(), 0};
+    return {tensor_.begin(), 
+            0, 
+            0, // inner can just be 0
+            tensor_.getDimension(axis_1_), chunk_size_1_,
+            tensor_.getDimension(axis_2_), chunk_size_2_,
+            getCapacity()};
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getOrder(), 0), true, tensor_.end(), getCapacity()};
+    return {tensor_.begin(), 
+            getCapacity(), 
+            0, // inner can just be 0
+            tensor_.getDimension(axis_1_), chunk_size_1_,
+            tensor_.getDimension(axis_2_), chunk_size_2_,
+            getCapacity()};  
   }
 // End of Iterator -------------------------------------
 
