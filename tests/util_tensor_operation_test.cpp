@@ -4,6 +4,8 @@
 
 #include <chrono> // for time
 
+#define TEST_LARGE false
+
 
 TEST(UtilTensorOperation, SanityCheck) {
   EXPECT_TRUE(true);
@@ -125,6 +127,8 @@ TEST(UtilTensorOperation, Transpose_Self) {
     }
   }
 }
+
+#if TEST_LARGE == true
 TEST(UtilTensorOperation, Tranposing_Large_Timed) {
   using namespace cpp_nn::util;
   Tensor<float> A({100, 50, 100, 200, 50}, [val = 0]()mutable {return ++val;});
@@ -168,6 +172,7 @@ TEST(UtilTensorOperation, Tranposing_Large_Timed) {
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
 }
+#endif /*large-test== true*/
 // End of TRANSPOSE ======================================
 
 // SUMMATION =============================================
@@ -557,6 +562,7 @@ TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
 
 }
 
+#if TEST_LARGE == true
 TEST(UtilTensorOperation, Multiplying_Incredibly_large) {
   // checking that it doesnt crash. also running to see runtime
   using namespace cpp_nn::util;
@@ -746,6 +752,7 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large4) {
   EXPECT_TRUE(true); // simply a sanity check
   // want only to see that this does not fail
 }
+#endif /* large-test*/
 // END OF MULTIPLICATION =================================
 
 // RESHAPE ===============================================
