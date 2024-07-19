@@ -381,6 +381,12 @@ size_t TranposedAddressToOriginalAddress(size_t transposed_address,
     Note that we can take advantage of those indices with identical chunk-sizes
       to skip some conversion
    */
+
+  // when both axes are the same, address do not change
+  if (dim1   == dim2 &&
+      chunk1 == chunk2) {
+    return transposed_address;
+  }
   // order matters when tranpose is none
   const int idx1_chunk_size = chunk2  * dim2 / dim1;
 
