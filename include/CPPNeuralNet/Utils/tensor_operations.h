@@ -87,8 +87,6 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
         chunk_size_2_(std::accumulate(dimension_.begin() + axis_2_ + 1, dimension_.end(), 
                                       1, std::multiplies<int>())) {
     std::swap(dimension_[axis_1_], dimension_[axis_2_]);
-    std::cout << "MADE" << tensor_.getDimension(axis_1_) << tensor_.getDimension(axis_2_) << std::endl;
-    std::cout << "MADEd" << chunk_size_1_ << chunk_size_2_ << std::endl;
   }
 // End of Constructor ----------------------------------
 
@@ -184,9 +182,8 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
       if (curr_address_ >=  capacity_) {
         // not expected to yield anything anyway, do nto incement
         curr_address_ = capacity_;
+        return *this;
       }
-
-      std::cout << "Incrementing " << std::endl;
 
       IncrementAddressTo(TranposedAddressToOriginalAddress(curr_address_,
                                                            dim1_, chunk1_, 
@@ -203,18 +200,9 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
         curr_address_ = 0;
       }
 
-      // std::cout << dim1_ << " " << chunk1_ << std::endl;
-      // std::cout << dim2_ << " " << chunk2_ << std::endl;
-
-      std::cout << "Dec" << dim1_ << " " << chunk1_ << ", " << dim2_ << " " << chunk2_ << std::endl;
-
-      size_t to_address = TranposedAddressToOriginalAddress(curr_address_,
-                                                            dim1_, chunk1_, 
-                                                            dim2_, chunk2_);
-      // std::cout << "Decrementing to " << to_address << std::endl;
-      std::cout << "Decrementing " << curr_address_ << " to " << to_address  << std::endl;
-
-      IncrementAddressTo(to_address);
+      IncrementAddressTo(TranposedAddressToOriginalAddress(curr_address_,
+                                                           dim1_, chunk1_, 
+                                                           dim2_, chunk2_));
       return *this;
     }
 

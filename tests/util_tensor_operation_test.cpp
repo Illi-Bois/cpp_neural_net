@@ -4,7 +4,7 @@
 
 #include <chrono> // for time
 
-#define TEST_LARGE false
+#define TEST_LARGE true
 
 
 TEST(UtilTensorOperation, SanityCheck) {
@@ -25,14 +25,11 @@ TEST(UtilTensorOperation, Transpose_Operation) {
 
   val = 0;
   Tensor<float> b = a.Transpose(0,1);
-  std::cout << "DONE" << std::endl;
-
   for (int j = 0; j < 30; ++j) {
     for (int i = 0; i < 24; ++i) {
       EXPECT_EQ(b.getElement({i, j}), ++val);
     }
   }
-  std::cout << "Passed1" << std::endl;
 
   //checks if element in a hasn't changed
   val = 0;
@@ -40,11 +37,11 @@ TEST(UtilTensorOperation, Transpose_Operation) {
     EXPECT_EQ(*it, ++val);
   }   
   EXPECT_EQ(b.getShape(), std::vector<int>({24,30}));
-  std::cout << "Passed2" << std::endl;
+
   //1D tensor
   Tensor<float> c({5}, 1.0f); 
   Tensor<float> d = c.Transpose(0, 0);
-  std::cout << "Passed3" << std::endl;
+
   EXPECT_EQ(d.getShape(), std::vector<int>({5}));
   for (int i = 0; i < 5; ++i) {
     EXPECT_FLOAT_EQ(d.getElement({i}), 1.0f);
@@ -136,48 +133,95 @@ TEST(UtilTensorOperation, Transpose_Self) {
 }
 
 #if TEST_LARGE == true
+TEST(UtilTensorOperation, Tranposing_Large_Time_Dffierence_construct_to_new_vs_move) {
+  using namespace cpp_nn::util;
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> A({100, 50, 100, 200, 50}, [val = 0]()mutable {return ++val;});
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+  std::cout << "making a new tensor" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
+
+
+  begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose();
+  end = std::chrono::steady_clock::now();
+  
+  std::cout << "Construct New" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+
+  begin = std::chrono::steady_clock::now();
+  C = A.Transpose();
+  end = std::chrono::steady_clock::now();
+  
+  std::cout << "move to" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+}
 TEST(UtilTensorOperation, Tranposing_Large_Timed) {
   using namespace cpp_nn::util;
   Tensor<float> A({100, 50, 100, 200, 50}, [val = 0]()mutable {return ++val;});
 
+  {
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A.Transpose();
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
+  
   std::cout << "Single End-Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  }
 
+  {
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose(-3, -1);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  
+  std::cout << "Single End-And-NotEnd-Transpose" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  }
 
-  begin = std::chrono::steady_clock::now();
-  C = A.Transpose(2, 4);
-  end = std::chrono::steady_clock::now();
-
+  {
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose(1, 3);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  
   std::cout << "Single Middle-Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  }
 
-
-  begin = std::chrono::steady_clock::now();
-  C = A.Transpose(2, 4).Transpose().Transpose(1, 2);
-  end = std::chrono::steady_clock::now();
+  {
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose(2, 4).Transpose().Transpose(1, 2);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
   std::cout << "3 Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  }
 
-
-  begin = std::chrono::steady_clock::now();
-  C = A.Transpose(2, 4).Transpose().Transpose(1, 2).Transpose().Transpose(-2, 2).Transpose(1, -1);
-  end = std::chrono::steady_clock::now();
+  {
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose(2, 4).Transpose().Transpose(1, 2).Transpose().Transpose(-2, 2).Transpose(1, -1);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
   std::cout << "6 Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  }
 }
 #endif /*large-test== true*/
 // End of TRANSPOSE ======================================

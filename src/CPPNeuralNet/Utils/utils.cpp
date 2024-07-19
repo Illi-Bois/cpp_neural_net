@@ -381,7 +381,8 @@ size_t TranposedAddressToOriginalAddress(size_t transposed_address,
     Note that we can take advantage of those indices with identical chunk-sizes
       to skip some conversion
    */
-  const int idx1_chunk_size = chunk2 / dim1 * dim2;
+  // order matters when tranpose is none
+  const int idx1_chunk_size = chunk2  * dim2 / dim1;
 
   /** these are full-value, meaning idx * chunk size  */
   const size_t before_fv = transposed_address % chunk1;
@@ -432,7 +433,7 @@ size_t OriginalAddressToTransposedAddress(size_t transposed_address,
   return before_fv + 
          (idx2_fv    / chunk2          * chunk1) +
          (between_fv / dim1            * dim2) +
-         (idx1_fv    / chunk1          * chunk2 / dim1 * dim2) +
+         (idx1_fv    / chunk1          * chunk2 * dim2 / dim1) +
          after_fv;
 }
 // End of Tranpose Address Operations ==========================
