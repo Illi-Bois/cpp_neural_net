@@ -610,7 +610,15 @@ TEST(UtilTensorOperation, Multiplying_broadcast_with_diff_order) {
   // Tensor<float> b({1}, 1.0f);
   // Tensor<float> c = a * b;
   // PrintTensor(c);
-
+  // EXPECT_EQ(c.getShape(), std::vector<int>({2, 3, 4}));
+  
+  // auto it_a = a.begin();
+  // auto it_c = c.begin();
+  // while (it_a != a.end()) {
+  //   EXPECT_FLOAT_EQ(*it_c, *it_a * 2.0f);
+  //   ++it_a;
+  //   ++it_c;
+  // }
 }
 
 #if TEST_LARGE == true
@@ -995,6 +1003,39 @@ TEST(UtilTensorOperation, Padding_non_postive_dim) {
 // MULTIPLE OPERATION CHAINED ============================
 TEST(UtilTensorOperation, Chaining_Different_Operations) {
   // do while and go ham, 
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3, 4}, [val = 0]() mutable { return val++; });
+  Tensor<float> b({3, 4, 2}, [val = 24]() mutable { return val--; });
+  Tensor<float> d({2, 14}, [val = 1]() mutable { return val++; });
+  
+  Tensor<float> c = ((a.Transpose(0, 2)
+                     .Reshape({4, 6})
+                     .Padding({5, 7}, 0)
+                     + b.Reshape({24, 1})
+                      .Transpose()
+                      .Reshape({4, 6})
+                      .Padding({5, 7}, 0))
+                      * d.Reshape({7, 4}))
+                     .Padding({6, 6}, 6)
+                     .Padding({7, 6}, 7);
+
+  // EXPECT_EQ(c.getShape(), std::vector<int>({5, 7}));
+  std::vector<float> expected = {
+    2209,   2398,   2587,   2776,   7,      7,
+    1879,   2038,   2197,   2356,   7,      7,
+    1549,   1678,   1807,   1936,   7,      7,
+    1219,   1318,   1417,   1516,   7,      7,
+    0,      0,      0,      0,      7,      7,
+    7,      7,      7,      7,      7,      7,
+    7,      7,      7,      7,      7,      7,
+  };
+  EXPECT_EQ(c.getShape(), std::vector<int>({7, 6}));
+  auto it = c.begin();
+  for (auto exp : expected) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
+  PrintTensor(c);
 }
 
 
