@@ -884,16 +884,6 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
   }
 // End of Tensor-Behaviours ----------------------------
 
-  // type def instead of making another inner class
-  typedef typename Parent::DefaultConstIterator ConstIteratorTEMP;
-
-  // Padding barrows from transpose iterator idea, where
-  //    we keep running default vector indexer
-  //    WHEN IN INCREMENTATION, it is deemed we are WITHIN PADDING, make a bool for that
-  //    we increment the inner indexer too (using previous address)
-  //  in accessor, if bool for INBOUND is true, return iterator, 
-  //    if not, return padding value
-
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
   class ConstIterator : public Parent::DefaultConstIterator {
@@ -1043,18 +1033,6 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
   }
 }; // End of PaddingOperation
 
-/** 
- *  broadcasts tensor to desired shape. 
- *  Allows for indices to be called to broadcast shape, which 
- *    will repeat index when valid
- * 
- *  TODO: as it is implemented now, broadcasting is prepared and only passed
- *    onto this operation holder.
- *    That is, this class does little of actual broadcasting and just holds 
- *    the membvers.
- *    We may want top change the implementation so that broadcasting is done in here,
- *    or change the name to refelct what this is actually doing. 
- */
 template<typename T, typename HeldOperation>
 class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperation>> {
   typedef BroadcastOperation<T, HeldOperation> Self;
