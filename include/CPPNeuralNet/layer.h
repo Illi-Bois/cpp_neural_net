@@ -2,6 +2,9 @@
 #define CPP_NN_LAYER
 
 #include "CPPNeuralNet/Utils/utils.h"
+#include "CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/tensor_like.h"
+#include "CPPNeuralNet/Utils/tensor_operations.h"
 
 namespace cpp_nn {
 
@@ -12,10 +15,32 @@ namespace cpp_nn {
  * 
  * Ideally, layers will also maintain last run deriviates for faster training.
 */
+
+/***
+ * Layer will be an abstract base class with pure virtual functions 
+ * 
+ */
 class Layer {
  private:
 
  public:
+  // Virtual destructor of the Layer class.
+  virtual ~Layer() = default;
+
+  // Forward pass
+  virtual util::Tensor<double> forward(const util::Tensor<double>& input) = 0;
+
+  // Backward pass
+  virtual util::Tensor<double> backward(const util::Tensor<double>& gradient) = 0;
+
+  // Update parameters
+  virtual void update_parameters(double learning_rate) = 0;
+
+  // Save gradients for optimization algorithms
+  virtual void save_gradients() = 0;
+
+  // Clear gradients after parameter update
+  virtual void clear_gradients() = 0;
 
 /** WAIT TILL TENSOR IS COMPLETE ---------------------------------------------------
   // Compute forward pass of input through the layer.
@@ -46,6 +71,23 @@ class Layer {
    * 
    * Therefore, it may be good implementation to store dy/dx at each layer.
    */
+};
+
+class LinearLayer : public Layer {
+public:
+  LinearLayer(int input_size, int output_size);
+  util::Tensor<double> forward(const util::Tensor<double>& input) override;
+  util::Tensor<double> backward(const util::Tensor<double>& gradient) override;
+  void update_parameters(double learning_rate) override;
+  void save_gradients() override;
+  void clear_gradients() override;
+private:
+  util::Tensor<double> weights;
+  util::Tensor<double> biases;
+  util::Tensor<double> input;
+  util::Tensor<double> output;
+  util::Tensor<double> weight_gradients;
+  util::Tensor<double> bias_gradients;
 };
 
 } // cpp_nn
