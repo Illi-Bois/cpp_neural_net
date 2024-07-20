@@ -28,13 +28,13 @@ class Layer {
   virtual ~Layer() = default;
 
   // Forward pass
-  virtual util::Tensor<double> forward(const util::Tensor<double>& input) = 0;
+  virtual util::Tensor<float> forward(const util::Tensor<float>& input) = 0;
 
   // Backward pass
-  virtual util::Tensor<double> backward(const util::Tensor<double>& gradient) = 0;
+  virtual util::Tensor<float> backward(const util::Tensor<float>& gradient) = 0;
 
   // Update parameters
-  virtual void update_parameters(double learning_rate) = 0;
+  virtual void update_parameters(float learning_rate) = 0;
 
   // Save gradients for optimization algorithms
   virtual void save_gradients() = 0;
@@ -76,18 +76,18 @@ class Layer {
 class LinearLayer : public Layer {
 public:
   LinearLayer(int input_size, int output_size);
-  util::Tensor<double> forward(const util::Tensor<double>& input) override;
-  util::Tensor<double> backward(const util::Tensor<double>& gradient) override;
-  void update_parameters(double learning_rate) override;
+  util::Tensor<float> forward(const util::Tensor<float>& input) override;
+  util::Tensor<float> backward(const util::Tensor<float>& gradient) override;
+  void update_parameters(float learning_rate) override;
   void save_gradients() override;
   void clear_gradients() override;
 private:
-  util::Tensor<double> weights;
-  util::Tensor<double> biases;
-  util::Tensor<double> input;
-  util::Tensor<double> output;
-  util::Tensor<double> weight_gradients;
-  util::Tensor<double> bias_gradients;
+  util::Tensor<float> weights;
+  util::Tensor<float> biases;
+  util::Tensor<float> input;
+  util::Tensor<float> output;
+  util::Tensor<float> weight_gradients;
+  util::Tensor<float> bias_gradients;
 };
 
 } // cpp_nn

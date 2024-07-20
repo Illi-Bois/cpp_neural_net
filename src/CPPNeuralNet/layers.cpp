@@ -3,28 +3,33 @@
 
 namespace cpp_nn {
 
-LinearLayer::LinearLayer(int input_size, int output_size) {
-    weights = util::Tensor<double>({input_size, output_size}).Reshape({input_size * output_size});
-    biases = util::Tensor<double>({output_size});
-    
-    for (auto& w : weights) w = (std::rand() / (RAND_MAX + 1.0)) - 0.5;
-    for (auto& b : biases) b = (std::rand() / (RAND_MAX + 1.0)) - 0.5;
+LinearLayer::LinearLayer(int input_size, int output_size)
+    : weights(util::Tensor<float>({input_size, output_size})),
+      biases(util::Tensor<float>({output_size})),
+      input(util::Tensor<float>({1})),  // Initialize input & output with a dummy shape
+      output(util::Tensor<float>({1})), 
+      weight_gradients(util::Tensor<float>({input_size, output_size})),
+      bias_gradients(util::Tensor<float>({output_size}))
+{
+    // Initialize weights and biases
+    for (auto& w : weights) w = (std::rand() / (RAND_MAX + 1.0f)) - 0.5f;
+    for (auto& b : biases) b = (std::rand() / (RAND_MAX + 1.0f)) - 0.5f;
 }
 
-util::Tensor<double> LinearLayer::forward(const util::Tensor<double>& input) {
+util::Tensor<float> LinearLayer::forward(const util::Tensor<float>& input) {
     this->input = input;
     // write some test cases on if -1 works?? I dont remember too well if it does 
     output = (input * weights.Reshape({input.getDimension(-1), biases.getDimension(0)})) + biases;
     return output;
 }
 
-util::Tensor<double> LinearLayer::backward(const util::Tensor<double>& gradient) {
+util::Tensor<float> LinearLayer::backward(const util::Tensor<float>& gradient) {
     weight_gradients = input.Transpose() * gradient;
     bias_gradients = gradient.Reshape({biases.getShape()});
     return gradient * weights.Transpose();
 }
 
-void LinearLayer::update_parameters(double learning_rate) {
+void LinearLayer::update_parameters(float learning_rate) {
     // weights = weights - (weight_gradients * learning_rate);
     // weights = weights - weight_gradients (Tensor) * lr number
     // biases = biases - (bias_gradients * learning_rate);
@@ -36,9 +41,19 @@ void LinearLayer::save_gradients() {
 }
 
 void LinearLayer::clear_gradients() {
-    weight_gradients = util::Tensor<double>(weight_gradients.getShape());
-    bias_gradients = util::Tensor<double>(bias_gradients.getShape());
+    weight_gradients = util::Tensor<float>(weight_gradients.getShape());
+    bias_gradients = util::Tensor<float>(bias_gradients.getShape());
 }
+
+
+/*
+TODO:
+
+write test cases in tensor getDimension(-1)
+& test case for tensor test
+How would we multiply a tensor * 
+
+*/
 
 
 
