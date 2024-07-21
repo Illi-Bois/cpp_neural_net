@@ -316,6 +316,20 @@ MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const Tenso
   return{A, B};
 }
 
+template<typename T, typename HeldOperation>
+ScalerMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
+                                                          const T scaler) {
+  return{A, scaler};
+}
+
+template<typename T, typename HeldOperation>
+ScalerMultiplicationOperation<T, HeldOperation> operator*(const T scaler, 
+                                                          const TensorLike<T, HeldOperation>& A) {
+  return{A, scaler};
+}
+
+
+
 // Special Tensor Operations ---------------------------
 /* Some Tensor operations which may be useful to have shorthand calls for. */
 /**

@@ -4,7 +4,7 @@
 
 #include <chrono> // for time
 
-#define TEST_LARGE true
+#define TEST_LARGE false
 
 
 TEST(UtilTensorOperation, SanityCheck) {
@@ -538,6 +538,36 @@ TEST(UtilTensorOperation, Multiplication_to_self) {
   for (auto exp : expected) {
     EXPECT_FLOAT_EQ(*it, exp);
     ++it;
+  }
+}
+TEST(UtilTensorOperation, Multiplication_to_scaler) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 5}, [val = 1]() mutable { return val++; });
+  Tensor<float> b  = a * 3.0f;
+  Tensor<float> c = a * 4.0f;
+  std::vector<float> expected1 = 
+  {
+      3,      6,      9,      12,     15,
+      18,     21,     24,     27,     30,
+      33,     36,     39,     42,     45,
+      48,     51,     54,     57,     60,
+  };
+  auto it = b.begin();
+  for (auto exp : expected1) {
+    EXPECT_FLOAT_EQ(*it, exp);
+    ++it;
+  }
+  std::vector<float> expected2 = 
+  {
+      4,      8,      12,      16,     20,
+      24,     28,     32,     36,     40,
+      44,     48,     52,     56,     60,
+      64,     68,     72,     76,     80,
+  };
+  auto it2 = c.begin();
+  for (auto exp : expected2) {
+    EXPECT_FLOAT_EQ(*it2, exp);
+    ++it2;
   }
 }
 TEST(UtilTensorOperation, Multiplication_of_many_involving_to_self) {

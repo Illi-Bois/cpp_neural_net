@@ -26,6 +26,8 @@ template<typename T, typename HeldOperation>
 class PaddingOperation;
 template<typename T, typename HeldOperation>
 class BroadcastOperation;
+template<typename T, typename HeldOperation>
+class ScalerMultiplicationOperation;
 
 // Not an Operation
 template<typename T, typename HeldOperation1, typename HeldOperation2>
@@ -1224,6 +1226,42 @@ class BroadcastedPairHolder {
   }
   inline size_t getCapacity() const noexcept {
     return broadcasted_capacity_;
+  }
+};
+
+template<typename T, typename HeldOperation>
+class ScalerMultiplicationOperation : public TensorLike<T, ScalerMultiplicationOperation<T, HeldOperation>> {
+  typedef ScalerMultiplicationOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+  const HeldOperation& tensor_like_;
+  const T scaler_;
+public:
+  ScalerMultiplicationOperation(const TensorLike<T, HeldOperation>& A,
+                                T scaler)
+    : tensor_like_(A.getRef()),
+      scaler_(scaler) {};
+  inline const std::vector<int>& getShape() const noexcept {
+    return tensor_like_.getShape();
+  } 
+  inline int getDimension(int axis) const {
+    return tensor_like_.getDimension(axis);
+  }
+  inline size_t getCapacity() const noexcept {
+    return tensor_like_.getCapacity();
+  }
+  inline int getOrder() const noexcept {
+    return getShape().size();
+  }
+  inline const T getElement(const std::vector<int>& indicies) const {
+    return tensor_like_.getElement(indicies) * scaler_;
+  }
+
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+  ConstIterator begin() const {
+    return {this, std::vector<int>(getShape().size(), 0), false}; 
+  }
+  ConstIterator end() const {
+    return {this, std::vector<int>(getShape().size(), 0), true};
   }
 };
 
