@@ -163,7 +163,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
 // End of Modifiers ------------------------------------
 
 // Iterator --------------------------------------------
-  class Iterator : public Parent::Iterator {
+  class Iterator : public Parent::template Iterator<Iterator> {
    private:
     Tensor<T>* const tensor_;
     size_t curr_address_;
@@ -172,18 +172,18 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
     Iterator(Tensor<T>* const tensor, size_t address)
         : tensor_(tensor), curr_address_(address) {}
     
-    T& operator*() override {
+    T& operator*() {
       return (*tensor_->elements_)[curr_address_];
     }
 
-    Iterator& operator+=(int increment) override {
+    Iterator& operator+=(int increment) {
       curr_address_ += increment;
       if (curr_address_ >= tensor_->getCapacity()) {
         curr_address_ = tensor_->getCapacity();
       }
       return *this;
     }
-    Iterator& operator-=(int decrement) override {
+    Iterator& operator-=(int decrement) {
       if (decrement >= curr_address_) {
         curr_address_ = 0;
       } else {
@@ -191,12 +191,12 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
       }
       return *this;
     }
-    bool operator==(const Iterator& other) const override {
+    bool operator==(const Iterator& other) const {
       return tensor_       == other.tensor_ && 
              curr_address_ == other.curr_address_;
     }
   };
-  class ConstIterator : public Parent::ConstIterator {
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
    private:
     const Tensor<T>* const tensor_;
     size_t curr_address_;
@@ -205,18 +205,18 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
     ConstIterator(const Tensor<T>* const tensor, size_t address)
         : tensor_(tensor), curr_address_(address) {}
     
-    T operator*() const override {
+    T operator*() const {
       return (*tensor_->elements_)[curr_address_];
     }
 
-    ConstIterator& operator+=(int increment) override {
+    ConstIterator& operator+=(int increment) {
       curr_address_ += increment;
       if (curr_address_ >= tensor_->getCapacity()) {
         curr_address_ = tensor_->getCapacity();
       }
       return *this;
     }
-    ConstIterator& operator-=(int decrement) override {
+    ConstIterator& operator-=(int decrement) {
       if (decrement >= curr_address_) {
         curr_address_ = 0;
       } else {
@@ -224,7 +224,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
       }
       return *this;
     }
-    bool operator==(const ConstIterator& other) const override {
+    bool operator==(const ConstIterator& other) const {
       return tensor_       == other.tensor_ && 
              curr_address_ == other.curr_address_;
     }

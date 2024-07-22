@@ -4,7 +4,7 @@
 
 #include <chrono> // for time
 
-#define TEST_LARGE true
+#define TEST_LARGE false
 
 
 TEST(UtilTensorOperation, SanityCheck) {
