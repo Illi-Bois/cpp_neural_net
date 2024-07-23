@@ -173,7 +173,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
         : tensor_(tensor), curr_address_(address) {}
     
     T& operator*() {
-      return (*tensor_->elements_)[curr_address_];
+      return (tensor_->elements_)[curr_address_];
     }
 
     Iterator& operator+=(int increment) {
@@ -206,7 +206,7 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
         : tensor_(tensor), curr_address_(address) {}
     
     T operator*() const {
-      return (*tensor_->elements_)[curr_address_];
+      return (tensor_->elements_)[curr_address_];
     }
 
     ConstIterator& operator+=(int increment) {
@@ -260,7 +260,8 @@ inline static Tensor<T> AsTensor(const std::vector<T>& elements);
   std::vector<int> dimensions_;
   std::vector<int> chunk_size_;   // capacity of chunk associated with each index
   size_t capacity_;
-  std::vector<T>* elements_;      // containter of elements of tensor.
+  // std::vector<T>* elements_;      // containter of elements of tensor.
+  T* elements_;
 // End of Member fields --------------------------------
 
 // Private Constructor ---------------------------------
@@ -274,7 +275,7 @@ inline static Tensor<T> AsTensor(const std::vector<T>& elements);
   Tensor<T>(const std::vector<int>& dimensions,
             const std::vector<int>& chunk_size,
             size_t capacity,
-            std::vector<T>* elements) noexcept 
+            T* elements) noexcept 
       : dimensions_(dimensions),
         chunk_size_(chunk_size),
         capacity_(capacity),
@@ -419,14 +420,15 @@ Tensor<T>::Tensor(const std::vector<int>& dimensions,
   cpp_nn::util::ComputeCapacityAndChunkSizes(dimensions_, 
                                              chunk_size_, 
                                              capacity_);
-  elements_ = new std::vector<T>(capacity_, init_val);
+  elements_ = new T[capacity_];
+  std::fill(elements_, elements_ + capacity_, init_val);
 }
 /** Generator Constructor */
 template<typename T>
 Tensor<T>::Tensor(const std::vector<int>& dimensions, std::function<T()> generator)
     : Tensor(dimensions) {
   // Let init-value construct the infastructure, then simply fill with generator
-  std::generate(elements_->begin(), elements_->end(), generator);
+  std::generate(elements_, elements_ + capacity_, generator);
 }
 /** Copy Constructor */
 template<typename T>
@@ -434,7 +436,9 @@ Tensor<T>::Tensor(const Tensor& other) noexcept
     : dimensions_(other.dimensions_),
       chunk_size_(other.chunk_size_),
       capacity_(  other.capacity_),
-      elements_(  new std::vector<T>(*other.elements_)) {}
+      elements_(  new T[capacity_]) {
+  std::copy(other.elements_, other.elements_ + capacity_, elements_);
+}
 /** Move Constructor */
 template<typename T>
 Tensor<T>::Tensor(Tensor&& other) noexcept
@@ -517,7 +521,7 @@ Tensor<T>::Tensor(const TensorLike<T,
 // Destructor -------------------------------------------
 template<typename T>
 Tensor<T>::~Tensor() noexcept {
-  delete this->elements_;
+  delete [] this->elements_;
 }
 // End of Destructor ------------------------------------
 
@@ -563,19 +567,21 @@ inline T& Tensor<T>::getElement(const std::vector<int>& indicies) noexcept {
 }
 template<typename T>
 inline const T& Tensor<T>::getElement(const std::vector<int>& indicies) const noexcept {
-  return (*elements_)[IndicesToAddress(getShape(),
-                                       chunk_size_,
-                                       indicies)];
+  return elements_[IndicesToAddress(getShape(),
+                                    chunk_size_,
+                                    indicies)];
 }
 // End of Accessors -------------------------------------
 
 // Static Constructors ---------------------------------
 template<typename T>
 inline Tensor<T> Tensor<T>::AsTensor(const std::vector<T>& elements) {
+  T* copied_elements = new T[elements.size()];
+  std::copy(elements.begin(), elements.end(), copied_elements);
   return Tensor<T>(/*dim  =*/{static_cast<int>(elements.size())},
                    /*chunk=*/{1},
                    /*cap  =*/elements.size(),
-                   /*elem =*/new std::vector<T>(elements));
+                   /*elem =*/copied_elements);
 }
 // End of Static Constructors --------------------------
 
