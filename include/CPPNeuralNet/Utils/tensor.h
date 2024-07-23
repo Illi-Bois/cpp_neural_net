@@ -317,15 +317,15 @@ MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const Tenso
 }
 
 template<typename T, typename HeldOperation>
-ScalerMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
-                                                          const T scaler) {
-  return{A, scaler};
+ScalarMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
+                                                          const T scalar) {
+  return {A, scalar};
 }
 
 template<typename T, typename HeldOperation>
-ScalerMultiplicationOperation<T, HeldOperation> operator*(const T scaler, 
+ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar, 
                                                           const TensorLike<T, HeldOperation>& A) {
-  return{A, scaler};
+  return {A, scalar};
 }
 
 

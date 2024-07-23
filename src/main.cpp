@@ -77,5 +77,15 @@ int main() {
 
     B.otherCall();
     Bc.otherCall();
+  } {
+    Tensor<float> A = AsTensor<float>({4, 5, 5,
+                                       2, 3, 2,
+                                       4, 4, 4}).Reshape({3, 3});
+    Tensor<float> B = A * 0.5f;
+    Tensor<float> C = 0.5f * A;
+
+    PrintTensor(A);
+    PrintTensor(B);
+    PrintTensor(C);
   }
 }

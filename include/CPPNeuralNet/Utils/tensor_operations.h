@@ -27,7 +27,7 @@ class PaddingOperation;
 template<typename T, typename HeldOperation>
 class BroadcastOperation;
 template<typename T, typename HeldOperation>
-class ScalerMultiplicationOperation;
+class ScalarMultiplicationOperation;
 
 // Not an Operation
 template<typename T, typename HeldOperation1, typename HeldOperation2>
@@ -1242,16 +1242,18 @@ class BroadcastedPairHolder {
 };
 
 template<typename T, typename HeldOperation>
-class ScalerMultiplicationOperation : public TensorLike<T, ScalerMultiplicationOperation<T, HeldOperation>> {
-  typedef ScalerMultiplicationOperation<T, HeldOperation> Self;
+class ScalarMultiplicationOperation : public TensorLike<T, ScalarMultiplicationOperation<T, HeldOperation>> {
+  typedef ScalarMultiplicationOperation<T, HeldOperation> Self;
   typedef TensorLike<T, Self> Parent;
+
   const HeldOperation& tensor_like_;
-  const T scaler_;
+  const T scalar_;
+
 public:
-  ScalerMultiplicationOperation(const TensorLike<T, HeldOperation>& A,
-                                T scaler)
+  ScalarMultiplicationOperation(const TensorLike<T, HeldOperation>& A,
+                                T scalar)
     : tensor_like_(A.getRef()),
-      scaler_(scaler) {};
+      scalar_(scalar) {};
   inline const std::vector<int>& getShape() const noexcept {
     return tensor_like_.getShape();
   } 
@@ -1265,15 +1267,42 @@ public:
     return getShape().size();
   }
   inline const T getElement(const std::vector<int>& indicies) const {
-    return tensor_like_.getElement(indicies) * scaler_;
+    return tensor_like_.getElement(indicies) * scalar_;
   }
 
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  typedef typename HeldOperation::ConstIterator HeldIterator;
+
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
+  // Members ---------------------------------------------
+    HeldIterator it_;
+    T scalar_;
+  // End of Members --------------------------------------
+   public:
+   ConstIterator(HeldIterator it, T scalar) noexcept
+      : it_(it), scalar_(scalar) {}
+    
+    T operator*() const {
+      return *it_ * scalar_;
+    }
+
+    ConstIterator& operator+=(int increment) {
+      it_ += increment;
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) {
+      it_ -= decrement;
+      return *this;
+    }
+    bool operator==(const ConstIterator& other) const {
+      return it_ == other.other;
+    }
+  }; // End of ConstIterator
+
   ConstIterator begin() const {
-    return {this, std::vector<int>(getShape().size(), 0), false}; 
+    return {tensor_like_.begin(), scalar_}; 
   }
   ConstIterator end() const {
-    return {this, std::vector<int>(getShape().size(), 0), true};
+    return {tensor_like_.end(), scalar_}; 
   }
 };
 
