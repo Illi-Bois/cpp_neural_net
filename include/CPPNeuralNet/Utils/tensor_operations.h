@@ -333,9 +333,11 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
 // Iterator --------------------------------------------
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::DefaultConstIterator {
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator>,
+                        private Parent::DefaultConstIterator {
    private:
-    typedef typename Parent::DefaultConstIterator Parent;
+    typedef typename Parent::DefaultConstIterator DefaultConstIterator;
+    typedef typename Parent::template ConstIterator<ConstIterator> Parent; // order matter
   // Members ---------------------------------------------
     HeldIterator it_;
     size_t curr_address_;
@@ -367,9 +369,9 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
                   bool is_end,
                   HeldIterator it,
                   size_t address)
-        : Parent::DefaultConstIterator(transpose_ptr, 
-                                       idx, 
-                                       is_end),
+        : DefaultConstIterator::DefaultConstIterator(transpose_ptr, 
+                                                     idx, 
+                                                     is_end),
           it_(it),
           curr_address_(address),
           old_chunk_sizes_(transpose_ptr->getOrder(), 1),
@@ -399,16 +401,16 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
         return *this;
       }
       // Rely on default incrementation
-      Parent::operator+=(increment);
+      DefaultConstIterator::operator+=(increment);
 
       // when at end, address cannot be deduced from idx alone
       size_t address;
-      if (Parent::at_end_) {
-        address = Parent::tensor_like_->getCapacity();
+      if (DefaultConstIterator::at_end_) {
+        address = DefaultConstIterator::tensor_like_->getCapacity();
       } else {
         address = IndicesToAddress(held_shape_, 
                                    old_chunk_sizes_,
-                                   Parent::current_indices_);
+                                   DefaultConstIterator::current_indices_);
       }
       IncrementAddressTo(address);
       return *this;
@@ -421,14 +423,18 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
         return *this;
       }
       // Rely on default decrementation
-      Parent::operator-=(decrement);
+      DefaultConstIterator::operator-=(decrement);
 
       // as -= always sets to expected idx, can call address immediately 
       IncrementAddressTo(IndicesToAddress(held_shape_, 
                                           old_chunk_sizes_,
-                                          Parent::current_indices_));
+                                          DefaultConstIterator::current_indices_));
       return *this;
     }
+
+    using Parent::operator++;
+    using Parent::operator--;
+    using Parent::operator!=;
   }; // End of ConstIterator
 
   ConstIterator begin() const {
@@ -886,9 +892,11 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::DefaultConstIterator {
-    typedef typename Parent::DefaultConstIterator Parent;
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator>,
+                        private Parent::DefaultConstIterator {
    private:
+    typedef typename Parent::DefaultConstIterator DefaultConstIterator;
+    typedef typename Parent::template ConstIterator<ConstIterator> Parent; // order matter
   // Members ---------------------------------------------
     HeldIterator it_;
     size_t inner_address_; // address of inner
@@ -909,7 +917,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       // if not in bound for any of thre padded axes, then not in bound
       std::vector<int>::const_iterator dim_it = original_axes_dimensions_.begin();
       for (int axis : padded_axes_) {
-        if (Parent::current_indices_[axis] >= *dim_it) {
+        if (DefaultConstIterator::current_indices_[axis] >= *dim_it) {
           in_bounds_ = false;
           return;
         }
@@ -936,7 +944,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       SetIsInBound();
 
       // If out of bounds, ignore update
-      if (Parent::at_end_) {
+      if (DefaultConstIterator::at_end_) {
         return;
       }
 
@@ -944,7 +952,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         // need to update the position
         size_t address_to = IndicesToAddress(inner_shape_,
                                              inner_chunk_sizes_,
-                                             Parent::current_indices_);
+                                             DefaultConstIterator::current_indices_);
         IncrementAddressTo(address_to);
       }
     }
@@ -955,9 +963,9 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
                   bool is_end,
                   HeldIterator it,
                   size_t inner_address) 
-        : Parent::DefaultConstIterator(transpose_ptr, 
-                                       idx, 
-                                       is_end),
+        : DefaultConstIterator::DefaultConstIterator(transpose_ptr, 
+                                                     idx, 
+                                                     is_end),
           it_(it),
           inner_address_(inner_address),
           padded_value_(transpose_ptr->padded_value_),
@@ -1005,7 +1013,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         return *this;
       }
       // Rely on default incrementation
-      Parent::operator+=(increment);
+      DefaultConstIterator::operator+=(increment);
 
       SetInner();
       return *this;
@@ -1018,11 +1026,15 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         return *this;
       }
       // Rely on default decrementation
-      Parent::operator-=(decrement);
+      DefaultConstIterator::operator-=(decrement);
 
       SetInner();
       return *this;
     }
+
+    using Parent::operator++;
+    using Parent::operator--;
+    using Parent::operator!=;
   };
 
   ConstIterator begin() const {

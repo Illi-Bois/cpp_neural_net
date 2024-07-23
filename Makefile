@@ -1,7 +1,8 @@
 CXX := clang++
 # CXX := g++
 
-ASSMBLE_FLAG = -c -std=c++17 -Wall -O0 -g 
+RUDIMENTARY_OPT_FLAGS = -funsafe-math-optimizations
+ASSMBLE_FLAG = -c -std=c++17 -Wall -O0 $(RUDIMENTARY_OPT_FLAGS) -g 
 LINKER_FLAG 	=
 
 INCLUDE_FLAG = -I$(INCLUDE_DIR)
@@ -130,7 +131,7 @@ $(TEMP_DIR) $(TEST_TEMP_DIR) $(GTEST_TEMP_DIR): $(BUILD_DIR)
 
 # Cleans everything built
 #  Except for GTEST DIR
-.PHONY: clean_all
+.PHONY: clean
 clean: clean_run clean_test
 	@echo Cleaned All
 
@@ -143,3 +144,7 @@ clean_run:
 	@echo Cleaning src....
 	rm -rf $(MAIN_EXEC) $(TEMP_DIR)
 
+.PHONY: clean_gtest
+clean_gtest: 
+	@echo Cleaning gtest....
+	rm -rf $(GTEST_TEMP_DIR)
