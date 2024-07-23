@@ -326,9 +326,7 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
               effective_axis_2);
     std::swap(tranpose_map_[effective_axis_1], 
               tranpose_map_[effective_axis_2]);
-    
-    std::cout << "init" << std::endl;
-    return *this;
+        return *this;
   }
 // End of Tensor-Behaviours ----------------------------
 

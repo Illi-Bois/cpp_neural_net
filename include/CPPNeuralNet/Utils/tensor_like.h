@@ -204,7 +204,7 @@ class TensorLike {
       return tensor_like_->getElement(current_indices_);
     }
 
-    DefaultConstIterator& operator+=(int increment) {
+    virtual DefaultConstIterator& operator+=(int increment) {
       if (at_end_) {
         // cannot increment from end, quick exit
         return static_cast<DefaultConstIterator&>(*this);
@@ -221,7 +221,7 @@ class TensorLike {
       }
       return static_cast<DefaultConstIterator&>(*this);
     }
-    DefaultConstIterator& operator-=(int decrement) {
+    virtual DefaultConstIterator& operator-=(int decrement) {
       // Some initial checks so that end can be handled little more smoothly
       if (decrement < 0) {
         return operator+=(-decrement);
@@ -262,7 +262,7 @@ class TensorLike {
       return static_cast<DefaultConstIterator&>(*this);
     }
 
-    bool operator==(const DefaultConstIterator& other) const {
+    virtual bool operator==(const DefaultConstIterator& other) const {
       return tensor_like_ == other.tensor_like_ && 
               current_indices_ == other.current_indices_;
     }
