@@ -168,56 +168,67 @@ TEST(UtilTensorOperation, Tranposing_Large_Timed) {
   using namespace cpp_nn::util;
   Tensor<float> A({100, 50, 100, 200, 50}, [val = 0]()mutable {return ++val;});
 
+  std::cout << "Single End-Transpose" << std::endl;
   {
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A.Transpose();
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   
-  std::cout << "Single End-Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
   }
 
+  std::cout << "Single End-And-NotEnd-Transpose" << std::endl;
   {
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A.Transpose(-3, -1);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   
-  std::cout << "Single End-And-NotEnd-Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
   }
 
+  std::cout << "Single Middle-Transpose" << std::endl;
   {
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A.Transpose(1, 3);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   
-  std::cout << "Single Middle-Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
   }
 
+  std::cout << "Single Front-Transpose" << std::endl;
+  {
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  Tensor<float> C = A.Transpose(0, 1);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  }
+
+  std::cout << "3 Transpose" << std::endl;
   {
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A.Transpose(2, 4).Transpose().Transpose(1, 2);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-  std::cout << "3 Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
   }
 
+  std::cout << "6 Transpose" << std::endl;
   {
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   Tensor<float> C = A.Transpose(2, 4).Transpose().Transpose(1, 2).Transpose().Transpose(-2, 2).Transpose(1, -1);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-  std::cout << "6 Transpose" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;

@@ -84,14 +84,31 @@ class TensorLike {
 // Iterators -------------------------------------------
 /*  Each TensorLike is to implement their version of Iterator. 
     The typename must be present as ConstIterator. */
+  template<typename Derived_Iterator>
   class Iterator {
    public:
-    typedef typename Derived::Iterator Derived_Iterator;
+    inline Derived_Iterator& getRef() noexcept {
+      return static_cast<Derived_Iterator&>(*this);
+    }
+    inline const Derived_Iterator& getRef() const noexcept {
+      return static_cast<const Derived_Iterator&>(*this);
+    }
+    // typedef typename Derived::Iterator Derived_Iterator;
 
-    virtual T& operator*() = 0;
+    T& operator*() {
+      return getRef().operator*();
+    }
 
-    virtual Derived_Iterator& operator+=(int increment) = 0;
-    virtual Derived_Iterator& operator-=(int decrement) = 0;
+    Derived_Iterator& operator+=(int increment) {
+      return getRef().operator+=(increment);
+    }
+    Derived_Iterator& operator-=(int decrement) {
+      return getRef().operator-=(decrement);
+    }
+
+    bool operator==(const Derived_Iterator& other) const {
+      return getRef().operator==(other);
+    }
 
     Derived_Iterator& operator++() {
       return (*this) += 1;
@@ -99,20 +116,36 @@ class TensorLike {
     Derived_Iterator& operator--() {
       return (*this) -= 1;
     }
-
-    virtual bool operator==(const Derived_Iterator& other) const = 0;
     bool operator!=(const Derived_Iterator& other) const {
       return !(*this == other);
     }
   }; // End of Iterator
+  template<typename Derived_Iterator>
   class ConstIterator {
    public:
-    typedef typename Derived::ConstIterator Derived_Iterator;
-    // as operation return non-reference, accessor for iterator also returns by value
-    virtual T operator*() const = 0;
+    inline Derived_Iterator& getRef() noexcept {
+      return static_cast<Derived_Iterator&>(*this);
+    }
+    inline const Derived_Iterator& getRef() const noexcept {
+      return static_cast<const Derived_Iterator&>(*this);
+    }
 
-    virtual Derived_Iterator& operator+=(int increment) = 0;
-    virtual Derived_Iterator& operator-=(int decrement) = 0;
+    // typedef typename Derived::ConstIterator Derived_Iterator;
+    // as operation return non-reference, accessor for iterator also returns by value
+    T operator*() const {
+      return getRef().operator*();
+    }
+
+    Derived_Iterator& operator+=(int increment) {
+      return getRef().operator+=(increment);
+    }
+    Derived_Iterator& operator-=(int decrement) {
+      return getRef().operator-=(decrement);
+    }
+
+    bool operator==(const Derived_Iterator& other) const {
+      return getRef().operator==(other);
+    }
 
     Derived_Iterator& operator++() {
       return (*this) += 1;
@@ -121,17 +154,20 @@ class TensorLike {
       return (*this) -= 1;
     }
 
-    virtual bool operator==(const Derived_Iterator& other) const = 0;
     bool operator!=(const Derived_Iterator& other) const {
       return !(*this == other);
     }
+
+    // typedef Derived_Iterator Derived_Iterator;
   }; // end of ConstIterator
 // Iterator Callers --------------------------------
   // TensorLike objects only need implement ConstIter
-  ConstIterator begin() const {
+  template<typename Derived_ConstIterator>
+  inline ConstIterator<Derived_ConstIterator> begin() const {
     return getRef().begin();
   }
-  ConstIterator end() const {
+  template<typename Derived_ConstIterator>
+  inline ConstIterator<Derived_ConstIterator> end() const {
     return getRef().end();
   }
 // End of Iterator Callers -------------------------
@@ -146,8 +182,8 @@ class TensorLike {
     The TensorLike using DefaultConstIterator is to include the line
       typedef TensorLike<T, DERVIED>::DefaultConstIterator ConstIterator 
     with DERIVED changed to its class name, so that typename becomes visible and accessable. */
-  class DefaultConstIterator : public ConstIterator {
-    typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
+  class DefaultConstIterator : public ConstIterator<DefaultConstIterator> {
+    // typedef typename ConstIterator::Derived_Iterator Derived_Iterator;
   // Members ---------------------------------------------
   protected: // some special cases might want to acccess, it, clean up later
     const Derived* const tensor_like_;
@@ -165,35 +201,35 @@ class TensorLike {
           current_indices_(idx),
           at_end_(is_end) {}
 
-    T operator*() const override {
+    T operator*() const {
       return tensor_like_->getElement(current_indices_);
     }
 
-    Derived_Iterator& operator+=(int increment) override {
+    DefaultConstIterator& operator+=(int increment) {
       if (at_end_) {
         // cannot increment from end, quick exit
-        return static_cast<Derived_Iterator&>(*this);
+        return static_cast<DefaultConstIterator&>(*this);
       }
       if (IncrementIndicesByShape(tensor_like_->getShape().begin(), 
                                   tensor_like_->getShape().end(),
                                   current_indices_.begin(), 
                                   current_indices_.end(),
                                   increment)) {
-        return static_cast<Derived_Iterator&>(*this);
+        return static_cast<DefaultConstIterator&>(*this);
       } else {
         // overflowed
         at_end_ = true;
       }
-      return static_cast<Derived_Iterator&>(*this);
+      return static_cast<DefaultConstIterator&>(*this);
     }
-    Derived_Iterator& operator-=(int decrement) override {
+    DefaultConstIterator& operator-=(int decrement) {
       // Some initial checks so that end can be handled little more smoothly
       if (decrement < 0) {
         return operator+=(-decrement);
       }
       if (decrement == 0) {
         // do nothing
-        return static_cast<Derived_Iterator&>(*this);
+        return static_cast<DefaultConstIterator&>(*this);
       }
       
       // If at end, idx are all set to 0
@@ -208,7 +244,7 @@ class TensorLike {
 
         if (decrement == 0) {
           // quick exit
-          return static_cast<Derived_Iterator&>(*this); 
+          return static_cast<DefaultConstIterator&>(*this); 
         }
       }
 
@@ -219,15 +255,15 @@ class TensorLike {
                                   current_indices_.end(),
                                   decrement)) {
         // No underflow, therefore successful
-        return static_cast<Derived_Iterator&>(*this);
+        return static_cast<DefaultConstIterator&>(*this);
       } else {
         // underflow set all to 0
         std::fill(current_indices_.begin(), current_indices_.end(), 0);
       }
-      return static_cast<Derived_Iterator&>(*this);
+      return static_cast<DefaultConstIterator&>(*this);
     }
 
-    bool operator==(const Derived_Iterator& other) const override {
+    bool operator==(const DefaultConstIterator& other) const {
       return tensor_like_ == other.tensor_like_ && 
               current_indices_ == other.current_indices_;
     }

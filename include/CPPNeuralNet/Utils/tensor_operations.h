@@ -122,7 +122,7 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
 // Iterator --------------------------------------------
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::ConstIterator {
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
    private:
   // Members ---------------------------------------------
     HeldIterator it_;
@@ -172,11 +172,11 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
       // TODO: should inner iterator not be set at construction?
     }
 
-    T operator*() const override {
+    T operator*() const {
       return *it_;
     }
 
-    ConstIterator& operator+=(int increment) override {
+    ConstIterator& operator+=(int increment) {
       if (increment < 0) return operator-=(-increment);
       if (increment == 0) return *this;
 
@@ -192,7 +192,7 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
                                                            dim2_, chunk2_));
       return *this;
     }
-    ConstIterator& operator-=(int decrement) override {
+    ConstIterator& operator-=(int decrement) {
       if (decrement < 0) return operator+=(-decrement);
       if (decrement == 0) return *this;
 
@@ -208,7 +208,7 @@ class TransposeOperation : public TensorLike<T, TransposeOperation<T, HeldOperat
       return *this;
     }
 
-    bool operator==(const ConstIterator& other) const override {
+    bool operator==(const ConstIterator& other) const {
       // with the assumption that we are pointing to the same data,
       return curr_address_ == other.curr_address_;
     }
@@ -328,16 +328,18 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
               effective_axis_2);
     std::swap(tranpose_map_[effective_axis_1], 
               tranpose_map_[effective_axis_2]);
-    return *this;
+        return *this;
   }
 // End of Tensor-Behaviours ----------------------------
 
 // Iterator --------------------------------------------
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::DefaultConstIterator {
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator>,
+                        private Parent::DefaultConstIterator {
    private:
-    typedef typename Parent::DefaultConstIterator Parent;
+    typedef typename Parent::DefaultConstIterator DefaultConstIterator;
+    typedef typename Parent::template ConstIterator<ConstIterator> Parent; // order matter
   // Members ---------------------------------------------
     HeldIterator it_;
     size_t curr_address_;
@@ -369,9 +371,9 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
                   bool is_end,
                   HeldIterator it,
                   size_t address)
-        : Parent::DefaultConstIterator(transpose_ptr, 
-                                       idx, 
-                                       is_end),
+        : DefaultConstIterator::DefaultConstIterator(transpose_ptr, 
+                                                     idx, 
+                                                     is_end),
           it_(it),
           curr_address_(address),
           old_chunk_sizes_(transpose_ptr->getOrder(), 1),
@@ -389,11 +391,11 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
       old_chunk_sizes_ = std::move(transposed_chunk_size);
     }
 
-    T operator*() const override {
+    T operator*() const {
       return *it_;
     }
 
-    ConstIterator& operator+=(int increment) override {
+    ConstIterator& operator+=(int increment) {
       // Early exits
       if (increment < 0) {
         return operator+=(-increment);
@@ -401,21 +403,21 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
         return *this;
       }
       // Rely on default incrementation
-      Parent::operator+=(increment);
+      DefaultConstIterator::operator+=(increment);
 
       // when at end, address cannot be deduced from idx alone
       size_t address;
-      if (Parent::at_end_) {
-        address = Parent::tensor_like_->getCapacity();
+      if (DefaultConstIterator::at_end_) {
+        address = DefaultConstIterator::tensor_like_->getCapacity();
       } else {
         address = IndicesToAddress(held_shape_, 
                                    old_chunk_sizes_,
-                                   Parent::current_indices_);
+                                   DefaultConstIterator::current_indices_);
       }
       IncrementAddressTo(address);
       return *this;
     }
-    ConstIterator& operator-=(int decrement) override {
+    ConstIterator& operator-=(int decrement) {
       // Early exits
       if (decrement < 0) {
         return operator+=(-decrement);
@@ -423,14 +425,18 @@ class MultiTransposeOperation : public TensorLike<T, MultiTransposeOperation<T, 
         return *this;
       }
       // Rely on default decrementation
-      Parent::operator-=(decrement);
+      DefaultConstIterator::operator-=(decrement);
 
       // as -= always sets to expected idx, can call address immediately 
       IncrementAddressTo(IndicesToAddress(held_shape_, 
                                           old_chunk_sizes_,
-                                          Parent::current_indices_));
+                                          DefaultConstIterator::current_indices_));
       return *this;
     }
+
+    using Parent::operator++;
+    using Parent::operator--;
+    using Parent::operator!=;
   }; // End of ConstIterator
 
   ConstIterator begin() const {
@@ -486,7 +492,7 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
   }
 // End of Tensor-Behaviours ----------------------------
 
-  class ConstIterator : public Parent::ConstIterator {
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
     typedef typename BroadcastOperation<T, HeldOperation1>::ConstIterator BroadcastIterator1;
     typedef typename BroadcastOperation<T, HeldOperation2>::ConstIterator BroadcastIterator2;
     BroadcastIterator1 first_it_;
@@ -497,22 +503,22 @@ class SummationOperation : public TensorLike<T, SummationOperation<T, HeldOperat
         : first_it_(first_it),
           second_it_(second_it) {}
 
-    T operator*() const override {
+    T operator*() const {
       return *first_it_ + *second_it_;
     }
 
-    ConstIterator& operator+=(int increment) override {
+    ConstIterator& operator+=(int increment) {
       first_it_ += increment;
       second_it_ += increment;
       return *this;
     }
-    ConstIterator& operator-=(int decrement) override {
+    ConstIterator& operator-=(int decrement) {
       first_it_ -= decrement;
       second_it_ -= decrement;
       return *this;
     }
 
-    bool operator==(const ConstIterator& other) const override {
+    bool operator==(const ConstIterator& other) const {
       return first_it_ == other.first_it_ && 
              second_it_ == other.second_it_;
     }
@@ -888,9 +894,11 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
 
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::DefaultConstIterator {
-    typedef typename Parent::DefaultConstIterator Parent;
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator>,
+                        private Parent::DefaultConstIterator {
    private:
+    typedef typename Parent::DefaultConstIterator DefaultConstIterator;
+    typedef typename Parent::template ConstIterator<ConstIterator> Parent; // order matter
   // Members ---------------------------------------------
     HeldIterator it_;
     size_t inner_address_; // address of inner
@@ -911,7 +919,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       // if not in bound for any of thre padded axes, then not in bound
       std::vector<int>::const_iterator dim_it = original_axes_dimensions_.begin();
       for (int axis : padded_axes_) {
-        if (Parent::current_indices_[axis] >= *dim_it) {
+        if (DefaultConstIterator::current_indices_[axis] >= *dim_it) {
           in_bounds_ = false;
           return;
         }
@@ -938,7 +946,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       SetIsInBound();
 
       // If out of bounds, ignore update
-      if (Parent::at_end_) {
+      if (DefaultConstIterator::at_end_) {
         return;
       }
 
@@ -946,7 +954,7 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         // need to update the position
         size_t address_to = IndicesToAddress(inner_shape_,
                                              inner_chunk_sizes_,
-                                             Parent::current_indices_);
+                                             DefaultConstIterator::current_indices_);
         IncrementAddressTo(address_to);
       }
     }
@@ -957,9 +965,9 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
                   bool is_end,
                   HeldIterator it,
                   size_t inner_address) 
-        : Parent::DefaultConstIterator(transpose_ptr, 
-                                       idx, 
-                                       is_end),
+        : DefaultConstIterator::DefaultConstIterator(transpose_ptr, 
+                                                     idx, 
+                                                     is_end),
           it_(it),
           inner_address_(inner_address),
           padded_value_(transpose_ptr->padded_value_),
@@ -992,14 +1000,14 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
       SetInner();
     }
 
-    T operator*() const override {
+    T operator*() const {
       if (in_bounds_) {
         return *it_;
       }
       return padded_value_;
     }
 
-    ConstIterator& operator+=(int increment) override {
+    ConstIterator& operator+=(int increment) {
       // Early exits
       if (increment < 0) {
         return operator+=(-increment);
@@ -1007,12 +1015,12 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         return *this;
       }
       // Rely on default incrementation
-      Parent::operator+=(increment);
+      DefaultConstIterator::operator+=(increment);
 
       SetInner();
       return *this;
     }
-    ConstIterator& operator-=(int decrement) override {
+    ConstIterator& operator-=(int decrement) {
       // Early exits
       if (decrement < 0) {
         return operator+=(-decrement);
@@ -1020,11 +1028,15 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
         return *this;
       }
       // Rely on default decrementation
-      Parent::operator-=(decrement);
+      DefaultConstIterator::operator-=(decrement);
 
       SetInner();
       return *this;
     }
+
+    using Parent::operator++;
+    using Parent::operator--;
+    using Parent::operator!=;
   };
 
   ConstIterator begin() const {
@@ -1082,7 +1094,7 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
 
   typedef typename HeldOperation::ConstIterator HeldIterator;
 
-  class ConstIterator : public Parent::ConstIterator {
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
     const Self* const reference_;
     HeldIterator it_;
 
@@ -1115,11 +1127,11 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
                                                         curr_address_);
     }
 
-    T operator*() const override {
+    T operator*() const {
       return *it_;
     }
     
-    ConstIterator& operator+=(int increment) override {
+    ConstIterator& operator+=(int increment) {
       curr_address_ += increment;
       if (curr_address_ >= reference_->getCapacity()) {
         curr_address_ = reference_->getCapacity();
@@ -1141,7 +1153,7 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
 
       return *this;
     }
-    ConstIterator& operator-=(int decrement) override {
+    ConstIterator& operator-=(int decrement) {
       if (decrement >= curr_address_) {
         curr_address_ = 0;
       } else {
@@ -1165,7 +1177,7 @@ class BroadcastOperation : public TensorLike<T, BroadcastOperation<T, HeldOperat
       return *this;
     }
 
-    bool operator==(const ConstIterator& other) const override {
+    bool operator==(const ConstIterator& other) const {
       return reference_ == other.reference_ && 
               curr_address_ == other.curr_address_;
     }
