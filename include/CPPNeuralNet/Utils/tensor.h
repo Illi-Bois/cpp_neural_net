@@ -165,82 +165,100 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
 // Iterator --------------------------------------------
   class Iterator : public Parent::template Iterator<Iterator> {
    private:
-    Tensor<T>* const tensor_;
     size_t curr_address_;
+    size_t capacity_;
+    T* curr_element_;
 
    public:
-    Iterator(Tensor<T>* const tensor, size_t address)
-        : tensor_(tensor), curr_address_(address) {}
+    Iterator(size_t address, size_t capacity, T* curr_element)
+        : curr_address_(address), 
+          capacity_(capacity),
+          curr_element_(curr_element) {}
     
     T& operator*() {
-      return (tensor_->elements_)[curr_address_];
+      return *curr_element_;
     }
 
     Iterator& operator+=(int increment) {
-      curr_address_ += increment;
-      if (curr_address_ >= tensor_->getCapacity()) {
-        curr_address_ = tensor_->getCapacity();
+      if (curr_address_ + increment <= capacity_) {
+        curr_element_ += increment; 
+        curr_address_ += increment;
+      } else {
+        // do not move pointer beyond capacity
+        curr_element_ += capacity_ - curr_address_; 
+        curr_address_ = capacity_;
       }
       return *this;
     }
     Iterator& operator-=(int decrement) {
-      if (decrement >= curr_address_) {
-        curr_address_ = 0;
-      } else {
+      if (decrement < curr_address_) {
+        curr_element_ -= decrement;
         curr_address_ -= decrement;
+      } else {
+        curr_element_ -= curr_address_;
+        curr_address_ = 0;
       }
       return *this;
     }
     bool operator==(const Iterator& other) const {
-      return tensor_       == other.tensor_ && 
-             curr_address_ == other.curr_address_;
+      return curr_element_ == other.curr_element_;
     }
-  };
+  }; // end of Iterator
   class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
    private:
-    const Tensor<T>* const tensor_;
     size_t curr_address_;
+    size_t capacity_;
+    const T* curr_element_;
 
    public:
-    ConstIterator(const Tensor<T>* const tensor, size_t address)
-        : tensor_(tensor), curr_address_(address) {}
+    ConstIterator(size_t address, size_t capacity, const T* curr_element)
+        : curr_address_(address), 
+          capacity_(capacity),
+          curr_element_(curr_element) {}
     
     T operator*() const {
-      return (tensor_->elements_)[curr_address_];
+      return *curr_element_;
     }
 
     ConstIterator& operator+=(int increment) {
-      curr_address_ += increment;
-      if (curr_address_ >= tensor_->getCapacity()) {
-        curr_address_ = tensor_->getCapacity();
+      if (curr_address_ + increment <= capacity_) {
+        curr_element_ += increment; 
+        curr_address_ += increment;
+      } else {
+        // do not move pointer beyond capacity
+        curr_element_ += capacity_ - curr_address_; 
+        curr_address_ = capacity_;
       }
       return *this;
     }
     ConstIterator& operator-=(int decrement) {
-      if (decrement >= curr_address_) {
-        curr_address_ = 0;
-      } else {
+      if (decrement < curr_address_) {
+        curr_element_ -= decrement;
         curr_address_ -= decrement;
+      } else {
+        curr_element_ -= curr_address_;
+        curr_address_ = 0;
       }
       return *this;
     }
     bool operator==(const ConstIterator& other) const {
-      return tensor_       == other.tensor_ && 
-             curr_address_ == other.curr_address_;
+      return curr_element_ == other.curr_element_;
     }
-  };
+  }; // end of ConstIterator 
 // Iterator Getters -------------------------------
   Iterator begin() {
-    return {this, 0};
+    return {0, getCapacity(), elements_};
   }
   Iterator end() {
-    return {this, getCapacity()};
+    size_t cap =  getCapacity();
+    return {cap, cap, elements_ + cap};
   }
   ConstIterator begin() const {
-    return {this, 0};
+    return {0, getCapacity(), elements_};
   }
   ConstIterator end() const {
-    return {this, getCapacity()};
+    size_t cap =  getCapacity();
+    return {cap, cap, elements_ + cap};
   }
 // End of Iterator Getters ------------------------
 // End of Iterator -------------------------------------
@@ -260,8 +278,7 @@ inline static Tensor<T> AsTensor(const std::vector<T>& elements);
   std::vector<int> dimensions_;
   std::vector<int> chunk_size_;   // capacity of chunk associated with each index
   size_t capacity_;
-  // std::vector<T>* elements_;      // containter of elements of tensor.
-  T* elements_;
+  T* elements_;                   // containter of elements of tensor.
 // End of Member fields --------------------------------
 
 // Private Constructor ---------------------------------
