@@ -1,7 +1,7 @@
-#include "include/CPPNeuralNet/Utils/utils.h"
-#include "include/CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/utils.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 
-#include "include/CPPNeuralNet/model.h"
+#include "CPPNeuralNet/model.h"
 
 // Model DEFINITION =============================================
 namespace cpp_nn {
@@ -13,6 +13,8 @@ Model::Model() noexcept {}
 // Layer Modification -----------------------------------
 Model& Model::addLayer(Layer* layer) {
   layers_.push_back(layer);
+  
+  return *this;
 }
 // End of Layer Modification ----------------------------
 

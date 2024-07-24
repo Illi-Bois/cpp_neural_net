@@ -1,8 +1,8 @@
 #ifndef CPP_NN_MODEL
 #define CPP_NN_MODEL
 
-#include "include/CPPNeuralNet/Utils/utils.h"
-#include "include/CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/Utils/utils.h"
+#include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/layer.h"
 
 #include "vector" 
