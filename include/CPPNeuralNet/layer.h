@@ -3,8 +3,6 @@
 
 #include "CPPNeuralNet/Utils/utils.h"
 #include "CPPNeuralNet/Utils/tensor.h"
-#include "CPPNeuralNet/Utils/tensor_like.h"
-#include "CPPNeuralNet/Utils/tensor_operations.h"
 
 namespace cpp_nn {
 
@@ -22,16 +20,17 @@ namespace cpp_nn {
  */
 class Layer {
  private:
+  typedef util::Tensor<float> Tensor;
 
  public:
   // Virtual destructor of the Layer class.
   virtual ~Layer() = default;
 
   // Forward pass
-  virtual util::Tensor<float> forward(const util::Tensor<float>& input) = 0;
+  virtual Tensor forward(const Tensor& input) = 0;
 
   // Backward pass
-  virtual util::Tensor<float> backward(const util::Tensor<float>& gradient) = 0;
+  virtual Tensor backward(const Tensor& gradient) = 0;
 
   // Update parameters
   virtual void update_parameters(float learning_rate) = 0;
@@ -71,23 +70,6 @@ class Layer {
    * 
    * Therefore, it may be good implementation to store dy/dx at each layer.
    */
-};
-
-class LinearLayer : public Layer {
-public:
-  LinearLayer(int input_size, int output_size);
-  util::Tensor<float> forward(const util::Tensor<float>& input) override;
-  util::Tensor<float> backward(const util::Tensor<float>& gradient) override;
-  void update_parameters(float learning_rate) override;
-  void save_gradients() override;
-  void clear_gradients() override;
-private:
-  util::Tensor<float> weights;
-  util::Tensor<float> biases;
-  util::Tensor<float> input;
-  util::Tensor<float> output;
-  util::Tensor<float> weight_gradients;
-  util::Tensor<float> bias_gradients;
 };
 
 } // cpp_nn
