@@ -51,15 +51,12 @@ util::Tensor<float> ReLU::backward(const util::Tensor<float>& gradient) {
 }
 
 void ReLU::update_parameters(float learning_rate) {
-    // ReLU has no parameters to update
 }
 
 void ReLU::save_gradients() {
-    // ReLU has no gradients to save
 }
 
 void ReLU::clear_gradients() {
-    // ReLU has no gradients to clear
 }
 
 } // namespace cpp_nn
