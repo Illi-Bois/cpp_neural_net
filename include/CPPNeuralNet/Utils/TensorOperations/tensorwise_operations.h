@@ -820,8 +820,6 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
         ++collpased_idx;
       }
     }
-
-    std::cout << collapse_count_ << " " << major_jump_ << ", " << minor_jump_ << std::endl;
   }
 // End of Constructor ----------------------------------
 
@@ -870,7 +868,9 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
     inline int ConvertCollapsedDeltaToOriginalDelta(int delta) {
       int minor_delta = delta % minor_jump_;
       delta -= minor_delta;
-      delta *= major_jump_;
+      // delta *= major_jump_;
+      // TODO: NEEDS DEBUGGING
+      delta *= collapse_count_;
       delta += minor_delta;
 
       return delta;
@@ -898,8 +898,18 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
       return sum;
     }
     T operator*() const {
-      // to avoid const limiting iterator action, utilize this const cast magic
-      return *static_cast<const ConstIterator*>(this);
+      // Ideally would not 
+      HeldIterator iter = this->iter;
+      // Jump and sum 
+      T sum = 0;
+      for (int i = 0; i < collapse_count_ - 1; ++i) {
+        sum += *iter;
+        iter += minor_jump_;
+      }
+      sum += *iter;
+      // Return to Minor Head
+      iter -= static_cast<int>(collapse_count_ - 1) * static_cast<int>(minor_jump_);
+      return sum;
     }
 
     ConstIterator& operator+=(int increment) {

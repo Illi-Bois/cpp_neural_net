@@ -104,12 +104,29 @@ int main() {
 
   {
     std::cout << "SUBSUB" << std::endl;
-    Tensor<int> A({4, 3, 2}, [val=0]()mutable {return val++;});
-    Tensor<int> B = A.SumAxis(2);
-
+    Tensor<int> A({3, 2}, [val=0]()mutable {return val++;});
     std::cout << "A" << std::endl;
     PrintTensor(A);
-    std::cout << "B" << std::endl;
-    PrintTensor(B);
+
+    Tensor<int> Zero = A.SumAxis();
+    std::cout << "Zero" << std::endl;
+    PrintTensor(Zero);
+
+    Tensor<int> One = A.SumAxis(1);
+    std::cout << "One" << std::endl;
+    PrintTensor(One);
+
+
+    // Tensor<int> Bn = A.SumAxis(1).Transpose(0, 1);
+    // std::cout << "Bn" << std::endl;
+    // PrintTensor(Bn);
+
+    // Tensor<int> Bm = Bn.SumAxis(0);
+    // std::cout << "Bm" << std::endl;
+    // PrintTensor(Bm);
+
+    // Tensor<int> B = A.SumAxis(1).Transpose().SumAxis();
+    // std::cout << "B" << std::endl;
+    // PrintTensor(B);
   }
 }
