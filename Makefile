@@ -2,6 +2,7 @@ CXX := clang++
 # CXX := g++
 
 RUDIMENTARY_OPT_FLAGS = -funsafe-math-optimizations
+# -0fast or any other optimization seems to slow down the entire program. use -O0 for best performance
 ASSMBLE_FLAG = -c -std=c++17 -Wall -O0 $(RUDIMENTARY_OPT_FLAGS) -g 
 LINKER_FLAG 	=
 
