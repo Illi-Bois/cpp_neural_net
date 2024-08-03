@@ -15,6 +15,9 @@ namespace cpp_nn {
 */
 template <typename DerivedLayer>
 class Layer {
+ private:
+  typedef util::Tensor<float> Tensor;
+  
  public:
 // CRTP ------------------------------------------------
   DerivedLayer& getRef() {
