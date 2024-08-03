@@ -160,6 +160,15 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
                  T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
+/**
+ *  sums Tensors along the given axis.
+ *  The axis then collapses and thus reduces the order by one. 
+ *  When Order is 1, then results in 1-Order 1-Dim tensor. 
+ */
+  inline AxisSummationOperation<T, Self>
+         SumAxis(int axis = 0) const {
+    return {*this, axis};
+  }
 // End of Modifiers ------------------------------------
 
 // Iterator --------------------------------------------

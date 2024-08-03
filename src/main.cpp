@@ -105,7 +105,7 @@ int main() {
   {
     std::cout << "SUBSUB" << std::endl;
     Tensor<int> A({4, 3, 2}, [val=0]()mutable {return val++;});
-    Tensor<int> B = AxisSummationOperation<int, Tensor<int>>({A, 2});
+    Tensor<int> B = A.SumAxis(2);
 
     std::cout << "A" << std::endl;
     PrintTensor(A);

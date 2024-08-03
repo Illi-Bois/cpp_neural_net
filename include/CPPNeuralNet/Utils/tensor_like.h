@@ -15,6 +15,8 @@ template<typename T, typename HeldOperation>
 class ReshapeOperation;
 template<typename T, typename HeldOperation>
 class PaddingOperation;
+template<typename T, typename HeldOperation>
+class AxisSummationOperation;
 } // unnamed namespace
 
 // End of Forward Declaration ===============================
@@ -78,6 +80,10 @@ class TensorLike {
          Padding(const std::vector<int>& padded_dimensions, 
                  T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
+  }
+  inline AxisSummationOperation<T, Derived>
+         SumAxis(int axis = 0) const {
+    return {*this, axis};
   }
 // End of Tensor-Behaviours ----------------------------
 

@@ -793,7 +793,7 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
  public:
 // Constructor -----------------------------------------
   AxisSummationOperation(const TensorLike<T, HeldOperation>& tensor_like,
-                         const int axis = 0) noexcept
+                         const int axis = 0)
       : tensor_like_(tensor_like.getRef()),
         collapse_axis_(SumIfNegative(axis, tensor_like_.getOrder())),
         collapsed_shape_(tensor_like_.getOrder() - 1),
@@ -803,6 +803,9 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
                                     1, std::multiplies<int>())),
         major_jump_(minor_jump_ * collapse_count_),
         capacity_(tensor_like_.getCapacity() / collapse_count_) {
+    if (collapse_axis_ >= tensor_like_.getOrder()) {
+      throw std::invalid_argument("AxisSummationOperation- Axis out of bounds");
+    }
     // Move over other non-collapsed dimensions. When none, becomes 1
     if (collapsed_shape_.size() == 0) {
       collapsed_shape_.push_back(1);
