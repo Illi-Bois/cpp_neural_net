@@ -12,6 +12,8 @@
 
 #include <numeric> // to fill from 0 to n
 
+#include <iostream>
+
 namespace cpp_nn {
 namespace util {
 
@@ -767,6 +769,104 @@ class PaddingOperation : public TensorLike<T, PaddingOperation<T, HeldOperation>
     return {this, std::vector<int>(getOrder(), 0), true, tensor_like_.end(), tensor_like_.getCapacity()};
   }
 }; // End of PaddingOperation
+
+/** 
+ * Summs over axes, preversing major and minor shapes. When order is 1, SPECIAL CASE
+ */
+template<typename T, typename HeldOperation>
+class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, HeldOperation>> {
+  typedef AxisSummationOperation<T, HeldOperation> Self;
+  typedef TensorLike<T, Self> Parent;
+
+// Members ---------------------------------------------
+  const HeldOperation& tensor_like_;
+  int collapse_axis_; 
+  std::vector<int> collapsed_shape_;
+
+  size_t collapse_count_; // := equal to dimension of axis that collapses
+  size_t minor_jump_; // := chunksize of axis      // from last comment, is equal to chunk size at computed's[0]
+  size_t major_jump_; // := chunksize of axis-1    // we can use computeChunkSize from util, where major_jump is capacity of subarray from [axis: end]
+
+  size_t capacity_;
+// End of Members --------------------------------------
+
+ public:
+// Constructor -----------------------------------------
+  AxisSummationOperation(const TensorLike<T, HeldOperation>& tensor_like,
+                         const int axis = 0) noexcept
+      : tensor_like_(tensor_like.getRef()),
+        collapse_axis_(SumIfNegative(axis, tensor_like_.getOrder())),
+        collapsed_shape_(tensor_like_.getOrder() - 1),
+        collapse_count_(tensor_like_.getDimension(collapse_axis_)),
+        minor_jump_(std::accumulate(tensor_like_.getShape().begin() + axis + 1, 
+                                    tensor_like_.getShape().end(), 
+                                    1, std::multiplies<int>())),
+        major_jump_(minor_jump_ * collapse_count_),
+        capacity_(tensor_like_.getCapacity() / collapse_count_) {
+    // Move over other non-collapsed dimensions. When none, becomes 1
+    if (collapsed_shape_.size() == 0) {
+      collapsed_shape_.push_back(1);
+    } else {
+      int collpased_idx = 0;
+      for (int i = 0; i < axis; ++i) {
+        collapsed_shape_[collpased_idx] = tensor_like_.getDimension(i);
+        ++collpased_idx;
+      }
+      for (int i = axis + 1; i < tensor_like_.getOrder(); ++i) {
+        collapsed_shape_[collpased_idx] = tensor_like_.getDimension(i);
+        ++collpased_idx;
+      }
+    }
+
+    std::cout << collapse_count_ << " " << major_jump_ << ", " << minor_jump_ << std::endl;
+  }
+// End of Constructor ----------------------------------
+
+// Tensor-Behaviours -----------------------------------
+  inline const std::vector<int>& getShape() const noexcept { 
+    return collapsed_shape_;
+  }
+  inline int getDimension(int axis) const {
+    return collapsed_shape_[SumIfNegative(axis, getOrder())];
+  }
+  inline size_t getCapacity() const noexcept {
+    return capacity_;
+  }
+  inline int getOrder() const noexcept {
+    return collapsed_shape_.size();
+  }
+  // returns by value as operation returns are temp
+  inline const T getElement(std::vector<int> indices) const {
+    // TODO: try implement iterator?
+
+    indices.insert(indices.begin() + collapse_axis_, 0);
+    T sum = 0;
+    for (int i = 0; i < collapse_count_; ++i) {
+      sum += tensor_like_.getElement(indices);
+      indices[collapse_axis_] += 1;
+    }
+    return sum;
+  }
+// End of Tensor-Behaviours ----------------------------
+  
+// Iterator --------------------------------------------
+  typedef typename Parent::DefaultConstIterator ConstIterator;
+
+// Iterator Callers --------------------------------
+  ConstIterator begin() const {
+    return {this,
+            std::vector(getOrder(), 0),
+            false};
+  }
+  ConstIterator end() const {
+    return {this,
+            std::vector(getOrder(), 0),
+            true};
+  }
+// End of Iterator Callers -------------------------
+// End of Iterator -------------------------------------
+
+}; // End of AxisSummationOperation
 
 } // unnamed namespace
 } // util

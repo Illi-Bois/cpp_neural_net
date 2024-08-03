@@ -101,4 +101,13 @@ int main() {
     Tensor<int> C = A - B;
     PrintTensor(C);
   }
+
+  {
+    std::cout << "SUBSUB" << std::endl;
+    Tensor<int> A({4}, [val=0]()mutable {return val++;});
+    Tensor<int> B = AxisSummationOperation<int, Tensor<int>>({A, 0});
+
+    PrintTensor(A);
+    PrintTensor(B);
+  }
 }
