@@ -10,6 +10,8 @@
 #include "CPPNeuralNet/Utils/utils.h"
 #include "CPPNeuralNet/Utils/tensor_like.h"
 
+#include <numeric> // to fill from 0 to n
+
 namespace cpp_nn {
 namespace util {
 
