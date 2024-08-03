@@ -30,10 +30,8 @@ util::Tensor<float> LinearLayer::backward(const util::Tensor<float>& gradient) {
 }
 
 void LinearLayer::update_parameters(float learning_rate) {
-    // weights = weights - (weight_gradients * learning_rate);
-    // weights = weights - weight_gradients (Tensor) * lr number
-    // biases = biases - (bias_gradients * learning_rate);
-    // biases = biases - bias_gradients (Tensor) * lr (number)
+    weights = weights + (weight_gradients * -learning_rate);
+    biases = biases + (bias_gradients * -learning_rate);
 }
 
 void LinearLayer::save_gradients() {
