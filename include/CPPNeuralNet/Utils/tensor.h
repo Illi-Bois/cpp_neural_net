@@ -325,6 +325,15 @@ SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike
   return {A, B};
 }
 /**
+ *  returns subtraction holder.
+ */
+template<typename T, typename HeldOperation1, 
+                     typename HeldOperation2> 
+SubtractionOperation<T, HeldOperation1, HeldOperation2> operator-(const TensorLike<T, HeldOperation1>& A, 
+                                                                  const TensorLike<T, HeldOperation2>& B) {
+  return {A, B};
+}
+/**
  *  returns multiplication holder.
  */
 template<typename T, typename HeldOperation1, 
@@ -605,6 +614,7 @@ inline Tensor<T> Tensor<T>::AsTensor(const std::vector<T>& elements) {
 // End of Tensor DEFINITION =====================================
 
 // Operations =================================================
+// TODO: make these TensorLike compatible?
 template<typename T>
 Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col) {
   if (tensor.getOrder() < 2) {

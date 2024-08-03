@@ -416,6 +416,165 @@ TEST(UtilTensorOperation, Summing_broadcast_with_diff_order) {
 }
 // End of SUMMATION ======================================
 
+
+// SUBTRACTION ===========================================
+TEST(UtilTensorOperation, Subtracting_Of_Two) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 3});
+  Tensor<float> b({2, 3}, 3);
+  int val = 0;
+  std::vector<int> idx(a.getOrder(), 0);
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> c = a - b;
+  val = 0;
+  for (auto it = c.begin(); it != c.end(); ++it) {
+    EXPECT_EQ(*it, ++val - 3 );
+  }     
+  EXPECT_EQ(a.getShape(), c.getShape());
+}
+TEST(UtilTensorOperation, Subtracting_Of_Two_Constructor) {
+  using namespace cpp_nn::util;
+  auto generator = [val = 0]() mutable {return ++val; };
+  auto generator2 = [val = 0]() mutable {return ++val * 2; };
+  std::vector<int> expected_elements3 = 
+  {
+    -1,    -2,    -3,
+    -4,    -5,    -6,
+  };
+  Tensor<float> c = Tensor<float>({2, 3}, generator) - Tensor<float>({2, 3}, generator2);
+  auto it3 = c.begin();
+  for (auto exp : expected_elements3) {
+    EXPECT_EQ(*it3, exp);
+    ++it3;
+  }
+}
+TEST(UtilTensorOperation, Subtracting_Of_Three) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({3, 4});
+  int val = 0;
+  std::vector<int> idx(a.getOrder(), 0);
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> b({3, 4}, 3);
+  Tensor<float> c({3, 4}, 5);
+  Tensor<float> d = a - b - c;
+  val = 0;
+  for (auto it = d.begin(); it != d.end(); ++it) {
+    EXPECT_EQ(*it, ++val - 3 - 5);
+  }
+}
+TEST(UtilTensorOperation, Subtracting_Of_many_with_parenthesis) {
+  using namespace cpp_nn::util;
+    Tensor<int> a({2, 2}, 1);
+    Tensor<int> b({2, 2}, -1);
+    Tensor<int> c({2, 2}, 3);
+    Tensor<int> d({2, 2}, 4);
+    Tensor<int> e = (a - b) - (c - d);
+    
+    EXPECT_EQ(e.getElement({0, 0}), 3);
+    EXPECT_EQ(e.getElement({1, 1}), 3);
+}
+TEST(UtilTensorOperation, SelfSubtracting) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 3});
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> b = a - a;
+  for (auto it = b.begin(); it != b.end(); ++it) {
+    EXPECT_EQ(*it, 0);
+  }
+}
+TEST(UtilTensorOperation, Subtracting_To_Self) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({4, 3, 1, 2});
+  std::vector<int> idx(a.getOrder(), 0);
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  a = a - a;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    EXPECT_EQ(*it, 0);
+  }
+}
+TEST(UtilTensorOperation, Subtracting_To_Self_with_others_inbetween) {
+  using namespace cpp_nn::util;
+  Tensor<float> a({2, 2}, 1);
+  Tensor<float> b({2, 2}, -2);
+  a = a - b - a;
+  EXPECT_EQ(a.getElement({0, 0}), 2);
+  EXPECT_EQ(a.getElement({1, 1}), 2);
+}
+TEST(UtilTensorOperation, Subtracting_Incorrect_Dimensions) {
+  using namespace cpp_nn::util;
+  Tensor<int> A({2, 2}, 1);
+  Tensor<int> B({2, 3}, 2);
+  EXPECT_THROW(A - B, std::invalid_argument);
+}
+TEST(UtilTensorOperation, Subtracting_broadcast) {
+//| 1  2  3  4  5 |   -broadcast-> | 1  2  3  4  5 |
+//                                 | 1  2  3  4  5 |
+//                                 | 1  2  3  4  5 | ...
+  using namespace cpp_nn::util;
+  Tensor<float> a({1, 5});
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> b({6,5},3);
+  Tensor<float> c = a - b;
+  val = 0;
+  for (int i = 0; i < 6; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      EXPECT_EQ(c.getElement({i, j}), (j + 1) - 3);
+    }
+  }
+  //Reset after 5 elements
+  std::vector<int> resetPositions = {5};
+  int iterationCount = 0;
+  int resetIndex = 0;
+  std::vector<int> cIndex(c.getOrder(), 0);
+  do {
+    //iterationCount 0,5,10 -> aIndex = 0
+    //iterationCount 2,7,12 -> aIndex = 2
+    int aIndex = iterationCount % a.getCapacity();
+    std::vector<int> aIdx {0, aIndex};
+    EXPECT_EQ(c.getElement(cIndex), a.getElement(aIdx) - b.getElement(cIndex));
+    ++iterationCount;
+    if (resetIndex < resetPositions.size() && iterationCount == resetPositions[resetIndex]) {
+        iterationCount = 0;
+        ++resetIndex;
+    }
+  } while (IncrementIndicesByShape(c.getShape().begin(), c.getShape().end(), cIndex.begin(), cIndex.end()));
+}
+TEST(UtilTensorOperation, Subtracting_broadcast_with_diff_order) {
+  using namespace cpp_nn::util;
+  Tensor<float> a(   {2, 3});
+  Tensor<float> b({4, 1, 3}, 2);
+  int val = 0;
+  for (auto it = a.begin(); it != a.end(); ++it) {
+    *it = ++val;
+  }
+  Tensor<float> c = a - b; //resulting dimension would be {4, 2, 3}
+  EXPECT_EQ(c.getShape(), std::vector<int>({4, 2, 3}));
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 2; ++j) {
+      for (int k = 0; k < 3; ++k) {
+        // a{0,j,k} as a's 0 position has been broadcastest, same for b
+        EXPECT_EQ(c.getElement({i, j, k}), a.getElement(/*0*/{j, k}) - b.getElement({i, 0, k}));
+      }
+    }
+  }
+
+}
+// End of SUBTRACTION ====================================
+
 // MULTIPLICATION ========================================
 TEST(UtilTensorOperation, Multiplication_of_two) {
   using namespace cpp_nn::util;

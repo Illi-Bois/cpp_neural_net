@@ -88,4 +88,17 @@ int main() {
     PrintTensor(B);
     PrintTensor(C);
   }
+
+  {
+    std::cout << "SUB" << std::endl;
+
+    Tensor<int> A({2, 3, 4}, [val=0]()mutable {return val++;});
+    Tensor<int> B({2, 3, 4}, [val=0]()mutable {return val++;});
+
+    PrintTensor(A);
+    PrintTensor(B);
+
+    Tensor<int> C = A - B;
+    PrintTensor(C);
+  }
 }
