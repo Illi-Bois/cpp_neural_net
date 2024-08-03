@@ -493,27 +493,27 @@ Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like) noexcept
       Therefore no data is messed with while equation is being resolved.
   */
   typedef typename Derived::ConstIterator Derived_ConstIterator;
-  Iterator iter = begin();
-  const Iterator end_iter = end();
-  Derived_ConstIterator other_iter = tensor_like.getRef().begin();
+  // Iterator iter = begin();
+  // const Iterator end_iter = end();
+  // Derived_ConstIterator other_iter = tensor_like.getRef().begin();
 
-  while (iter != end_iter) {
-    *iter = *other_iter;
-
-    ++iter;
-    ++other_iter;
-  }
-
-  // const Iterator front_iter = begin();
-  // Iterator iter = end();
-  // Derived_ConstIterator other_iter = tensor_like.getRef().end();
-
-  // while (iter != front_iter) {
-  //   --iter;
-  //   --other_iter;
-    
+  // while (iter != end_iter) {
   //   *iter = *other_iter;
+
+  //   ++iter;
+  //   ++other_iter;
   // }
+
+  const Iterator front_iter = begin();
+  Iterator iter = end();
+  Derived_ConstIterator other_iter = tensor_like.getRef().end();
+
+  while (iter != front_iter) {
+    --iter;
+    --other_iter;
+    
+    *iter = *other_iter;
+  }
 }
 
 // Psuedo-Specializations -------------------------

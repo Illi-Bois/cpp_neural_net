@@ -104,10 +104,12 @@ int main() {
 
   {
     std::cout << "SUBSUB" << std::endl;
-    Tensor<int> A({4}, [val=0]()mutable {return val++;});
-    Tensor<int> B = AxisSummationOperation<int, Tensor<int>>({A, 0});
+    Tensor<int> A({4, 3, 2}, [val=0]()mutable {return val++;});
+    Tensor<int> B = AxisSummationOperation<int, Tensor<int>>({A, 2});
 
+    std::cout << "A" << std::endl;
     PrintTensor(A);
+    std::cout << "B" << std::endl;
     PrintTensor(B);
   }
 }

@@ -838,6 +838,9 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
   // returns by value as operation returns are temp
   inline const T getElement(std::vector<int> indices) const {
     // TODO: try implement iterator?
+    //    Potential speed up, but will need to then store chunk_size of old. 
+    //    Classic Speed vs Space balance. 
+    //  When non-default Iterator is implemented, the benefit may be much reduced.
 
     indices.insert(indices.begin() + collapse_axis_, 0);
     T sum = 0;
@@ -850,18 +853,94 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
 // End of Tensor-Behaviours ----------------------------
   
 // Iterator --------------------------------------------
-  typedef typename Parent::DefaultConstIterator ConstIterator;
+  typedef typename HeldOperation::ConstIterator HeldIterator;
+
+  class ConstIterator : public Parent::template ConstIterator<ConstIterator> {
+    HeldIterator iter; // when at iter end, then is at AxisSumEnd as well
+    size_t collapse_count_;
+    size_t minor_jump_; 
+    size_t major_jump_; 
+
+    /* converts delta, meaning increment or decrement, in collapsed shape
+     *  to delta on original shape
+     */
+    inline int ConvertCollapsedDeltaToOriginalDelta(int delta) {
+      int minor_delta = delta % minor_jump_;
+      delta -= minor_delta;
+      delta *= major_jump_;
+      delta += minor_delta;
+
+      return delta;
+    }
+   public:
+    ConstIterator(HeldIterator iter,
+                  size_t collapse_count,
+                  size_t minor_jump,
+                  size_t major_jump)
+        : iter(iter),
+          collapse_count_(collapse_count),
+          minor_jump_(minor_jump),
+          major_jump_(major_jump) {}
+
+    T operator*() {
+      // Jump and sum 
+      T sum = 0;
+      for (int i = 0; i < collapse_count_ - 1; ++i) {
+        sum += *iter;
+        iter += minor_jump_;
+      }
+      sum += *iter;
+      // Return to Minor Head
+      iter -= static_cast<int>(collapse_count_ - 1) * static_cast<int>(minor_jump_);
+      return sum;
+    }
+    T operator*() const {
+      // to avoid const limiting iterator action, utilize this const cast magic
+      return *static_cast<const ConstIterator*>(this);
+    }
+
+    ConstIterator& operator+=(int increment) {
+      if (increment < 0) {
+        return operator-=((-increment));
+      } 
+      if (increment == 0) {
+        return *this;
+      }
+
+      iter += ConvertCollapsedDeltaToOriginalDelta(increment);
+
+      return *this;
+    }
+    ConstIterator& operator-=(int decrement) {
+      // Early exits
+      if (decrement < 0) {
+        return operator+=(-decrement);
+      } else if (decrement == 0) {
+        return *this;
+      }
+
+      iter -= ConvertCollapsedDeltaToOriginalDelta(decrement);
+
+      return *this;
+    }
+
+    bool operator==(const ConstIterator& other) const {
+      return iter == other.iter;
+    }
+  }; // End of ConstIterator
 
 // Iterator Callers --------------------------------
   ConstIterator begin() const {
-    return {this,
-            std::vector(getOrder(), 0),
-            false};
+    return {tensor_like_.begin(),
+            collapse_count_,
+            minor_jump_,
+            major_jump_};
   }
   ConstIterator end() const {
-    return {this,
-            std::vector(getOrder(), 0),
-            true};
+    return {tensor_like_.end(),
+            collapse_count_,
+            minor_jump_,
+            major_jump_};
   }
 // End of Iterator Callers -------------------------
 // End of Iterator -------------------------------------
