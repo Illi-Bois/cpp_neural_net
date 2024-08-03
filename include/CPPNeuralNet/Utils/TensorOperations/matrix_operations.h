@@ -9,8 +9,14 @@
 
 namespace cpp_nn {
 namespace util {
-namespace {
 
+// Forward Declaration ======================================
+template<typename T>
+class Tensor;
+// End of Forward Declaration ===============================
+
+
+namespace {
 /**
  *  multiplies two tensors with broadcasting applied. 
  *  That is, broadcasting is applied to first order-2 dimensions. 
