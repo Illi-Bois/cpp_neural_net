@@ -13,36 +13,23 @@ namespace cpp_nn {
  * 
  * Ideally, layers will also maintain last run deriviates for faster training.
 */
-template <typename DerivedLayer>
 class Layer {
  private:
   typedef util::Tensor<float> Tensor;
-  
- public:
-// CRTP ------------------------------------------------
-  DerivedLayer& getRef() {
-    return static_cast<DerivedLayer&>(*this);
-  }
-// End of CRTP -----------------------------------------
 
+ public:
 // NN Functions ----------------------------------------
 /** Forward Pass
  *  computes and returns forward pass on the layer.
  *  Stores necesssary values needed to compute gradient. 
  */
-  Tensor forward(const Tensor& input) {
-    // CRTP interface
-    return getRef().forward(input);
-  }
+  virtual Tensor forward(const Tensor& input) = 0;
 
 /** Backwards Pass
  *  Updates updatable paramaters based on last forward passed values.
  *  Returns gradient of cost relative to last input, ie. dC/dx where x is last input.
  */
-  Tensor backward(const Tensor& gradient) {
-    // CRTP interface
-    return getRef().backward(gradient);
-  }
+  virtual Tensor backward(const Tensor& gradient) = 0;
 // End of NN Functions ---------------------------------
 
 /**

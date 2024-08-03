@@ -8,7 +8,7 @@
 namespace cpp_nn {
 
 
-class LinearLayer : public Layer<LinearLayer> {
+class LinearLayer : public Layer {
  private:
   typedef util::Tensor<float> Tensor;
 
