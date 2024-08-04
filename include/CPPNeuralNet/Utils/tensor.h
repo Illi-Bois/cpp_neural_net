@@ -392,16 +392,32 @@ ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar,
  *  
  *  Requires that R and C are divisible by r and c.
  */
-template<typename T>
-Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col);
+template<typename T, typename Derived>
+Tensor<T> CutMatrix(const TensorLike<T, Derived>& tensor, int block_row, int block_col);
 /**
  *  merges back blocks of matrices into a single matrix.
  *  Can be considered as undoing the cut operation. 
  *  ie)
  *    [dim... R, C, r, c] -> [dim... R*r, C*c]
  */
-template<typename T>
-Tensor<T> MergeCutMatrix(const Tensor<T>& tensor);
+template<typename T, typename Derived>
+Tensor<T> MergeCutMatrix(const TensorLike<T, Derived>& tensor);
+
+// Derived Operations -----------------
+/**
+ * interpretes tensor as a vector, where vectors are n x 1 matrices.
+ * That is, a 1-dimensional axis is added to end of shape.
+ */
+template<typename T, typename Derived>
+ReshapeOperation<T, Derived> AsVector(const TensorLike<T, Derived>& tensor);
+/**
+ * interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
+ * In totality, is equiavalent to adding 1dim axis just before final axis.
+ * That is, a 1-dimensional axis is added to end of shape.
+ */
+template<typename T, typename Derived>
+ReshapeOperation<T, Derived> TransposeAsVector(const TensorLike<T, Derived>& tensor);
+// End of Derived Operations ----------
 // End of Special Tensor Operations --------------------
 
 //  TODO: consider defining external tranpose and reshape and padding as well. 
@@ -624,8 +640,8 @@ inline Tensor<T> Tensor<T>::AsTensor(const std::vector<T>& elements) {
 
 // Operations =================================================
 // TODO: make these TensorLike compatible?
-template<typename T>
-Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col) {
+template<typename T, typename Derived>
+Tensor<T> CutMatrix(const TensorLike<T, Derived>& tensor, int block_row, int block_col) {
   if (tensor.getOrder() < 2) {
     throw std::invalid_argument("Cut- Insufficient order");
   }
@@ -650,8 +666,8 @@ Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col) {
   return tensor.Reshape(cut_shape).Transpose(-2, -3);
 }
 
-template<typename T>
-Tensor<T> MergeCutMatrix(const Tensor<T>& tensor) {
+template<typename T, typename Derived>
+Tensor<T> MergeCutMatrix(const TensorLike<T, Derived>& tensor) {
   if (tensor.getOrder() < 4) {
     throw std::invalid_argument("Cut- Insufficient order for merge");
   }
@@ -665,6 +681,26 @@ Tensor<T> MergeCutMatrix(const Tensor<T>& tensor) {
   merged_shape.push_back(col * chunk_col_count);
   return tensor.Transpose(-2, -3).Reshape(merged_shape);
 }
+// Derived Operations -----------------
+/**
+ * interpretes tensor as a vector, where vectors are n x 1 matrices.
+ */
+template<typename T, typename Derived>
+ReshapeOperation<T, Derived> AsVector(const TensorLike<T, Derived>& tensor) {
+  std::vector<int> new_shape(tensor.getShape());
+  new_shape.push_back(1);
+  return tensor.Reshape(new_shape);
+}
+/**
+ * interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
+ */
+template<typename T, typename Derived>
+ReshapeOperation<T, Derived> TransposeAsVector(const TensorLike<T, Derived>& tensor) {
+  std::vector<int> new_shape(tensor.getShape());
+  new_shape.insert(new_shape.end() - 1, 1);
+  return tensor.Reshape(new_shape);
+}
+// End of Derived Operations ----------
 // End of Operations ==========================================
 
 // Extreneous ------------------------------------------
