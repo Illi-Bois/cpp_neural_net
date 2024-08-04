@@ -144,10 +144,25 @@ int main() {
 
 
   {
+    std::cout << "Mult!!!!!!!!!!!!" << std::endl;
+    using namespace cpp_nn::util;
+
+    Tensor<int> A({3, 2}, [val = 0]() mutable {return ++val;});
+    PrintTensor(A);
+    Tensor<int> B({2, 4}, [val = 0]() mutable {return 2 * ++val;});
+    PrintTensor(B);
+
+    Tensor<int> C = A*B;
+    std::cout << "Fin" << std::endl;
+    PrintTensor(C);
+
+  }
+
+  {
     std::cout << "As vector" << std::endl;
     using namespace cpp_nn::util;
 
-    Tensor<int> A({3}, [val = 0]() mutable {return val++;});
+    Tensor<int> A({3}, [val = 0]() mutable {return ++val;});
     PrintTensor(A);
 
     Tensor<int> B = AsVector(A);

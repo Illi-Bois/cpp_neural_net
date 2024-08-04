@@ -129,8 +129,7 @@ class MultiplicationOperation : public TensorLike<T, MultiplicationOperation<T, 
           // Reset A to start of row
           A_it -= interm;
           // rest to first row
-          B_it -= cols * (interm - 1)
-                  - 1; // Increment B to next col
+          B_it += 1 - cols * (interm - 1); // Increment B to next col
           ++it;
         } /// c Loop --
 
