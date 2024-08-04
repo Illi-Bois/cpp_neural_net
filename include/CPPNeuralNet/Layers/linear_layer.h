@@ -14,8 +14,8 @@ class LinearLayer : public Layer {
 
  public:
   LinearLayer(int input_size, int output_size);
-  Tensor forward(const Tensor& input);
-  Tensor backward(const Tensor& gradient);
+  Tensor forward(const Tensor& input)     override;
+  Tensor backward(const Tensor& gradient) override;
 
  private:
   Tensor weights_;

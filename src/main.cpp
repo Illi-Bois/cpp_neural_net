@@ -191,4 +191,48 @@ int main() {
     // Tensor<float> Av = D.SumAxis(0) / 2.0f;
     PrintTensor(Av);
   }
+
+
+  {
+    std::cout << "relu exploreation" << std::endl;
+
+    using namespace cpp_nn::util;
+
+    Tensor<float> lastIn = AsTensor<float>({
+      2.0f,
+      0.0f,
+      -1.0f,
+
+      1.0f,
+      1.0f,
+      -2.0f
+    }).Reshape({2, 3});
+    Tensor<float> gradient = AsTensor<float>({
+      1,
+      2,
+      3,
+
+      4,
+      5,
+      6
+    }).Reshape({2, 3});
+
+    auto func = [inpIt = lastIn.begin(), gradIt = gradient.begin()]
+                () mutable {
+      float res = (*inpIt > 0) ? *gradIt : 0;
+      ++inpIt;
+      ++gradIt;
+      return res;
+    };
+
+    Tensor<float> A(lastIn.getShape(), 
+                    [inpIt = lastIn.begin(), gradIt = gradient.begin()] () mutable {
+                      float res = (*inpIt > 0) ? *gradIt : 0;
+                      ++inpIt;
+                      ++gradIt;
+                      return res;
+                    });
+
+    PrintTensor(A);
+  }
 }
