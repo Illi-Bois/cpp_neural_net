@@ -1012,6 +1012,36 @@ TEST(UtilTensorOperation, Multiplying_Incredibly_large4) {
   // want only to see that this does not fail
 }
 #endif /* large-test*/
+
+
+TEST(UtilTensorOperation, Multiplication_of_Vectors_CrossProduct) {
+  using namespace cpp_nn::util;
+ 
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1,
+    2,
+    3
+  }).Reshape({3, 1}); 
+  Tensor<int> B = Tensor<int>::AsTensor({
+    1, 2, 3
+  }).Reshape({1, 3}); 
+
+  Tensor<int> C = A*B;
+
+  std::vector<int> expected = {
+    1, 2, 3,
+    2, 4, 6,
+    3, 6, 9
+  };
+
+  EXPECT_EQ(C.getShape(), std::vector<int>({3, 3}) );
+
+  auto it = C.begin();
+  for (int i : expected) {
+    EXPECT_EQ(i, *it);
+    ++it;
+  }
+}
 // END OF MULTIPLICATION =================================
 
 // RESHAPE ===============================================
