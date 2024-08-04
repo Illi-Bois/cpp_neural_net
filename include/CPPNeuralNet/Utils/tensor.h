@@ -160,6 +160,15 @@ class Tensor : public TensorLike<T, Tensor<T>> { // ============================
                  T padded_value = T()) const {
     return {*this, padded_dimensions, padded_value};
   }
+/**
+ *  sums Tensors along the given axis.
+ *  The axis then collapses and thus reduces the order by one. 
+ *  When Order is 1, then results in 1-Order 1-Dim tensor. 
+ */
+  inline AxisSummationOperation<T, Self>
+         SumAxis(int axis = 0) const {
+    return {*this, axis};
+  }
 // End of Modifiers ------------------------------------
 
 // Iterator --------------------------------------------
@@ -320,8 +329,17 @@ inline static Tensor<T> AsTensor(const std::vector<T>& elements);
  */
 template<typename T, typename HeldOperation1, 
                      typename HeldOperation2> 
-SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike<T, HeldOperation1>& A, 
+inline SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike<T, HeldOperation1>& A, 
                                                                 const TensorLike<T, HeldOperation2>& B) {
+  return {A, B};
+}
+/**
+ *  returns subtraction holder.
+ */
+template<typename T, typename HeldOperation1, 
+                     typename HeldOperation2> 
+inline SubtractionOperation<T, HeldOperation1, HeldOperation2> operator-(const TensorLike<T, HeldOperation1>& A, 
+                                                                  const TensorLike<T, HeldOperation2>& B) {
   return {A, B};
 }
 /**
@@ -329,21 +347,28 @@ SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike
  */
 template<typename T, typename HeldOperation1, 
                      typename HeldOperation2>
-MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const TensorLike<T, HeldOperation1>& A,
+inline MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const TensorLike<T, HeldOperation1>& A,
                                                                      const TensorLike<T, HeldOperation2>& B) {
   return{A, B};
 }
 
 template<typename T, typename HeldOperation>
-ScalarMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
+inline ScalarMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
                                                           const T scalar) {
   return {A, scalar};
 }
 
 template<typename T, typename HeldOperation>
-ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar, 
+inline ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar, 
                                                           const TensorLike<T, HeldOperation>& A) {
   return {A, scalar};
+}
+
+/* Division interpreted as product with inverse TODO: Consider letting division be its onw operatios */
+template<typename T, typename HeldOperation>
+inline ScalarMultiplicationOperation<T, HeldOperation> operator/(const TensorLike<T, HeldOperation>& A,
+                                                          const T scalar) {
+  return {A, 1 / scalar}; // TODOchange for better code
 }
 
 
@@ -374,16 +399,48 @@ ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar,
  *  
  *  Requires that R and C are divisible by r and c.
  */
-template<typename T>
-Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col);
+template<typename T, typename Derived>
+Tensor<T> CutMatrix(const TensorLike<T, Derived>& tensor, int block_row, int block_col);
 /**
  *  merges back blocks of matrices into a single matrix.
  *  Can be considered as undoing the cut operation. 
  *  ie)
  *    [dim... R, C, r, c] -> [dim... R*r, C*c]
  */
-template<typename T>
-Tensor<T> MergeCutMatrix(const Tensor<T>& tensor);
+template<typename T, typename Derived>
+Tensor<T> MergeCutMatrix(const TensorLike<T, Derived>& tensor);
+
+// Derived Operations -----------------
+/**
+ *  interpretes tensor as a vector, where vectors are n x 1 matrices.
+ *  That is, a 1-dimensional axis is added to end of shape.
+ */
+template<typename T, typename Derived>
+Tensor<T> AsVector(const TensorLike<T, Derived>& tensor);
+/**
+ *  interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
+ *  In totality, is equiavalent to adding 1dim axis just before final axis.
+ *  That is, a 1-dimensional axis is added to end of shape.
+ */
+template<typename T, typename Derived>
+Tensor<T> TransposeAsVector(const TensorLike<T, Derived>& tensor);
+/**
+ *  takes average over gixen axis. 
+ *  Equivalent to Summing over Axis then dividing by summed dimension. 
+ *  
+ *  Requires division of T by integer is valid.
+ */
+template<typename T, typename Derived>
+inline 
+Tensor<T> Average(const TensorLike<T, Derived>& tensor,
+                                                   int axis);
+
+/*!! TODO: The derived functinos return tensor, as returing nest of operations result in 
+        scope-breaking behaviour. However, we do not wan to always resolve to Tensor.
+        We would want to either:
+          1. make Macro functions
+          2. make DErived their own operationholder !!*/
+// End of Derived Operations ----------
 // End of Special Tensor Operations --------------------
 
 //  TODO: consider defining external tranpose and reshape and padding as well. 
@@ -484,27 +541,27 @@ Tensor<T>::Tensor(const TensorLike<T, Derived>& tensor_like) noexcept
       Therefore no data is messed with while equation is being resolved.
   */
   typedef typename Derived::ConstIterator Derived_ConstIterator;
-  Iterator iter = begin();
-  const Iterator end_iter = end();
-  Derived_ConstIterator other_iter = tensor_like.getRef().begin();
+  // Iterator iter = begin();
+  // const Iterator end_iter = end();
+  // Derived_ConstIterator other_iter = tensor_like.getRef().begin();
 
-  while (iter != end_iter) {
-    *iter = *other_iter;
-
-    ++iter;
-    ++other_iter;
-  }
-
-  // const Iterator front_iter = begin();
-  // Iterator iter = end();
-  // Derived_ConstIterator other_iter = tensor_like.getRef().end();
-
-  // while (iter != front_iter) {
-  //   --iter;
-  //   --other_iter;
-    
+  // while (iter != end_iter) {
   //   *iter = *other_iter;
+
+  //   ++iter;
+  //   ++other_iter;
   // }
+
+  const Iterator front_iter = begin();
+  Iterator iter = end();
+  Derived_ConstIterator other_iter = tensor_like.getRef().end();
+
+  while (iter != front_iter) {
+    --iter;
+    --other_iter;
+    
+    *iter = *other_iter;
+  }
 }
 
 // Psuedo-Specializations -------------------------
@@ -605,8 +662,9 @@ inline Tensor<T> Tensor<T>::AsTensor(const std::vector<T>& elements) {
 // End of Tensor DEFINITION =====================================
 
 // Operations =================================================
-template<typename T>
-Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col) {
+// TODO: make these TensorLike compatible?
+template<typename T, typename Derived>
+Tensor<T> CutMatrix(const TensorLike<T, Derived>& tensor, int block_row, int block_col) {
   if (tensor.getOrder() < 2) {
     throw std::invalid_argument("Cut- Insufficient order");
   }
@@ -631,8 +689,8 @@ Tensor<T> CutMatrix(const Tensor<T>& tensor, int block_row, int block_col) {
   return tensor.Reshape(cut_shape).Transpose(-2, -3);
 }
 
-template<typename T>
-Tensor<T> MergeCutMatrix(const Tensor<T>& tensor) {
+template<typename T, typename Derived>
+Tensor<T> MergeCutMatrix(const TensorLike<T, Derived>& tensor) {
   if (tensor.getOrder() < 4) {
     throw std::invalid_argument("Cut- Insufficient order for merge");
   }
@@ -646,6 +704,35 @@ Tensor<T> MergeCutMatrix(const Tensor<T>& tensor) {
   merged_shape.push_back(col * chunk_col_count);
   return tensor.Transpose(-2, -3).Reshape(merged_shape);
 }
+// Derived Operations -----------------
+/**
+ * interpretes tensor as a vector, where vectors are n x 1 matrices.
+ */
+template<typename T, typename Derived>
+Tensor<T> AsVector(const TensorLike<T, Derived>& tensor) {
+  std::vector<int> new_shape(tensor.getShape());
+  new_shape.push_back(1);
+  return tensor.Reshape(new_shape);
+}
+/**
+ * interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
+ */
+template<typename T, typename Derived>
+Tensor<T> TransposeAsVector(const TensorLike<T, Derived>& tensor) {
+  std::vector<int> new_shape(tensor.getShape());
+  new_shape.insert(new_shape.end() - 1, 1);
+  return tensor.Reshape(new_shape);
+}
+/**
+ *  takes average over gixen axis. 
+ */
+template<typename T, typename Derived>
+inline
+Tensor<T> Average(const TensorLike<T, Derived>& tensor,
+                                                   int axis) {
+  return tensor.SumAxis(axis) / (T)tensor.getDimension(axis);
+}
+// End of Derived Operations ----------
 // End of Operations ==========================================
 
 // Extreneous ------------------------------------------

@@ -336,6 +336,29 @@ void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
   }
 }
 
+void ComputeCapacityAndChunkSizes(std::vector<int>::const_iterator shape_begin,
+                                  std::vector<int>::const_iterator shape_end,
+                                  std::vector<int>& chunk_sizes,
+                                  size_t& capacity) {
+  std::vector<int>::iterator chunk_sizes_iter = chunk_sizes.end();
+  while (shape_end != (shape_begin + 1)) {
+    --shape_end;
+    --chunk_sizes_iter;
+    if (*shape_end > 0) {
+      *(chunk_sizes_iter - 1) = *chunk_sizes_iter * *shape_end;
+    } else {
+      throw std::invalid_argument("ChunkSize and Capacity- Non-positive dimension given");
+    }
+  }
+
+  --shape_end;
+  --chunk_sizes_iter;
+  if (*shape_end > 0) {
+    capacity = *chunk_sizes_iter * *shape_end;
+  } else {
+    throw std::invalid_argument("ChunkSize and Capacity- Non-positive dimension given");
+  }
+}
 std::vector<int> AddressToIndices(const std::vector<int>& shape, size_t address) noexcept {
   std::vector<int> res(shape.size(), 0);
   int curr_dim;

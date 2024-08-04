@@ -146,6 +146,12 @@ inline size_t SumIfNegative(int index, int capacity) noexcept {
 void ComputeCapacityAndChunkSizes(const std::vector<int>& shape,
                                   std::vector<int>& chunk_sizes,
                                   size_t& capacity);
+// TODO make better comment
+// Does the same as above, but with iterator c-style
+void ComputeCapacityAndChunkSizes(std::vector<int>::const_iterator shape_begin,
+                                  std::vector<int>::const_iterator shape_end,
+                                  std::vector<int>& chunk_sizes,
+                                  size_t& capacity);
 
 /**
  *  computes the indices corresponding to the address on the given dimension shape.
