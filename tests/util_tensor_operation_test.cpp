@@ -1199,6 +1199,360 @@ TEST(UtilTensorOperation, Padding_non_postive_dim) {
 // END OF PADDING ========================================
 
 
+// AXIS SUM TESTING ======================================
+TEST(UtilTensorOperation, AxisSum) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 1,
+    1, 1,
+    1, 1
+  }).Reshape({2, 3, 2});
+
+  Tensor<int> B = A.SumAxis(0);
+
+  std::vector<int> expected = {
+    2, 1,
+    3, 2,
+    4, 3
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({3, 2}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+TEST(UtilTensorOperation, AxisSum_Default) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 1,
+    1, 1,
+    1, 1
+  }).Reshape({2, 3, 2});
+
+  Tensor<int> B = A.SumAxis();
+
+  std::vector<int> expected = {
+    2, 1,
+    3, 2,
+    4, 3
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({3, 2}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+TEST(UtilTensorOperation, AxisSum_First_Order) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+  }).Reshape({3, 2});
+
+  Tensor<int> B = A.SumAxis(0);
+
+  std::vector<int> expected = {
+    6, 3
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({2}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+TEST(UtilTensorOperation, AxisSum_LastOrder) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 1,
+    1, 1,
+    1, 1,
+
+
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 0,
+    0, 1,
+    1, 1
+  }).Reshape({2, 2, 3, 2});
+
+  Tensor<int> B = A.SumAxis(-1);
+
+  std::vector<int> expected = {
+    1, 3, 5,
+    2, 2, 2,
+
+    1, 3, 5,
+    1, 1, 2
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({2, 2, 3}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+TEST(UtilTensorOperation, AxisSum_Middle_Order) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 1,
+    1, 1,
+    1, 1,
+
+
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 0,
+    0, 1,
+    1, 1
+  }).Reshape({2, 2, 3, 2});
+
+  Tensor<int> B = A.SumAxis(2);
+
+  std::vector<int> expected = {
+    6, 3,
+    3, 3,
+
+    6, 3,
+    2, 2
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({2, 2, 2}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+TEST(UtilTensorOperation, AxisSum_on_Only_Order) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 2, 3, 4, 5, 6, 7
+  });
+
+  Tensor<int> B = A.SumAxis();
+
+  std::vector<int> expected = {
+    28
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({1}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+TEST(UtilTensorOperation, AxisSum_Chained) {
+  // Assuming that once summing is correct we can easily test for chaining correctness
+  using namespace cpp_nn::util;
+
+  Tensor<int> A({2, 2, 3, 2}, [val = 0]() mutable {return val++;});
+
+  Tensor<int> Afirst = A.SumAxis(1);  // 2 3 2
+  Tensor<int> Asecond = A.SumAxis(2); // 2 3
+  Tensor<int> Athird = A.SumAxis(0); // 3
+  Tensor<int> Afourth = A.SumAxis(); // 1
+
+
+  Tensor<int> Bsecond =  A.SumAxis(1).SumAxis(2);
+  Tensor<int> Bthird =  A.SumAxis(1).SumAxis(2).SumAxis(0);
+  Tensor<int> Bfourth =  A.SumAxis(1).SumAxis(2).SumAxis(0).SumAxis();
+
+  {
+    EXPECT_EQ(Asecond.getShape(), Bsecond.getShape());
+    auto ait = Asecond.begin();
+    auto aend = Asecond.end();
+    auto bit = Bsecond.begin();
+
+    while (ait != aend) {
+      EXPECT_EQ(*ait, *bit);
+      ++ait;
+      ++bit;
+    }
+  }
+
+  {
+    EXPECT_EQ(Athird.getShape(), Bthird.getShape());
+    auto ait = Athird.begin();
+    auto aend = Athird.end();
+    auto bit = Bthird.begin();
+
+    while (ait != aend) {
+      EXPECT_EQ(*ait, *bit);
+      ++ait;
+      ++bit;
+    }
+  }
+
+  {
+    EXPECT_EQ(Afourth.getShape(), Bfourth.getShape());
+    auto ait = Afourth.begin();
+    auto aend = Afourth.end();
+    auto bit = Bfourth.begin();
+
+    while (ait != aend) {
+      EXPECT_EQ(*ait, *bit);
+      ++ait;
+      ++bit;
+    }
+  }
+}
+TEST(UtilTensorOperation, AxisSum_on_One_dimension) {
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    2, 4, 2,
+
+    1, 3, 3
+  }).Reshape({2, 1,3});
+
+  Tensor<int> B = A.SumAxis(1);
+
+  std::vector<int> expected = {
+    2, 4, 2,
+    1, 3, 3
+  };
+
+  EXPECT_EQ(B.getShape(), std::vector<int>({2, 3}));
+
+  auto it = B.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+
+
+TEST(UtilTensorOperation, AxisSum_to_self1) {
+  // from LastORder
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 1,
+    1, 1,
+    1, 1,
+
+
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 0,
+    0, 1,
+    1, 1
+  }).Reshape({2, 2, 3, 2});
+
+  A = A.SumAxis(-1);
+
+  std::vector<int> expected = {
+    1, 3, 5,
+    2, 2, 2,
+
+    1, 3, 5,
+    1, 1, 2
+  };
+
+  EXPECT_EQ(A.getShape(), std::vector<int>({2, 2, 3}));
+
+  auto it = A.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+TEST(UtilTensorOperation, AxisSum_to_self2) {
+  // from middle order
+  using namespace cpp_nn::util;
+
+  Tensor<int> A = Tensor<int>::AsTensor({
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 1,
+    1, 1,
+    1, 1,
+
+
+    1, 0,
+    2, 1,
+    3, 2,
+
+    1, 0,
+    0, 1,
+    1, 1
+  }).Reshape({2, 2, 3, 2});
+
+  A = A.SumAxis(2);
+
+  std::vector<int> expected = {
+    6, 3,
+    3, 3,
+
+    6, 3,
+    2, 2
+  };
+
+  EXPECT_EQ(A.getShape(), std::vector<int>({2, 2, 2}));
+
+  auto it = A.begin();
+  for (auto i : expected) {
+    EXPECT_EQ(*it, i);
+    ++it;
+  }
+}
+// END OF AXIS SUM TESTING ===============================
+
 
 // MULTIPLE OPERATION CHAINED ============================
 TEST(UtilTensorOperation, Chaining_Different_Operations) {
