@@ -1394,10 +1394,10 @@ TEST(UtilTensorOperation, AxisSum_Chained) {
 
   Tensor<int> A({2, 2, 3, 2}, [val = 0]() mutable {return val++;});
 
-  Tensor<int> Afirst = A.SumAxis(1);  // 2 3 2
-  Tensor<int> Asecond = A.SumAxis(2); // 2 3
-  Tensor<int> Athird = A.SumAxis(0); // 3
-  Tensor<int> Afourth = A.SumAxis(); // 1
+  Tensor<int> Afirst = A.SumAxis(1);        // 2 3 2
+  Tensor<int> Asecond = Afirst.SumAxis(2);  // 2 3
+  Tensor<int> Athird = Asecond.SumAxis(0);  // 3
+  Tensor<int> Afourth = Athird.SumAxis();   // 1
 
 
   Tensor<int> Bsecond =  A.SumAxis(1).SumAxis(2);

@@ -798,7 +798,7 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
         collapse_axis_(SumIfNegative(axis, tensor_like_.getOrder())),
         collapsed_shape_(tensor_like_.getOrder() - 1),
         collapse_count_(tensor_like_.getDimension(collapse_axis_)),
-        minor_jump_(std::accumulate(tensor_like_.getShape().begin() + axis + 1, 
+        minor_jump_(std::accumulate(tensor_like_.getShape().begin() + collapse_axis_ + 1, 
                                     tensor_like_.getShape().end(), 
                                     1, std::multiplies<int>())),
         major_jump_(minor_jump_ * collapse_count_),
@@ -811,11 +811,11 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
       collapsed_shape_.push_back(1);
     } else {
       int collpased_idx = 0;
-      for (int i = 0; i < axis; ++i) {
+      for (int i = 0; i < collapse_axis_; ++i) {
         collapsed_shape_[collpased_idx] = tensor_like_.getDimension(i);
         ++collpased_idx;
       }
-      for (int i = axis + 1; i < tensor_like_.getOrder(); ++i) {
+      for (int i = collapse_axis_ + 1; i < tensor_like_.getOrder(); ++i) {
         collapsed_shape_[collpased_idx] = tensor_like_.getDimension(i);
         ++collpased_idx;
       }
@@ -862,53 +862,30 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
     size_t minor_jump_; 
     size_t major_jump_; 
 
-    /* converts delta, meaning increment or decrement, in collapsed shape
-     *  to delta on original shape
-     */
-    inline int ConvertCollapsedDeltaToOriginalDelta(int delta) {
-      int minor_delta = delta % minor_jump_;
-      delta -= minor_delta;
-      // delta *= major_jump_;
-      // TODO: NEEDS DEBUGGING
-      delta *= collapse_count_;
-      delta += minor_delta;
-
-      return delta;
-    }
+    // Position within the minor shape. BEgin and End both start at 0.
+    int minor_idx_;
    public:
     ConstIterator(HeldIterator iter,
                   size_t collapse_count,
                   size_t minor_jump,
-                  size_t major_jump)
+                  size_t major_jump,
+                  size_t minor_idx)
         : iter(iter),
           collapse_count_(collapse_count),
           minor_jump_(minor_jump),
-          major_jump_(major_jump) {}
+          major_jump_(major_jump),
+          minor_idx_(minor_idx) {}
 
-    T operator*() {
-      // Jump and sum 
-      T sum = 0;
-      for (int i = 0; i < collapse_count_ - 1; ++i) {
-        sum += *iter;
-        iter += minor_jump_;
-      }
-      sum += *iter;
-      // Return to Minor Head
-      iter -= static_cast<int>(collapse_count_ - 1) * static_cast<int>(minor_jump_);
-      return sum;
-    }
     T operator*() const {
       // Ideally would not 
-      HeldIterator iter = this->iter;
+      HeldIterator curr_iter = this->iter;
       // Jump and sum 
       T sum = 0;
       for (int i = 0; i < collapse_count_ - 1; ++i) {
-        sum += *iter;
-        iter += minor_jump_;
+        sum += *curr_iter;
+        curr_iter += minor_jump_;
       }
-      sum += *iter;
-      // Return to Minor Head
-      iter -= static_cast<int>(collapse_count_ - 1) * static_cast<int>(minor_jump_);
+      sum += *curr_iter;
       return sum;
     }
 
@@ -920,10 +897,24 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
         return *this;
       }
 
-      iter += ConvertCollapsedDeltaToOriginalDelta(increment);
+      int incr_within_minor_block = increment % minor_jump_;
+      increment -= incr_within_minor_block;
 
+      if (minor_idx_ + incr_within_minor_block >= minor_jump_) {
+        // Carry down
+        increment += minor_jump_;
+        incr_within_minor_block -= minor_jump_;
+      }
+      // update minor-position
+      minor_idx_ += incr_within_minor_block;
+
+      increment *= collapse_count_;
+      increment += incr_within_minor_block;
+
+      iter += increment;
       return *this;
     }
+
     ConstIterator& operator-=(int decrement) {
       // Early exits
       if (decrement < 0) {
@@ -932,8 +923,21 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
         return *this;
       }
 
-      iter -= ConvertCollapsedDeltaToOriginalDelta(decrement);
+      int decr_within_minor_block = decrement % minor_jump_;
+      decrement -= decr_within_minor_block;
 
+      if (minor_idx_ - decr_within_minor_block < 0) {
+        // Carry down
+        decrement += minor_jump_;
+        decr_within_minor_block -= minor_jump_;
+      }
+      // update minor-position
+      minor_idx_ -= decr_within_minor_block;
+
+      decrement *= collapse_count_; // decrement is associated with major jump, as minor travel is cut out
+      decrement += decr_within_minor_block; // add bck the minor travel
+
+      iter -= decrement;
       return *this;
     }
 
@@ -947,13 +951,15 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
     return {tensor_like_.begin(),
             collapse_count_,
             minor_jump_,
-            major_jump_};
+            major_jump_,
+            0};
   }
   ConstIterator end() const {
     return {tensor_like_.end(),
             collapse_count_,
             minor_jump_,
-            major_jump_};
+            major_jump_,
+            0};
   }
 // End of Iterator Callers -------------------------
 // End of Iterator -------------------------------------

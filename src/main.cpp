@@ -103,30 +103,42 @@ int main() {
   }
 
   {
-    std::cout << "SUBSUB" << std::endl;
-    Tensor<int> A({3, 2}, [val=0]()mutable {return val++;});
-    std::cout << "A" << std::endl;
-    PrintTensor(A);
+    std::cout << "TESTING" << std::endl;
+  // Assuming that once summing is correct we can easily test for chaining correctness
+  using namespace cpp_nn::util;
 
-    Tensor<int> Zero = A.SumAxis();
-    std::cout << "Zero" << std::endl;
-    PrintTensor(Zero);
+  Tensor<int> A({2, 2, 3, 2}, [val = 0]() mutable {return val++;});
 
-    Tensor<int> One = A.SumAxis(1);
-    std::cout << "One" << std::endl;
-    PrintTensor(One);
+  Tensor<int> Afirst = A.SumAxis(1);  // 2 3 2
+  Tensor<int> Asecond = Afirst.SumAxis(2); // 2 3
+  Tensor<int> Athird = Asecond.SumAxis(0); // 3
+  Tensor<int> Afourth = Athird.SumAxis(); // 1
+
+  Tensor<int> Bsecond =  A.SumAxis(1).SumAxis(2);
+  
+  std::cout << "FOR B" << std::endl << std::endl;
+  Tensor<int> Bthird =  A.SumAxis(1).SumAxis(2).SumAxis(0);
+  // Tensor<int> Bfourth =  A.SumAxis(1).SumAxis(2).SumAxis(0).SumAxis();
+
+  std::cout << std::endl;
+  std::cout << "A" << std::endl;
+  PrintTensor(A);
+  std::cout << "Afirst" << std::endl;
+  PrintTensor(Afirst);
+  std::cout << "Asecond" << std::endl;
+  PrintTensor(Asecond);
+  std::cout << "Athird" << std::endl;
+  PrintTensor(Athird);
+  // std::cout << "Afourth" << std::endl;
+  // PrintTensor(Afourth);
 
 
-    // Tensor<int> Bn = A.SumAxis(1).Transpose(0, 1);
-    // std::cout << "Bn" << std::endl;
-    // PrintTensor(Bn);
-
-    // Tensor<int> Bm = Bn.SumAxis(0);
-    // std::cout << "Bm" << std::endl;
-    // PrintTensor(Bm);
-
-    // Tensor<int> B = A.SumAxis(1).Transpose().SumAxis();
-    // std::cout << "B" << std::endl;
-    // PrintTensor(B);
+  std::cout << std::endl;
+  std::cout << "Bsecond" << std::endl;
+  PrintTensor(Bsecond);
+  std::cout << "Bthird" << std::endl;
+  PrintTensor(Bthird);
+  // std::cout << "Bfourth" << std::endl;
+  // PrintTensor(Bfourth);
   }
 }
