@@ -17,15 +17,14 @@ LinearLayer::Tensor LinearLayer::forward(const LinearLayer::Tensor& input) {
 }
 
 util::Tensor<float> LinearLayer::backward(const util::Tensor<float>& gradient) {
-//   // TODO: AVERGAE NEEDS TO BE IMPLEMENTED
-//   // Biase Update
-//   biases_ = biases_ - gradient.AverageVectors(); // TODO NEED TO IMPLEMENT AVEAGE
+  // Biase Update
+  biases_ = biases_ - Average(gradient, 0); // TODO NEED TO IMPLEMENT AVEAGE
 
-//   // Weight Update
-//   weights_ = weights_ - (gradient.VectorAsMatrix() * last_input_.VectorTranspose()).AverageMatrices();
+  // Weight Update
+  weights_ = weights_ - Average(AsVector(gradient) * TransposeAsVector(last_input_), 0);
   
-//   // pass gradient
-//   // TODO: should the gradient be relative to new or old layer? right now, using new Weights
+  // pass gradient
+  // TODO: should the gradient be relative to new or old layer? right now, using new Weights
   return weights_ * gradient;
 }
 
