@@ -329,7 +329,7 @@ inline static Tensor<T> AsTensor(const std::vector<T>& elements);
  */
 template<typename T, typename HeldOperation1, 
                      typename HeldOperation2> 
-SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike<T, HeldOperation1>& A, 
+inline SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike<T, HeldOperation1>& A, 
                                                                 const TensorLike<T, HeldOperation2>& B) {
   return {A, B};
 }
@@ -338,7 +338,7 @@ SummationOperation<T, HeldOperation1, HeldOperation2> operator+(const TensorLike
  */
 template<typename T, typename HeldOperation1, 
                      typename HeldOperation2> 
-SubtractionOperation<T, HeldOperation1, HeldOperation2> operator-(const TensorLike<T, HeldOperation1>& A, 
+inline SubtractionOperation<T, HeldOperation1, HeldOperation2> operator-(const TensorLike<T, HeldOperation1>& A, 
                                                                   const TensorLike<T, HeldOperation2>& B) {
   return {A, B};
 }
@@ -347,21 +347,28 @@ SubtractionOperation<T, HeldOperation1, HeldOperation2> operator-(const TensorLi
  */
 template<typename T, typename HeldOperation1, 
                      typename HeldOperation2>
-MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const TensorLike<T, HeldOperation1>& A,
+inline MultiplicationOperation<T, HeldOperation1, HeldOperation2> operator*(const TensorLike<T, HeldOperation1>& A,
                                                                      const TensorLike<T, HeldOperation2>& B) {
   return{A, B};
 }
 
 template<typename T, typename HeldOperation>
-ScalarMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
+inline ScalarMultiplicationOperation<T, HeldOperation> operator*(const TensorLike<T, HeldOperation>& A,
                                                           const T scalar) {
   return {A, scalar};
 }
 
 template<typename T, typename HeldOperation>
-ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar, 
+inline ScalarMultiplicationOperation<T, HeldOperation> operator*(const T scalar, 
                                                           const TensorLike<T, HeldOperation>& A) {
   return {A, scalar};
+}
+
+/* Division interpreted as product with inverse TODO: Consider letting division be its onw operatios */
+template<typename T, typename HeldOperation>
+inline ScalarMultiplicationOperation<T, HeldOperation> operator/(const TensorLike<T, HeldOperation>& A,
+                                                          const T scalar) {
+  return {A, 1 / scalar}; // TODOchange for better code
 }
 
 
@@ -405,18 +412,34 @@ Tensor<T> MergeCutMatrix(const TensorLike<T, Derived>& tensor);
 
 // Derived Operations -----------------
 /**
- * interpretes tensor as a vector, where vectors are n x 1 matrices.
- * That is, a 1-dimensional axis is added to end of shape.
+ *  interpretes tensor as a vector, where vectors are n x 1 matrices.
+ *  That is, a 1-dimensional axis is added to end of shape.
  */
 template<typename T, typename Derived>
-ReshapeOperation<T, Derived> AsVector(const TensorLike<T, Derived>& tensor);
+Tensor<T> AsVector(const TensorLike<T, Derived>& tensor);
 /**
- * interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
- * In totality, is equiavalent to adding 1dim axis just before final axis.
- * That is, a 1-dimensional axis is added to end of shape.
+ *  interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
+ *  In totality, is equiavalent to adding 1dim axis just before final axis.
+ *  That is, a 1-dimensional axis is added to end of shape.
  */
 template<typename T, typename Derived>
-ReshapeOperation<T, Derived> TransposeAsVector(const TensorLike<T, Derived>& tensor);
+Tensor<T> TransposeAsVector(const TensorLike<T, Derived>& tensor);
+/**
+ *  takes average over gixen axis. 
+ *  Equivalent to Summing over Axis then dividing by summed dimension. 
+ *  
+ *  Requires division of T by integer is valid.
+ */
+template<typename T, typename Derived>
+inline 
+Tensor<T> Average(const TensorLike<T, Derived>& tensor,
+                                                   int axis);
+
+/*!! TODO: The derived functinos return tensor, as returing nest of operations result in 
+        scope-breaking behaviour. However, we do not wan to always resolve to Tensor.
+        We would want to either:
+          1. make Macro functions
+          2. make DErived their own operationholder !!*/
 // End of Derived Operations ----------
 // End of Special Tensor Operations --------------------
 
@@ -686,7 +709,7 @@ Tensor<T> MergeCutMatrix(const TensorLike<T, Derived>& tensor) {
  * interpretes tensor as a vector, where vectors are n x 1 matrices.
  */
 template<typename T, typename Derived>
-ReshapeOperation<T, Derived> AsVector(const TensorLike<T, Derived>& tensor) {
+Tensor<T> AsVector(const TensorLike<T, Derived>& tensor) {
   std::vector<int> new_shape(tensor.getShape());
   new_shape.push_back(1);
   return tensor.Reshape(new_shape);
@@ -695,10 +718,19 @@ ReshapeOperation<T, Derived> AsVector(const TensorLike<T, Derived>& tensor) {
  * interpretes tensor as a vector, where vectors are n x 1 matrices, then tranposes it.
  */
 template<typename T, typename Derived>
-ReshapeOperation<T, Derived> TransposeAsVector(const TensorLike<T, Derived>& tensor) {
+Tensor<T> TransposeAsVector(const TensorLike<T, Derived>& tensor) {
   std::vector<int> new_shape(tensor.getShape());
   new_shape.insert(new_shape.end() - 1, 1);
   return tensor.Reshape(new_shape);
+}
+/**
+ *  takes average over gixen axis. 
+ */
+template<typename T, typename Derived>
+inline
+Tensor<T> Average(const TensorLike<T, Derived>& tensor,
+                                                   int axis) {
+  return tensor.SumAxis(axis) / (T)tensor.getDimension(axis);
 }
 // End of Derived Operations ----------
 // End of Operations ==========================================

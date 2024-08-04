@@ -194,10 +194,12 @@ class ScalarMultiplicationOperation : public TensorLike<T, ScalarMultiplicationO
   const T scalar_;
 
 public:
-  ScalarMultiplicationOperation(const TensorLike<T, HeldOperation>& A,
+  ScalarMultiplicationOperation(const TensorLike<T, HeldOperation>& tensor_like,
                                 T scalar)
-    : tensor_like_(A.getRef()),
-      scalar_(scalar) {};
+    : tensor_like_(tensor_like.getRef()),
+      scalar_(scalar) {
+    std::cout << "GOT" << std::endl;
+  }
   inline const std::vector<int>& getShape() const noexcept {
     return tensor_like_.getShape();
   } 
@@ -226,11 +228,13 @@ public:
       : it_(it), scalar_(scalar) {}
     
     T operator*() const {
+      std::cout << "ACC " << *it_ << std::endl;
       return *it_ * scalar_;
     }
 
     ConstIterator& operator+=(int increment) {
       it_ += increment;
+      std::cout << "ACC " << *it_ << std::endl;
       return *this;
     }
     ConstIterator& operator-=(int decrement) {

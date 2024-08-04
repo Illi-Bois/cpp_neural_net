@@ -162,28 +162,33 @@ int main() {
     std::cout << "As vector" << std::endl;
     using namespace cpp_nn::util;
 
-    Tensor<int> A({3}, [val = 0]() mutable {return ++val;});
+    Tensor<float> A({3}, [val = 0]() mutable {return ++val;});
     PrintTensor(A);
 
-    Tensor<int> B = AsVector(A);
+    Tensor<float> B = AsVector(A);
     for (auto i : B.getShape()) {
       std::cout << i << ", ";
     }
     std::cout << std::endl;
     PrintTensor(B);
 
-    Tensor<int> C = TransposeAsVector(A);
+    Tensor<float> C = TransposeAsVector(A);
     for (auto i : C.getShape()) {
       std::cout << i << ", ";
     }
     std::cout << std::endl;
     PrintTensor(C);
 
-    Tensor<int> D = B * C;
+    Tensor<float> D = B * C;
     for (auto i : D.getShape()) {
       std::cout << i << ", ";
     }
     std::cout << std::endl;
     PrintTensor(D);
+
+
+    Tensor<float> Av = Average<float, Tensor<float>>(D, 0);
+    // Tensor<float> Av = D.SumAxis(0) / 2.0f;
+    PrintTensor(Av);
   }
 }
