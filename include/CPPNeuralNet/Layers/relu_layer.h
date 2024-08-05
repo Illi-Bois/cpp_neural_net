@@ -14,6 +14,10 @@ private:
   util::Tensor<float> last_input_;
 
 public:
+// Constructor -----------------------------------------
+  ReLU();
+// End of Constructor ----------------------------------
+
   Tensor forward(const Tensor& input)     override;
   Tensor backward(const Tensor& gradient) override;
 };

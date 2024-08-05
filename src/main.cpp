@@ -10,10 +10,13 @@
 #include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/Utils/utils.h"
 
+#include "CPPNeuralNet/Layers/relu_layer.h"
+
 
 
 int main() {
   using namespace cpp_nn::util;
+  using namespace cpp_nn;
 
   Tensor<float> A({3, 2, 3}, [val = 0]() mutable {return ++val;});
   std::cout << "A" << std::endl;
@@ -30,4 +33,23 @@ int main() {
                             });
   std::cout << "C" << std::endl;
   PrintTensor(C);
+
+  ReLU relu;
+
+  Tensor<float> OK({2, 3, 4}, [val = 1]()mutable {
+                                val *= -2;
+                                return val;  
+                              });
+
+  Tensor<float> grad({2, 3, 4}, [val = 1]()mutable {
+                                val *= 3;
+                                return val;  
+                              });
+  PrintTensor(OK);
+  Tensor<float> DK = relu.forward(OK);
+  PrintTensor(DK);
+
+  PrintTensor(grad);
+  Tensor<float> PK = relu.backward(grad);
+  PrintTensor(PK);
 }
