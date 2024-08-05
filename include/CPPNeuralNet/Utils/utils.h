@@ -4,6 +4,8 @@
 
 #include <vector>
 #include <utility>
+#include <cmath>
+
 
 namespace cpp_nn {
 namespace util {
@@ -218,6 +220,12 @@ size_t OriginalAddressToTransposedAddress(size_t transposed_address,
                                          const int dim1, const int chunk1,
                                          const int dim2, const int chunk2) noexcept;
 // End of Tranpose Address Operations ==========================
+
+// Numeric Functions ===========================================
+inline float SigmoidFucntion(float x) {
+  return 1 / (1 + std::exp(-(x)));
+}
+// End of Numeric Functions ====================================
 
 } // util
 } // cpp_nn

@@ -4,7 +4,6 @@
 #include "CPPNeuralNet/Utils/utils.h"
 #include "CPPNeuralNet/Utils/tensor.h"
 #include "CPPNeuralNet/layer.h"
-#include <cmath>
 
 namespace cpp_nn {
 
@@ -15,6 +14,10 @@ private:
   util::Tensor<float> last_output_;
 
 public:
+// Constructor -----------------------------------------
+  Sigmoid();
+// End of Constructor ----------------------------------
+
   Tensor forward(const Tensor& input)     override;
   Tensor backward(const Tensor& gradient) override;
 };

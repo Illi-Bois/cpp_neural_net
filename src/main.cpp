@@ -11,6 +11,7 @@
 #include "CPPNeuralNet/Utils/utils.h"
 
 #include "CPPNeuralNet/Layers/relu_layer.h"
+#include "CPPNeuralNet/Layers/sigmoid_layer.h"
 
 
 
@@ -52,4 +53,16 @@ int main() {
   PrintTensor(grad);
   Tensor<float> PK = relu.backward(grad);
   PrintTensor(PK);
+
+  Sigmoid sig;
+  Tensor<float> sK = sig.forward(PK);
+  std::cout << "SK" << std::endl;
+  PrintTensor(sK);
+
+
+  Tensor<float> one({2, 3, 4}, 1);
+  Tensor<float> sKg = sig.backward(one);
+  std::cout << "baK" << std::endl;
+  PrintTensor(sKg);
+
 }
