@@ -12,6 +12,7 @@
 
 #include "CPPNeuralNet/Layers/relu_layer.h"
 #include "CPPNeuralNet/Layers/sigmoid_layer.h"
+#include "CPPNeuralNet/Layers/linear_layer.h"
 
 
 
@@ -64,5 +65,40 @@ int main() {
   Tensor<float> sKg = sig.backward(one);
   std::cout << "baK" << std::endl;
   PrintTensor(sKg);
+
+  LinearLayer lin(20, 15);
+
+  Tensor<float> vec({20}, [val=0]()mutable {
+                            val++;
+                            return (val > 5) ? 0 : 2;
+                          });
+
+  std::cout << "VEC" << std::endl;
+  PrintTensor(vec);
+  // Tensor<float> vecVec = AsVector(vec);
+  // std::cout << "VECVEC" << std::endl;
+  // PrintTensor(vecVec);
+  // Tensor<float> vecVecVec = AsVector(vecVec);
+  // std::cout << "vecVecVec" << std::endl;
+  // PrintTensor(vecVecVec);
+
+  // Tensor<float> un = CollapseEnd(vec);
+  // Tensor<float> unun = CollapseEnd(vecVec);
+  // Tensor<float> ununun = CollapseEnd(vecVecVec);
+
+  // std::cout << "un" << std::endl;
+  // PrintTensor(un);
+  // std::cout << "unun" << std::endl;
+  // PrintTensor(unun);
+  // std::cout << "ununun" << std::endl;
+  // PrintTensor(ununun);
+
+  Tensor<float> out = lin.forward(vec);
+  PrintTensor(out);
+
+  Tensor<float> grad2 = lin.backward(out);
+  PrintTensor(grad2);
+
+
 
 }
