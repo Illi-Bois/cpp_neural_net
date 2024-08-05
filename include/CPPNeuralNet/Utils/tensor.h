@@ -371,6 +371,25 @@ inline ScalarMultiplicationOperation<T, HeldOperation> operator/(const TensorLik
   return {A, 1 / scalar}; // TODOchange for better code
 }
 
+/* Given a tensor and a function on the elements, apply the function to each element */
+template<typename T, typename HeldOperation>
+inline ElementOperation<T, HeldOperation> Apply(const TensorLike<T, HeldOperation>& A,
+                                                 const std::function<T(T)> operation) {
+  return {A, operation};
+}
+
+/* Given two tensors and bi-variate function, apply the function element-wise.
+    When shapes are mismatched, apply Broadcasting. */
+template<typename T, typename HeldOperation1, typename HeldOperation2>
+inline ElementwiseOperation<T, 
+                            HeldOperation1, 
+                            HeldOperation2> Apply(const TensorLike<T, HeldOperation1>& A,
+                                                  const TensorLike<T, HeldOperation2>& B,
+                                                  const std::function<T(T, T)> operation) {
+  return {A, B, operation};
+}
+
+
 
 
 // Special Tensor Operations ---------------------------

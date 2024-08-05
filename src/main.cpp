@@ -19,15 +19,15 @@ int main() {
   std::cout << "A" << std::endl;
   PrintTensor(A);
 
-  Tensor<float> B = ElementOperation<float, Tensor<float>>(A, [](float a) {return a * 2;});
+  Tensor<float> B = Apply<float, decltype(A)>(A, [](float a) {return a * 2;});
   std::cout << "B" << std::endl;
   PrintTensor(B);
 
 
-  Tensor<float> C = ElementwiseOperation<float, Tensor<float>, Tensor<float>>(A, B, [](float a, float b)
-                                                                                       {
-                                                                                         return a > 5 ? b : 0;
-                                                                                       });
+  Tensor<float> C = Apply<float, decltype(A), decltype(B)>(A, B, [](float a, float b)->float
+                            {
+                              return a > 5 ? b : 0;
+                            });
   std::cout << "C" << std::endl;
   PrintTensor(C);
 }
