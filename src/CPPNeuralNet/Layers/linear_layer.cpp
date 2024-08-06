@@ -10,9 +10,7 @@ LinearLayer::LinearLayer(int input_size, int output_size)
     : weights_({output_size, input_size}, [input_size]() {
           float u1 = static_cast<float>(std::rand()) / RAND_MAX;
           float u2 = static_cast<float>(std::rand()) / RAND_MAX;
-          float r = std::sqrt(-2.0f * std::log(u1));
-          float standard_normal = r * std::sin(2.0f * M_PI * u2);
-          return standard_normal * std::sqrt(2.0f / input_size);
+          return std::sqrt(-2.0f * std::log(u1)) * std::sin(2.0f * M_PI * u2) * std::sqrt(2.0f / input_size);
 
     }), // TODO: Initializer Generator as random?
       biases_({output_size}),

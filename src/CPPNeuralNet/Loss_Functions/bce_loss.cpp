@@ -13,9 +13,8 @@ BinaryCrossEntropyLoss::Tensor BinaryCrossEntropyLoss::tensor_log(const Tensor& 
 
 float BinaryCrossEntropyLoss::compute_loss(const Tensor& predictions, const Tensor& targets) const {
   Tensor log_pred = tensor_log(predictions);
-  Tensor b(predictions.getShape(), 1.0f);
-  Tensor log_1_minus_pred = tensor_log(predictions * (-1.0f) + b);
-  Tensor loss = ((targets * log_pred) + ((targets * (-1.0f) + b) * log_1_minus_pred)) * (-1.0f);
+  Tensor log_1_minus_pred = tensor_log(Tensor(predictions.getShape(), 1.0f) - predictions);
+  Tensor loss = (targets * log_pred + (Tensor(targets.getShape(), 1.0f) - targets) * log_1_minus_pred) * (-1.0f);
   
   float sum = 0.0f;
   for (auto it = loss.begin(); it != loss.end(); ++it) {
@@ -25,10 +24,25 @@ float BinaryCrossEntropyLoss::compute_loss(const Tensor& predictions, const Tens
 }
 
 BinaryCrossEntropyLoss::Tensor BinaryCrossEntropyLoss::compute_gradient(const Tensor& predictions, const Tensor& targets) const {
-    /**
-     * would be (predictions - targets) / (predicitions * (1-predictions)) 
-     * divided by predictions.getCapacity? implement after element wise subtraction
-     */
+  /**
+   * would be (predictions - targets) / (predicitions * (1-predictions)) 
+   * divided by predictions.getCapacity? implement after element wise subtraction
+   */
+  Tensor gradient(predictions.getShape());
+  auto it_grad = gradient.begin();
+  auto it_pred = predictions.begin();
+  auto it_target = targets.begin();
+  
+  for (; it_grad != gradient.end(); ++it_grad, ++it_pred, ++it_target) {
+      *it_grad = (*it_pred - *it_target) / (*it_pred * (1.0f - *it_pred));
+  }
+  
+  float scale = 1.0f / static_cast<float>(predictions.getCapacity());
+  for (auto it = gradient.begin(); it != gradient.end(); ++it) {
+      *it *= scale;
+  }
+  
+  return gradient;
 }
 
 } // namespace cpp_nn
