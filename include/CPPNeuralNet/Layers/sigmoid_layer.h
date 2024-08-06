@@ -1,29 +1,45 @@
-// #ifndef CPP_NN_LAYER_SIGMOID
-// #define CPP_NN_LAYER_SIGMOID
+#ifndef CPP_NN_LAYER_SIGMOID
+#define CPP_NN_LAYER_SIGMOID
 
-// #include "CPPNeuralNet/Utils/utils.h"
-// #include "CPPNeuralNet/Utils/tensor.h"
-// #include "CPPNeuralNet/layer.h"
-// #include <cmath>
+#include "CPPNeuralNet/Utils/utils.h"
+#include "CPPNeuralNet/Utils/tensor.h"
+#include "CPPNeuralNet/layer.h"
 
-// namespace cpp_nn {
+namespace cpp_nn {
 
-// class Sigmoid : public Layer {
-// private:
-//     util::Tensor<float> last_input;
-//     util::Tensor<float> last_output;
+class Sigmoid : public Layer {
+private:
+  typedef util::Tensor<float> Tensor;
 
-// public:
-//     Sigmoid() = default;
-//     ~Sigmoid() override = default;
+  util::Tensor<float> last_output_;
 
-//     util::Tensor<float> forward(const util::Tensor<float>& input) override;
-//     util::Tensor<float> backward(const util::Tensor<float>& gradient) override;
-//     void update_parameters(float learning_rate) override;
-//     void save_gradients() override;
-//     void clear_gradients() override;
-// };
+public:
+// Constructor -----------------------------------------
+  Sigmoid();
+// End of Constructor ----------------------------------
 
-// } // namespace cpp_nn
+  Tensor forward(const Tensor& input)     override;
+  Tensor backward(const Tensor& gradient) override;
+};
 
-// #endif // CPP_NN_LAYER_SIGMOID
+/**
+ *  Background.
+ * 
+ *  Sigmoid is motivated by trying to 'normalize' or contain
+ *    the possibly infinite input within 0 and 1.
+ *  Sigmoid is element-wise function defined
+ *    f(x) = 1 / (1 + e^-x)
+ *  This is chosen as its derivitive is simply defined in terms of itself:
+ *   f'(x) = f(x) * (1 - f(x))
+ *  
+ *  with y = L(x) = f(x)
+ *      dy/dx = y * (1 - y)
+ *  so element-wise
+ *      dC/dx = dC/dy * y * (1 - y)
+ *  
+ *  Note that unlike ReLU the last Output needs to be stored
+ *    for fast gradient comptation, rather than last input.
+ */
+} // namespace cpp_nn
+
+#endif // CPP_NN_LAYER_SIGMOID

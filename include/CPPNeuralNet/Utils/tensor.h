@@ -371,6 +371,25 @@ inline ScalarMultiplicationOperation<T, HeldOperation> operator/(const TensorLik
   return {A, 1 / scalar}; // TODOchange for better code
 }
 
+/* Given a tensor and a function on the elements, apply the function to each element */
+template<typename T, typename HeldOperation>
+inline ElementOperation<T, HeldOperation> Apply(const TensorLike<T, HeldOperation>& A,
+                                                 const std::function<T(T)> operation) {
+  return {A, operation};
+}
+
+/* Given two tensors and bi-variate function, apply the function element-wise.
+    When shapes are mismatched, apply Broadcasting. */
+template<typename T, typename HeldOperation1, typename HeldOperation2>
+inline ElementwiseOperation<T, 
+                            HeldOperation1, 
+                            HeldOperation2> Apply(const TensorLike<T, HeldOperation1>& A,
+                                                  const TensorLike<T, HeldOperation2>& B,
+                                                  const std::function<T(T, T)> operation) {
+  return {A, B, operation};
+}
+
+
 
 
 // Special Tensor Operations ---------------------------
@@ -434,6 +453,22 @@ template<typename T, typename Derived>
 inline 
 Tensor<T> Average(const TensorLike<T, Derived>& tensor,
                                                    int axis);
+
+/**
+ *  reshapes the tensor so that all 1-dimensional axes at the end of shapes are removed
+ *  
+ *  ie)
+ *    [1, 2, 1, 4, 1, 1, 1]
+ *    ->
+ *    [1, 2, 1, 4]
+ * 
+ *  when all are one, then becomes
+ *    [1]
+ */
+template<typename T, typename Derived>
+inline 
+Tensor<T> CollapseEnd(const TensorLike<T, Derived>& tensor);
+
 
 /*!! TODO: The derived functinos return tensor, as returing nest of operations result in 
         scope-breaking behaviour. However, we do not wan to always resolve to Tensor.
@@ -731,6 +766,22 @@ inline
 Tensor<T> Average(const TensorLike<T, Derived>& tensor,
                                                    int axis) {
   return tensor.SumAxis(axis) / (T)tensor.getDimension(axis);
+}
+/**
+ *  reshapes the tensor so that all 1-dimensional axes at the end of shapes are removed
+ */
+template<typename T, typename Derived>
+inline 
+Tensor<T> CollapseEnd(const TensorLike<T, Derived>& tensor) {
+  const std::vector<int>& shape = tensor.getShape();
+  int end_axis = shape.size() - 1;
+
+  while (end_axis > 0 && shape[end_axis] == 1) {
+    --end_axis;
+  }
+
+  return tensor.Reshape(std::vector<int>(shape.begin(), 
+                                         shape.begin() + end_axis + 1));
 }
 // End of Derived Operations ----------
 // End of Operations ==========================================

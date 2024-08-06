@@ -14,8 +14,8 @@ class LinearLayer : public Layer {
 
  public:
   LinearLayer(int input_size, int output_size);
-  Tensor forward(const Tensor& input);
-  Tensor backward(const Tensor& gradient);
+  Tensor forward(const Tensor& input)     override;
+  Tensor backward(const Tensor& gradient) override;
 
  private:
   Tensor weights_;
@@ -39,8 +39,8 @@ class LinearLayer : public Layer {
  *  dC/dW = dC/dy * x^T
  *    We will not go into details to why this is case here.
  * 
- *  dy/dx = W
- *  -> dC/dx = W * dC/dy
+ *  dy/dx = W^T
+ *  -> dC/dx = W^T * dC/dy
  * 
  *  Needed intermediate members are:
  *    W, B

@@ -1,62 +1,41 @@
-// #include "CPPNeuralNet/Layers/relu_layer.h"
-// #include <cstdlib>
-// #include <algorithm>
+#include "CPPNeuralNet/Layers/relu_layer.h"
+#include <cstdlib>
+#include <algorithm>
 
-// namespace cpp_nn {
+namespace cpp_nn {
+// Constructor -----------------------------------------
+ReLU::ReLU()
+    : last_input_({1}) /* default smallest tensor */ 
+  {}
+// End of Constructor ----------------------------------
+
+/**
+ * Relu function is defined as : f(x) = max(0, x)
+ * so its if x > 0, f(x) = x else f(x) = 0
+ * Relu basically "activaes" only for positive inputs
+ */
+ReLU::Tensor ReLU::forward(const Tensor& input) {
+  last_input_ = input;
+  return util::Apply<float, 
+                     Tensor>(input,  
+                             [] (float input)->float {
+                               return input > 0 ? input : 0;
+                             });
+}
+/**
+ * derivative of ReLU is f'(x) = 1 if x > 0 else f'(x) = 0 
+ * If x > 0, dL/dx = dL/dy * 1 = dL/dy 
+ * else , dL/dx = dL/dy * 0 = 0
+ */
+ReLU::Tensor ReLU::backward(const Tensor& gradient) {
+  return util::Apply<float, 
+                     Tensor, 
+                     Tensor>(last_input_,
+                             gradient,
+                             [] (float input, float gradient)->float {
+                               return ((input > 0) ? gradient : 0);
+                             });
+}
 
 
-// /**
-//  * Relu function is defined as : f(x) = max(0, x)
-//  * so its if x > 0, f(x) = x else f(x) = 0
-//  * Relu basically "activaes" only for positive inputs
-//  */
-
-// util::Tensor<float> ReLU::forward(const util::Tensor<float>& input) {
-//     last_input = input;
-//     util::Tensor<float> output(input.getShape());
-    
-//     std::vector<int> indices(input.getOrder(), 0);
-//     for (int i = 0; i < input.getCapacity(); ++i) {
-//         // Convert linear index i to multi-dimensional indices
-//         int temp = i;
-//         for (int j = input.getOrder() - 1; j >= 0; --j) {
-//             indices[j] = temp % input.getDimension(j);
-//             temp /= input.getDimension(j);
-//         }
-//         output.getElement(indices) = std::max(0.0f, input.getElement(indices));
-//     }
-    
-//     return output;
-// }
-// /**
-//  * derivative of ReLU is f'(x) = 1 if x > 0 else f'(x) = 0 
-//  * If x > 0, dL/dx = dL/dy * 1 = dL/dy 
-//  * else , dL/dx = dL/dy * 0 = 0
-//  */
-// util::Tensor<float> ReLU::backward(const util::Tensor<float>& gradient) {
-//     util::Tensor<float> output(gradient.getShape());
-    
-//     std::vector<int> indices(gradient.getOrder(), 0);
-//     for (size_t i = 0; i < gradient.getCapacity(); ++i) {
-//         // Convert linear index i to multi-dimensional indices
-//         size_t temp = i;
-//         for (int j = gradient.getOrder() - 1; j >= 0; --j) {
-//             indices[j] = temp % gradient.getDimension(j);
-//             temp /= gradient.getDimension(j);
-//         }
-//         output.getElement(indices) = last_input.getElement(indices) > 0 ? gradient.getElement(indices) : 0.0f;
-//     }
-    
-//     return output;
-// }
-
-// void ReLU::update_parameters(float learning_rate) {
-// }
-
-// void ReLU::save_gradients() {
-// }
-
-// void ReLU::clear_gradients() {
-// }
-
-// } // namespace cpp_nn
+} // namespace cpp_nn

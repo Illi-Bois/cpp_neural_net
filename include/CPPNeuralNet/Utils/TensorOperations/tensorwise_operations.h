@@ -878,7 +878,7 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
 
     T operator*() const {
       // Ideally would not 
-      HeldIterator curr_iter = this->iter;
+      HeldIterator& curr_iter = const_cast<HeldIterator&>(this->iter);
       // Jump and sum 
       T sum = 0;
       for (int i = 0; i < collapse_count_ - 1; ++i) {
@@ -886,6 +886,7 @@ class AxisSummationOperation : public TensorLike<T, AxisSummationOperation<T, He
         curr_iter += minor_jump_;
       }
       sum += *curr_iter;
+      curr_iter -= (collapse_count_ - 1) * minor_jump_;
       return sum;
     }
 
