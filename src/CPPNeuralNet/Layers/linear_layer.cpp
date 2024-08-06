@@ -2,8 +2,19 @@
 
 namespace cpp_nn {
 
+/**
+ * Used Box Muller to generate gaussian random numbers 
+ * Z1 = sqrt( -2 * ln(U1)) * sin(2 * pi * U2)
+ */
 LinearLayer::LinearLayer(int input_size, int output_size)
-    : weights_({output_size, input_size}, 1 /*TODO: make this random*/), // TODO: Initializer Generator as random?
+    : weights_({output_size, input_size}, [input_size]() {
+          float u1 = static_cast<float>(std::rand()) / RAND_MAX;
+          float u2 = static_cast<float>(std::rand()) / RAND_MAX;
+          float r = std::sqrt(-2.0f * std::log(u1));
+          float standard_normal = r * std::sin(2.0f * M_PI * u2);
+          return standard_normal * std::sqrt(2.0f / input_size);
+
+    }), // TODO: Initializer Generator as random?
       biases_({output_size}),
       last_input_({1}) /*TODO: maybe a better place holder exists? maybe even make it a pointer?*/ {
   // TODO: Initialzation shold be put in as Generator
