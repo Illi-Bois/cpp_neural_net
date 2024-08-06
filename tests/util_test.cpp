@@ -1239,4 +1239,4 @@ TEST(Util, TranposedIndexConversion_To_and_From_Same_Axis_at_End) {
                                    transposed_idx.begin(), transposed_idx.end()));
 }
 
-// End of Tranpose Address Operations ---------------------------------------------------------
+
